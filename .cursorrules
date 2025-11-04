@@ -1,0 +1,96 @@
+# 协同代码编辑器组件开发规则
+
+## 项目定位
+- 这是一个**可嵌入式组件**,不是独立应用
+- 简化版：专注核心功能(编辑器+协同+代码执行)
+- 前期暂不实现：文件树(单文件编辑模式)、Preview预览窗口、开发服务器、HMR、npm包管理
+
+## 技术栈版本（包括且不限于，使用最新的稳定版）
+- pnpm
+- Next.js 15.x + React 19 + TypeScript(严格模式)
+- Yjs 13.6.x + y-websocket + y-monaco
+- Monaco Editor 0.50.x (必须用 next/dynamic 禁用SSR)
+- @webcontainer/api 1.3.x
+- Zustand 4.5.x
+- TailwindCSS 3.4.x + ShadcnUI(Radix UI)
+
+## 代码规范
+1. **TypeScript**: 严格模式,所有导出必须有类型定义
+2. **组件化**: 组件放在 `components/code-editor/`,使用统一入口导出
+3. **状态隔离**: 使用 Zustand 独立 Store,不污染宿主应用
+4. **样式**: 仅使用 TailwindCSS,避免内联样式和 CSS-in-JS
+5. **命名**: 状态用名词(activeFile),动作用动词(openFile),布尔值用 is/has 前缀
+
+## 目录结构
+```
+components/code-editor/  # 编辑器组件
+  ├── index.tsx         # 统一导出
+  ├── Editor.tsx        # Monaco包装⭐核心
+  ├── Terminal.tsx      # 终端输出⭐核心
+  ├── Toolbar.tsx       # 工具栏(运行按钮+状态)
+  └── UserCursors.tsx   # 协同光标(未实现)
+
+lib/
+  ├── yjs/              # Yjs协同逻辑(未实现)
+  ├── webcontainer/     # WebContainer封装
+  ├── store/            # Zustand Store(拆分为 editor/collaboration/runtime/ui)
+  └── utils/            # 工具函数
+
+app/api/collaboration/  # WebSocket服务器(未实现)
+```
+
+## 核心实现要点
+
+### Monaco Editor
+- 使用 `next/dynamic` 动态导入,禁用SSR: `{ ssr: false }`
+- 通过 y-monaco 绑定 Y.Text 实现协同
+- 监听 `onDidChangeCursorPosition` 同步光标到 Awareness
+
+### Yjs 协同
+- 文档结构: `Y.Map<string, Y.Text>` 存储文件,`Awareness` 存储用户状态
+- WebSocket 连接到 Next.js API Route `/api/collaboration`
+- 实现断线重连(指数退避)和连接状态指示器
+
+### WebContainer (简化版)
+- 仅执行 Node.js 脚本: `webContainer.spawn('node', ['main.js'])`
+- 捕获 stdout/stderr 显示到终端组件
+- **不启动** dev server,不使用 iframe 预览
+- 显示执行时间和错误堆栈
+
+### Next.js 配置
+- 必须配置响应头支持 SharedArrayBuffer:
+  ```js
+  headers: [
+    { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+    { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' }
+  ]
+  ```
+
+## 功能优先级
+✅ 第一阶段(单机版):
+- Monaco 编辑器 + 语法高亮
+- 代码执行 + 终端输出
+- 单文件编辑(通过 initialFiles 传入)
+
+⏸️ 后续阶段:
+- 文件树(增删改查)
+- Yjs 实时协同 + 远程光标
+- Preview 预览窗口
+
+## 性能优化
+- Monaco Editor 懒加载
+- 限制终端输出(最多1000行)
+
+## 组件导出要求
+- 提供单组件导出: `<CodeEditor roomId={} initialFiles={} />`
+- 提供拆分导出: `<EditorProvider>` + 子组件
+- 所有 Props 必须有 TypeScript 定义
+- 预留扩展字段但不实现(如 previewUrl, devServer)
+
+## 注意事项
+- 尽量设计简洁精炼，避免冗余设计，尽量使用最简单有效的实现方式，避免过度设计。（高优先级）
+- 避免全局状态,使用 Context 或 Zustand 独立 Store
+- 组件内部错误不应影响宿主应用
+- 所有异步操作必须有 loading 和 error 状态
+- 适用场景：算法题练习、代码面试、JS教学(非完整项目开发)
+- 无需编写md文件，仅在我需要时编写
