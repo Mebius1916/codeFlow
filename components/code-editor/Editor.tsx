@@ -22,10 +22,15 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
 
 interface EditorProps {
   roomId: string
-  user?: CodeEditorProps['user']
+  user: {
+    id: string
+    name?: string
+    color?: string
+  }
+  wsUrl?: string
 }
 
-export function Editor({ roomId, user }: EditorProps) {
+export function Editor({ roomId, user, wsUrl }: EditorProps) {
   const { activeFile, files } = useEditorStore()
   const { setYDoc, setConnectionStatus, setCurrentUser, setUsers } = useCollaborationStore()
   
@@ -41,14 +46,23 @@ export function Editor({ roomId, user }: EditorProps) {
     let mounted = true
 
     const initCollaboration = async () => {
-      const userName = user?.name || `用户${Math.floor(Math.random() * 1000)}`
-      const userId = user?.id || `user_${Date.now()}`
+      // 用户信息（外部传入，user.id 是必需的）
+      const userId = user.id
+      const userName = user.name || `用户${Math.floor(Math.random() * 1000)}`
+      const userColor = user.color || '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')
+
+      // WebSocket 地址（外部传入或使用默认值）
+      const websocketUrl = wsUrl || 
+                          (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_WS_URL) || 
+                          'ws://localhost:1234'
 
       // 创建 Provider
       const { yDoc, provider } = await createYjsProvider({
         roomId,
+        userId,
         userName,
-        wsUrl: `ws://localhost:1234`, // WebSocket 服务器地址
+        userColor,
+        wsUrl: websocketUrl,
       })
 
       if (!mounted) {
@@ -64,7 +78,7 @@ export function Editor({ roomId, user }: EditorProps) {
       const currentUser = {
         id: userId,
         name: userName,
-        color: provider.awareness.getLocalState()?.user?.color || '#000000',
+        color: userColor,
       }
       setCurrentUser(currentUser)
 
@@ -81,7 +95,8 @@ export function Editor({ roomId, user }: EditorProps) {
         const users = Array.from(states.entries())
           .filter(([clientId]) => clientId !== provider.awareness.clientID)
           .map(([clientId, state]: [number, any]) => ({
-            id: `client_${clientId}`,
+            id: `client_${clientId}`, // 使用唯一的 clientID 作为 key
+            userId: state.user?.id,   // 真实的用户ID
             name: state.user?.name || '匿名用户',
             color: state.user?.color || '#888888',
             cursor: state.cursor,

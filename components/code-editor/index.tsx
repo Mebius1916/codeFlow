@@ -9,16 +9,20 @@ import type { CodeEditorProps } from './types'
 
 export function CodeEditor({
   roomId,
+  user,
   initialFiles = {},
-  readOnly = false,
-  theme = 'dark',
   height = '100vh',
+  wsUrl,
   onSave,
   onError,
-  user,
 }: CodeEditorProps) {
   const { addFile, openFile } = useEditorStore()
   const { isTerminalVisible, terminalHeight } = useUiStore()
+
+  // 参数校验
+  if (!user.id) {
+    throw new Error('[CodeEditor] user.id 是必需参数，请由宿主应用传入稳定的用户ID')
+  }
 
   // 初始化文件
   useEffect(() => {
@@ -42,7 +46,11 @@ export function CodeEditor({
       
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex-1 overflow-hidden">
-          <Editor roomId={roomId} user={user} />
+          <Editor 
+            roomId={roomId} 
+            user={user} 
+            wsUrl={wsUrl}
+          />
         </div>
         
         {isTerminalVisible && (

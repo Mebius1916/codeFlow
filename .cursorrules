@@ -21,23 +21,6 @@
 4. **样式**: 仅使用 TailwindCSS,避免内联样式和 CSS-in-JS
 5. **命名**: 状态用名词(activeFile),动作用动词(openFile),布尔值用 is/has 前缀
 
-## 目录结构
-```
-components/code-editor/  # 编辑器组件
-  ├── index.tsx         # 统一导出
-  ├── Editor.tsx        # Monaco包装⭐核心
-  ├── Terminal.tsx      # 终端输出⭐核心
-  ├── Toolbar.tsx       # 工具栏(运行按钮+状态)
-  └── UserCursors.tsx   # 协同光标(未实现)
-
-lib/
-  ├── yjs/              # Yjs协同逻辑(未实现)
-  ├── webcontainer/     # WebContainer封装
-  ├── store/            # Zustand Store(拆分为 editor/collaboration/runtime/ui)
-  └── utils/            # 工具函数
-
-app/api/collaboration/  # WebSocket服务器(未实现)
-```
 
 ## 核心实现要点
 
@@ -51,7 +34,7 @@ app/api/collaboration/  # WebSocket服务器(未实现)
 - WebSocket 连接到 Next.js API Route `/api/collaboration`
 - 实现断线重连(指数退避)和连接状态指示器
 
-### WebContainer (简化版)
+### WebContainer
 - 仅执行 Node.js 脚本: `webContainer.spawn('node', ['main.js'])`
 - 捕获 stdout/stderr 显示到终端组件
 - **不启动** dev server,不使用 iframe 预览
@@ -66,31 +49,10 @@ app/api/collaboration/  # WebSocket服务器(未实现)
   ]
   ```
 
-## 功能优先级
-✅ 第一阶段(单机版):
-- Monaco 编辑器 + 语法高亮
-- 代码执行 + 终端输出
-- 单文件编辑(通过 initialFiles 传入)
-
-⏸️ 后续阶段:
-- 文件树(增删改查)
-- Yjs 实时协同 + 远程光标
-- Preview 预览窗口
-
-## 性能优化
-- Monaco Editor 懒加载
-- 限制终端输出(最多1000行)
-
-## 组件导出要求
-- 提供单组件导出: `<CodeEditor roomId={} initialFiles={} />`
-- 提供拆分导出: `<EditorProvider>` + 子组件
-- 所有 Props 必须有 TypeScript 定义
-- 预留扩展字段但不实现(如 previewUrl, devServer)
-
 ## 注意事项
 - 尽量设计简洁精炼，避免冗余设计，尽量使用最简单有效的实现方式，避免过度设计。（高优先级）
+- 无需编写新的.md文件及文档。（高优先级）
 - 避免全局状态,使用 Context 或 Zustand 独立 Store
 - 组件内部错误不应影响宿主应用
 - 所有异步操作必须有 loading 和 error 状态
 - 适用场景：算法题练习、代码面试、JS教学(非完整项目开发)
-- 无需编写.md文件，仅在我需要时编写
