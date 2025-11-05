@@ -42,7 +42,7 @@ export function CodeEditor({
       
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="flex-1 overflow-hidden">
-          <Editor />
+          <Editor roomId={roomId} user={user} />
         </div>
         
         {isTerminalVisible && (
