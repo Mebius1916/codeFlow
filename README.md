@@ -1,6 +1,17 @@
-# 协同代码编辑器组件
+# 协同代码编辑器
 
 基于 Next.js 15 + React 19 + Yjs + Monaco Editor + WebContainer 的实时协同代码编辑器组件。
+
+## 📦 Monorepo 结构
+
+```
+collaborative-editor/
+├── packages/
+│   ├── editor/          # 前端组件包
+│   └── server/          # WebSocket 服务器包
+├── app/                 # 示例应用
+└── components/          # 组件源码
+```
 
 ## ✨ 特性
 
@@ -35,55 +46,44 @@ pnpm start
 
 ## 📦 使用方式
 
-### 基本示例
+### 作为 npm 包使用
+
+```bash
+# 安装前端组件
+pnpm add @collaborative-editor/core
+
+# 安装服务器（开发依赖）
+pnpm add -D @collaborative-editor/server
+```
 
 ```tsx
-import { CodeEditor } from '@/components/code-editor'
+import { CodeEditor } from '@collaborative-editor/core'
 
 export default function Page() {
   return (
     <CodeEditor
       roomId="my-room"
-      initialFiles={{
-        'main.js': 'console.log("Hello World")'
-      }}
-      user={{
-        id: 'user-123',      // ⚠️ 重要：应由外部传入稳定的用户ID
-        name: '张三',
-        color: '#4A90E2'
-      }}
+      user={{ id: 'user-123', name: '张三' }}
+      wsUrl={process.env.NEXT_PUBLIC_WS_URL}
+      initialFiles={{ 'main.js': 'console.log("Hello")' }}
     />
   )
 }
 ```
 
-### ⚠️ 用户ID管理
+### 本地开发
 
-本组件是**可嵌入式组件**，用户身份应该由**宿主应用**管理：
+```bash
+# 克隆项目
+git clone your-repo
+cd collaborative-editor
 
-```tsx
-function MyApp() {
-  // 方案1: 从认证系统获取
-  const { userId, userName } = useAuth()
-  
-  // 方案2: 使用会话存储
-  const sessionId = sessionStorage.getItem('user-id') || generateId()
-  
-  return (
-    <CodeEditor
-      roomId="room-001"
-      user={{ id: userId || sessionId }}
-      initialFiles={{ 'main.js': '' }}
-    />
-  )
-}
+# 安装依赖
+pnpm install
+
+# 启动开发（自动启动应用 + WebSocket 服务器）
+pnpm dev:all
 ```
-
-**如果不传入 `user.id`：**
-- 组件会生成临时ID（在组件生命周期内稳定）
-- 页面刷新后会显示为新用户 ⚠️
-
-详见 [使用指南](./docs/USAGE.md)
 
 ## 🛠️ 技术栈
 
@@ -107,35 +107,28 @@ function MyApp() {
 - [ ] WebSocket 服务器优化
 - [ ] 断线重连机制
 
-## 🎁 组件导出
+## 📦 包说明
 
-本项目设计为**可嵌入式组件**，支持多种集成方式：
+### @collaborative-editor/core
 
-### 当前项目内使用
+前端 React 组件，包含编辑器、协同、终端等核心功能。
 
-```tsx
-import { CodeEditor } from '@/components/code-editor'
+### @collaborative-editor/server
+
+WebSocket 服务器，提供协同编辑的实时通信。
+
+```bash
+# 启动服务器
+npx collab-server start
+
+# 或全局安装
+npm install -g @collaborative-editor/server
+collab-server start
 ```
-
-### 导出为独立包
-
-```tsx
-// 统一入口
-import { CodeEditor, type CodeEditorProps } from '@/index'
-
-// 高级用法：分离导出
-import { Editor, Terminal, Toolbar } from '@/index'
-import { useEditorStore, useCollaborationStore } from '@/index'
-```
-
-详见：
-- [集成指南](./INTEGRATION.md) - 如何在其他项目中使用
-- [业务封装示例](./examples/business-wrapper.tsx) - 实际使用案例
 
 ## 📖 文档
 
-- [集成指南](./INTEGRATION.md) - 组件集成方案
-- [开发文档](./docs/CHANGELOG.md) - 开发日志
+查看 [CHANGELOG.md](./docs/CHANGELOG.md) 了解更新日志
 
 ## ⚠️ 注意事项
 

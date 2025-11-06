@@ -2,12 +2,15 @@
   "name": "collaborative-code-editor",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "ws": "node server/collaboration.js",
+    "ws": "node packages/server/src/server.js",
     "dev:all": "concurrently \"pnpm dev\" \"pnpm ws\""
   },
   "dependencies": {

@@ -1,0 +1,22 @@
+{
+  "name": "@collaborative-editor/server",
+  "version": "0.1.0",
+  "description": "WebSocket 协同服务器",
+  "main": "./src/server.js",
+  "bin": {
+    "collab-server": "./bin/cli.js"
+  },
+  "files": [
+    "src",
+    "bin"
+  ],
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.3",
+    "yjs": "^13.6.18",
+    "y-websocket": "^2.0.4"
+  }
+}
+

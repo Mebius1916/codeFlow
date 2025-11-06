@@ -11,8 +11,8 @@ const WebSocket = require('ws')
 const http = require('http')
 const { setupWSConnection } = require('y-websocket/bin/utils')
 
-const PORT = process.env.WS_PORT || 1234
-const HOST = process.env.WS_HOST || 'localhost'
+const PORT = process.env.WS_PORT || 8848
+const HOST = '0.0.0.0'  // 监听所有网络接口，部署后自动可外网访问
 
 // 创建 HTTP 服务器
 const server = http.createServer((request, response) => {
@@ -24,7 +24,7 @@ const server = http.createServer((request, response) => {
 const wss = new WebSocket.Server({ server })
 
 wss.on('connection', (ws, req) => {
-  setupWSConnection(ws, req)
+  setupWSConnection(ws, req) // 广播消息
   console.log(`[${new Date().toLocaleTimeString()}] 新连接: ${req.url}`)
 })
 
