@@ -1,7 +1,7 @@
 // 协同状态存储
 import { create } from 'zustand'
 import type * as Y from 'yjs'
-import type { User, ConnectionStatus } from '@/types/collaboration'
+import type { User, ConnectionStatus } from '../../types/collaboration'
 
 interface CollaborationState {
   // 状态

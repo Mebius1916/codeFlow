@@ -2,15 +2,18 @@
 
 基于 Next.js 15 + React 19 + Yjs + Monaco Editor + WebContainer 的实时协同代码编辑器组件。
 
-## 📦 Monorepo 结构
+## 📦 项目结构（Monorepo）
 
 ```
 collaborative-editor/
 ├── packages/
-│   ├── editor/          # 前端组件包
-│   └── server/          # WebSocket 服务器包
-├── app/                 # 示例应用
-└── components/          # 组件源码
+│   ├── core/                # 组件包（可发布）
+│   │   └── src/
+│   └── server/              # WebSocket 服务器包（可发布）
+│       └── src/
+├── example/                 # 示例应用（不发布）
+│   └── app/
+└── pnpm-workspace.yaml
 ```
 
 ## ✨ 特性
@@ -46,13 +49,24 @@ pnpm start
 
 ## 📦 使用方式
 
+### 本地开发
+
+```bash
+# 克隆项目
+git clone your-repo
+cd collaborative-editor
+
+# 安装依赖
+pnpm install
+
+# 启动开发（自动启动应用 + WebSocket 服务器）
+pnpm dev:all
+```
+
 ### 作为 npm 包使用
 
 ```bash
-# 安装前端组件
 pnpm add @collaborative-editor/core
-
-# 安装服务器（开发依赖）
 pnpm add -D @collaborative-editor/server
 ```
 
@@ -69,20 +83,6 @@ export default function Page() {
     />
   )
 }
-```
-
-### 本地开发
-
-```bash
-# 克隆项目
-git clone your-repo
-cd collaborative-editor
-
-# 安装依赖
-pnpm install
-
-# 启动开发（自动启动应用 + WebSocket 服务器）
-pnpm dev:all
 ```
 
 ## 🛠️ 技术栈
@@ -107,23 +107,21 @@ pnpm dev:all
 - [ ] WebSocket 服务器优化
 - [ ] 断线重连机制
 
-## 📦 包说明
+## 📦 npm 包说明
 
 ### @collaborative-editor/core
-
-前端 React 组件，包含编辑器、协同、终端等核心功能。
+前端 React 组件，包含编辑器、协同、终端等功能。
 
 ### @collaborative-editor/server
-
 WebSocket 服务器，提供协同编辑的实时通信。
 
 ```bash
-# 启动服务器
-npx collab-server start
-
-# 或全局安装
+# 全局安装
 npm install -g @collaborative-editor/server
 collab-server start
+
+# 或直接使用
+npx @collaborative-editor/server start
 ```
 
 ## 📖 文档

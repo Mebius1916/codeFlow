@@ -1,6 +1,6 @@
 'use client'
 
-import { useCollaborationStore } from '@/lib/store'
+import { useCollaborationStore } from '../../lib/store'
 
 /**
  * 用户光标显示组件（简化版）

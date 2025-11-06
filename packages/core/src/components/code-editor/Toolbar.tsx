@@ -1,7 +1,7 @@
 'use client'
 
-import { useCollaborationStore, useRuntimeStore } from '@/lib/store'
-import { executeCode } from '@/lib/webcontainer/execute'
+import { useCollaborationStore, useRuntimeStore } from '../../lib/store'
+import { executeCode } from '../../lib/webcontainer/execute'
 
 export function Toolbar() {
   const { connectionStatus, users } = useCollaborationStore()

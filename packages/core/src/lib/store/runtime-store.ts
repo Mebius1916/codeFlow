@@ -1,7 +1,7 @@
 // webcontainer 运行时状态存储
 import { create } from 'zustand'
 import type { WebContainer } from '@webcontainer/api'
-import type { TerminalOutput, ProcessInfo } from '@/types/webcontainer'
+import type { TerminalOutput, ProcessInfo } from '../../types/webcontainer'
 
 interface RuntimeState {
   // 状态

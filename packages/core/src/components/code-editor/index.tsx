@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { Editor } from './Editor'
 import { Terminal } from './Terminal'
 import { Toolbar } from './Toolbar'
-import { useEditorStore, useUiStore } from '@/lib/store'
+import { useEditorStore, useUiStore } from '../../lib/store'
 import type { CodeEditorProps } from './types'
 
 export function CodeEditor({

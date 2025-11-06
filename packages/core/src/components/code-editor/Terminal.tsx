@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useRuntimeStore } from '@/lib/store'
-import { stripAnsi } from '@/lib/utils/ansi'
+import { useRuntimeStore } from '../../lib/store'
+import { stripAnsi } from '../../lib/utils/ansi'
 
 export function Terminal() {
   const { terminalOutput, clearTerminal } = useRuntimeStore()

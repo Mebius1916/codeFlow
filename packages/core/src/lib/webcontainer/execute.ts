@@ -1,6 +1,6 @@
 import { WebContainer } from '@webcontainer/api'
-import { useRuntimeStore } from '@/lib/store/runtime-store'
-import { useEditorStore } from '@/lib/store/editor-store'
+import { useRuntimeStore } from '../store/runtime-store'
+import { useEditorStore } from '../store/editor-store'
 
 let webcontainerInstance: WebContainer | null = null
 
