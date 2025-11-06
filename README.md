@@ -89,7 +89,7 @@ export default function Page() {
 
 - **框架**: Next.js 15 + React 19
 - **编辑器**: Monaco Editor 0.50.x
-- **协同**: Yjs 13.6.x (开发中)
+- **协同**: Yjs 13.6.x 
 - **运行时**: WebContainer API 1.3.x
 - **状态管理**: Zustand 4.5.x
 - **样式**: TailwindCSS 3.4.x
