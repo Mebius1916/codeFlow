@@ -6,9 +6,10 @@
     "dev": "pnpm --filter example dev",
     "build": "pnpm --filter @collaborative-editor/core build && pnpm --filter example build",
     "start": "pnpm --filter example start",
+    "start:all": "pnpm --filter example start:all",
     "lint": "pnpm --filter example lint",
     "ws": "pnpm --filter @collaborative-editor/server start",
-    "dev:all": "concurrently \"pnpm dev\" \"pnpm ws\""
+    "dev:all": "pnpm --filter example dev:all"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

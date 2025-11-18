@@ -4,17 +4,22 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "ws": "collab-server start",
+    "dev:all": "concurrently \"next dev --turbopack\" \"collab-server start\"",
     "build": "next build",
     "start": "next start",
+    "start:all": "concurrently \"next start\" \"collab-server start\"",
     "lint": "next lint"
   },
   "dependencies": {
     "@collaborative-editor/core": "workspace:*",
+    "@collaborative-editor/server": "workspace:*",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

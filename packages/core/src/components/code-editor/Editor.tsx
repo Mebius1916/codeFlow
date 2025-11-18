@@ -126,6 +126,13 @@ export function Editor({ roomId, user, wsUrl }: EditorProps) {
     // 绑定 Monaco 和 Yjs
     if (yDocRef.current && providerRef.current && activeFile) {
       const yText = yDocRef.current.getText(activeFile)
+      // 若协同文本为空，但本地已有初始内容，则先写入到 Yjs，避免绑定后清空
+      try {
+        const currentContent = useEditorStore.getState().files[activeFile] || ''
+        if (yText.length === 0 && currentContent) {
+          yText.insert(0, currentContent)
+        }
+      } catch {}
       bindingRef.current = await createMonacoBinding(yText, editor, providerRef.current)
       
       // 同步光标
