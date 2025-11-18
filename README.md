@@ -7,14 +7,81 @@
 ```
 collaborative-editor/
 ├── packages/
-│   ├── core/                # 组件包（可发布）
+│   ├── core/                # 组件包（需发布）
 │   │   └── src/
-│   └── server/              # WebSocket 服务器包（可发布）
+│   └── server/              # WebSocket 服务器包（需发布）
 │       └── src/
-├── example/                 # 示例应用（不发布）
+├── example/                 # 示例应用（需部署）
 │   └── app/
 └── pnpm-workspace.yaml
 ```
+
+## 🧭 架构图
+
+```mermaid
+flowchart LR
+  subgraph Example[example (Next.js 应用)]
+    EX[使用 @collaborative-editor/core]
+  end
+
+  subgraph Core[@collaborative-editor/core]
+    CE[CodeEditor 组件]
+    E[Monaco Editor]
+    Y[Yjs 文档 + Awareness]
+    WC[WebContainer 代码执行]
+    T[Terminal 输出]
+    FT[文件树]
+    WV[WebView]
+  end
+
+  subgraph Server[@collaborative-editor/server]
+    WS[Yjs WebSocket Server]
+  end
+
+  EX --> CE
+  CE --> E
+  CE --> FT
+  CE --> T
+  CE --> WC
+
+  CE --> Y
+  Y -- WebSocket --> WS
+  Y -. 计划：WebRTC P2P .- Peers[(Peers)]
+```
+
+## 🔌 插件化设计（目标）
+
+- 以插件/配置的方式组合功能，按需启用。
+- 默认提供基于 WebSocket 的协同编辑、代码执行与终端展示。
+- 通过配置解锁/组合文件树、WebView、WebRTC 传输等能力。
+
+### 拟定配置接口示例
+
+```tsx
+<CodeEditor
+  roomId="room-1"
+  user={{ id: "u-1", name: "Alice" }}
+  wsUrl="ws://localhost:1234"
+  features={{
+    terminal: true,
+    fileTree: true,
+    webview: false
+  }}
+  transport={{
+    type: "websocket",
+    url: "ws://localhost:1234"
+  }}
+/>
+```
+
+### 功能模块（规划）
+
+- 协同：`Yjs` 文档与光标同步，传输可选 `WebSocket`、`WebRTC`（计划）。
+- 编辑器：`Monaco Editor`，支持多文件与语法高亮。
+- 运行时：`WebContainer` 进行代码执行与输出捕获。
+- 终端：展示执行输出与交互输入（可开关）。
+- 文件树：基础 CRUD 与活动文件切换（可开关）。
+- WebView：在同页展示预览或外部页面（可开关）。
 
 ## ✨ 特性
 
