@@ -43,10 +43,11 @@ flowchart LR
   CE --> FT
   CE --> T
   CE --> WC
+  CE --> WV
 
   CE --> Y
   Y -- WebSocket --> WS
-  Y -. 计划：WebRTC P2P .- Peers[(Peers)]
+  Y -. 计划：WebRTC P2P .-> Peers((Peers))
 ```
 
 ## 🔌 插件化设计（目标）
