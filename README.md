@@ -19,35 +19,35 @@ collaborative-editor/
 ## 🧭 架构图
 
 ```mermaid
-flowchart LR
-  subgraph Example[example (Next.js 应用)]
-    EX[使用 @collaborative-editor/core]
+graph LR;
+  subgraph Example [example (Next.js 应用)]
+    EX[使用 @collaborative-editor/core];
   end
 
-  subgraph Core[@collaborative-editor/core]
-    CE[CodeEditor 组件]
-    E[Monaco Editor]
-    Y[Yjs 文档 + Awareness]
-    WC[WebContainer 代码执行]
-    T[Terminal 输出]
-    FT[文件树]
-    WV[WebView]
+  subgraph Core [@collaborative-editor/core]
+    CE[CodeEditor 组件];
+    E[Monaco Editor];
+    Y[Yjs 文档 + Awareness];
+    WC[WebContainer 代码执行];
+    T[Terminal 输出];
+    FT[文件树];
+    WV[WebView];
   end
 
-  subgraph Server[@collaborative-editor/server]
-    WS[Yjs WebSocket Server]
+  subgraph Server [@collaborative-editor/server]
+    WS[Yjs WebSocket Server];
   end
 
-  EX --> CE
-  CE --> E
-  CE --> FT
-  CE --> T
-  CE --> WC
-  CE --> WV
+  EX --> CE;
+  CE --> E;
+  CE --> FT;
+  CE --> T;
+  CE --> WC;
+  CE --> WV;
 
-  CE --> Y
-  Y -- WebSocket --> WS
-  Y -. 计划：WebRTC P2P .-> Peers((Peers))
+  CE --> Y;
+  Y -- WebSocket --> WS;
+  Y -. 计划：WebRTC P2P .-> Peers((Peers));
 ```
 
 ## 🔌 插件化设计（目标）
