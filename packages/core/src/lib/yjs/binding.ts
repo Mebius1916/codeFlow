@@ -1,6 +1,7 @@
 import * as Y from 'yjs'
 import type { WebsocketProvider } from 'y-websocket'
 import type * as Monaco from 'monaco-editor'
+import { CursorManager } from './cursor'
 
 /**
  * 创建 Monaco 和 Yjs 的绑定
@@ -18,12 +19,24 @@ export async function createMonacoBinding(
   // 动态导入 y-monaco（仅客户端）
   const { MonacoBinding } = await import('y-monaco')
   
-  return new MonacoBinding(
+  const binding = new MonacoBinding(
     yText,
     editor.getModel()!,
     new Set([editor]),
     provider.awareness
   )
+
+  // 初始化光标管理器
+  const cursorManager = new CursorManager(editor, provider.awareness)
+
+  // 扩展 destroy 方法以清理 cursorManager
+  const originalDestroy = binding.destroy.bind(binding)
+  binding.destroy = () => {
+    cursorManager.destroy()
+    originalDestroy()
+  }
+
+  return binding
 }
 
 /**

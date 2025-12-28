@@ -37,7 +37,7 @@ export function Terminal() {
       
       <div
         ref={terminalRef}
-        className="flex-1 overflow-y-auto p-4 font-mono text-[13px] leading-relaxed bg-[#0f0f11]"
+        className="flex-1 overflow-y-auto p-4 font-mono text-[13px] leading-relaxed bg-[#0f0f11] custom-scrollbar"
       >
         {terminalOutput.length === 0 ? (
           <div className="text-gray-600 italic">等待执行代码...</div>

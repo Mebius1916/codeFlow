@@ -38,3 +38,46 @@
   }
 }
 
+/* Yjs Remote Cursor Styles */
+.yRemoteSelection {
+  /* 选区背景色将由 JS 动态注入 */
+}
+
+.yRemoteSelectionHead {
+  position: absolute;
+  border-left: 2px solid #888; /* 默认颜色，防止 JS 注入延迟 */
+  border-top: none;
+  border-bottom: none;
+  height: 100% !important;
+  box-sizing: border-box;
+  display: block !important;
+  z-index: 10;
+  margin-left: -1px; /* 微调位置 */
+}
+
+/* 移除之前的方块头样式，只保留竖线 */
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 5px;
+  border: 2px solid #0f0f11; /* 与终端背景色一致，制造内边距效果 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
