@@ -39,7 +39,7 @@ export function CodeEditor({
 
   return (
     <div 
-      className="flex flex-col bg-[#1e1e1e]"
+      className="flex flex-col bg-[#1e1e1e] overflow-hidden"
       style={{ height }}
     >
       <Toolbar />

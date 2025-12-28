@@ -14,8 +14,9 @@ import { UserCursors } from './UserCursors'
 const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-white">
-      加载编辑器中...
+    <div className="flex flex-col items-center justify-center h-full bg-[#1e1e1e] text-gray-400 gap-3">
+      <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <span className="text-sm font-medium animate-pulse">正在初始化编辑器...</span>
     </div>
   ),
 })
@@ -123,13 +124,14 @@ export function Editor({ roomId, user, wsUrl }: EditorProps) {
   const handleEditorDidMount = async (editor: Monaco.editor.IStandaloneCodeEditor) => {
     editorRef.current = editor
 
-    // 绑定 Monaco 和 Yjs
+      // 绑定 Monaco 和 Yjs
     if (yDocRef.current && providerRef.current && activeFile) {
       const yText = yDocRef.current.getText(activeFile)
       // 若协同文本为空，但本地已有初始内容，则先写入到 Yjs，避免绑定后清空
+      // 注意：仅当文档完全为空时才写入初始内容，避免重复追加
       try {
         const currentContent = useEditorStore.getState().files[activeFile] || ''
-        if (yText.length === 0 && currentContent) {
+        if (yText.toString().length === 0 && currentContent) {
           yText.insert(0, currentContent)
         }
       } catch {}
@@ -142,11 +144,14 @@ export function Editor({ roomId, user, wsUrl }: EditorProps) {
 
   if (!activeFile) {
     return (
-      <div className="flex items-center justify-center h-full bg-[#1e1e1e] text-gray-400">
-        <div className="text-center">
-          <p className="text-lg mb-2">欢迎使用协同代码编辑器</p>
-          <p className="text-sm">请通过 initialFiles 属性传入代码文件</p>
+      <div className="flex flex-col items-center justify-center h-full bg-[#1e1e1e] text-gray-500">
+        <div className="w-16 h-16 mb-4 rounded-2xl bg-white/5 flex items-center justify-center">
+          <svg className="w-8 h-8 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
         </div>
+        <h3 className="text-lg font-medium text-gray-300 mb-2">准备就绪</h3>
+        <p className="text-sm max-w-xs text-center text-gray-500">请选择或创建一个文件开始编写代码，体验实时协同功能。</p>
       </div>
     )
   }

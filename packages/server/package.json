@@ -1,5 +1,5 @@
 {
-  "name": "collaborative-editor-server",
+  "name": "@collaborative-editor/server",
   "version": "0.1.0",
   "description": "WebSocket 协同服务器",
   "main": "./src/server.js",
@@ -19,4 +19,3 @@
     "y-websocket": "^2.0.4"
   }
 }
-

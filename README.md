@@ -83,6 +83,7 @@ graph LR
 - 终端：展示执行输出与交互输入（可开关）。
 - 文件树：基础 CRUD 与活动文件切换（可开关）。
 - WebView：在同页展示预览或外部页面（可开关）。
+- WebComponent：仍和框架都可使用。
 
 ## ✨ 特性
 
@@ -157,19 +158,19 @@ export default function Page() {
 
 - **框架**: Next.js 15 + React 19
 - **编辑器**: Monaco Editor 0.50.x
-- **协同**: Yjs 13.6.x 
+- **协同**: Yjs 13.6.x
 - **运行时**: WebContainer API 1.3.x
 - **状态管理**: Zustand 4.5.x
 - **样式**: TailwindCSS 3.4.x
 
 ## 📝 开发进度
 
-- [x] 项目初始化
-- [x] Monaco 编辑器集成
-- [x] 文件树组件
-- [x] 终端输出组件
-- [x] WebContainer 代码执行
-- [x] 用户ID稳定性管理
+- [X] 项目初始化
+- [X] Monaco 编辑器集成
+- [X] 文件树组件
+- [X] 终端输出组件
+- [X] WebContainer 代码执行
+- [X] 用户ID稳定性管理
 - [ ] Yjs 协同编辑完善
 - [ ] 远程光标显示
 - [ ] WebSocket 服务器优化
@@ -178,9 +179,11 @@ export default function Page() {
 ## 📦 npm 包说明
 
 ### @collaborative-editor/core
+
 前端 React 组件，包含编辑器、协同、终端等功能。
 
 ### @collaborative-editor/server
+
 WebSocket 服务器，提供协同编辑的实时通信。
 
 ```bash
@@ -205,4 +208,3 @@ npx @collaborative-editor/server start
 ## 📄 许可证
 
 MIT
-
