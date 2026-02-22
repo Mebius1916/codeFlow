@@ -6,6 +6,7 @@ import type { Transform } from "@figma/rest-api-spec";
 
 export interface SimplifiedLayout {
   mode: "none" | "row" | "column";
+  hasAbsoluteChildren?: boolean;
   parentMode?: "none" | "row" | "column";
   justifyContent?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch";
   alignItems?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch";

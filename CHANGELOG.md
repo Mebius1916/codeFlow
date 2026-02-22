@@ -1,5 +1,41 @@
 # 更新日志 (CHANGELOG)
 
+## [v0.1.16] - 2026-02-23
+
+### 布局推断与参数配置化
+
+> **涉及文件**:
+>
+> - `options.ts` (新增: 算法参数配置与覆盖)
+> - `core/extractors/algorithms/utils/dynamic-threshold.ts` (调整: 邻接阈值/间距计算与基准间距)
+> - `core/extractors/algorithms/adjacency-clustering.ts` (调整: 邻接基准间距计算迁移)
+> - `core/extractors/algorithms/layout-grouping.ts` (调整: 统一的分组构建策略)
+> - `core/extractors/algorithms/utils/auto-layout.ts` (新增: AutoLayout 间距判定)
+> - `core/extractors/algorithms/utils/list-pattern.ts` (调整: 列表间距与相对组回退)
+> - `core/extractors/algorithms/spatial-merging.ts` (调整: 空间合并阈值配置化)
+> - `core/extractors/attributes/layout-extractor.ts` (新增: 绝对定位与相对位置补充)
+> - `core/types/simplified-types.ts` (新增: hasAbsoluteChildren)
+> - `core/extractors/algorithms/style-normalization.ts` (调整: fills 收集与 layout 清理)
+> - `core/codegen/css/builders/css-builder.ts` (优化: 样式合并输出)
+> - `core/codegen/css/builders/layout-builder.ts` (调整: 绝对定位与尺寸输出策略)
+> - `core/codegen/css/builders/visual-builder.ts` (调整: text 与 background 填充区分)
+> - `core/codegen/html/index.ts` (调整: 内联 reset 样式移除)
+
+- **参数配置化 (Algorithm Options)**:
+  - 新增全局 options，支持布局间距 override、空间合并阈值、列表断裂上限与邻接阈值范围配置。
+- **布局分组与列表识别 (Layout Grouping & List)**:
+  - 新增 AutoLayout 间距判定，均匀间距转 AutoLayout，非均匀回退为相对组。
+  - 列表项间距统一采用 AutoLayout 判定逻辑，并在非均匀时回退相对容器。
+- **邻接聚类 (Adjacency Clustering)**:
+  - 以“候选节点最近邻间距的中位数”作为基准间距，并支持阈值上下限与 override。
+- **布局抽取与样式处理 (Layout & Styles)**:
+  - 输出 hasAbsoluteChildren 与相对位置，补全非 AutoLayout 场景的定位信息。
+  - 规范 fills 收集与 layout 清理，避免 SVG/Text 误收集填充样式。
+- **Codegen 输出调整 (HTML/CSS)**:
+  - CSS 合并相同样式体的选择器，提高复用率。
+  - 文本填充与背景填充分离，布局样式输出更精确。
+  - HTML 移除内联 reset 样式，避免全局样式干扰。
+
 ## [v0.1.15] - 2026-02-22
 
 ### 抽取管线与 codegen 系列升级

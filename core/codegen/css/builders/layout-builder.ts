@@ -6,27 +6,22 @@ import { px } from "../utils/css-color.js";
 export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> => {
   const styles: Record<string, string> = {};
 
-  if (layout.mode === "none") {
-    styles["position"] = "relative";
-    return styles;
+  const isAutoLayout = layout.mode !== "none";
+  if (isAutoLayout) {
+    styles["display"] = "flex";
+    styles["flex-direction"] = layout.mode;
+    if (layout.wrap) styles["flex-wrap"] = "wrap";
+    if (layout.justifyContent && layout.justifyContent !== "flex-start") {
+      styles["justify-content"] = layout.justifyContent;
+    }
+    if (layout.alignItems && layout.alignItems !== "flex-start") {
+      styles["align-items"] = layout.alignItems;
+    }
+    if (layout.gap && layout.justifyContent !== "space-between") styles["gap"] = layout.gap;
+    if (layout.padding) styles["padding"] = layout.padding;
+    if (layout.alignSelf) styles["align-self"] = layout.alignSelf;
   }
-
-  styles["display"] = "flex";
-  styles["flex-direction"] = layout.mode;
-  if (layout.wrap) styles["flex-wrap"] = "wrap";
-
-  // Alignment
-  if (layout.justifyContent && layout.justifyContent !== "flex-start") {
-    styles["justify-content"] = layout.justifyContent;
-  }
-  if (layout.alignItems && layout.alignItems !== "flex-start") {
-    styles["align-items"] = layout.alignItems;
-  }
-
-  // Spacing
-  if (layout.gap) styles["gap"] = layout.gap;
-  if (layout.padding) styles["padding"] = layout.padding;
-  if (layout.alignSelf) styles["align-self"] = layout.alignSelf;
+  if (layout.hasAbsoluteChildren) styles["position"] = "relative";
 
   if (layout.minWidth !== undefined) styles["min-width"] = px(layout.minWidth);
   if (layout.maxWidth !== undefined) styles["max-width"] = px(layout.maxWidth);
@@ -37,7 +32,12 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
   const sizing = layout.sizing;
   const textAutoResize = layout.textAutoResize;
   const allowWidth = textAutoResize !== "WIDTH_AND_HEIGHT";
-  const allowHeight = textAutoResize === "NONE" || textAutoResize === "TRUNCATE";
+  const allowHeight = textAutoResize === undefined 
+    || textAutoResize === "NONE" || textAutoResize === "TRUNCATE";
+  if (!isAutoLayout) {
+    if (layout.dimensions?.width && allowWidth) styles["width"] = px(layout.dimensions.width);
+    if (layout.dimensions?.height && allowHeight) styles["height"] = px(layout.dimensions.height);
+  }
   if (sizing) {
     if (sizing.horizontal === "fill") {
       if (layout.parentMode === "row") {
@@ -73,7 +73,16 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
   }
 
   // Positioning
-  if (layout.position === "absolute") {
+  if (
+    layout.locationRelativeToParent &&
+    layout.parentMode !== "row" &&
+    layout.parentMode !== "column"
+  ) {
+    styles["position"] = "absolute";
+    const { x, y } = layout.locationRelativeToParent;
+    styles["left"] = px(x);
+    styles["top"] = px(y);
+  } else if (layout.position === "absolute") {
     styles["position"] = "absolute";
     if (layout.locationRelativeToParent) {
       const { x, y } = layout.locationRelativeToParent;

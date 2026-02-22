@@ -1,5 +1,7 @@
 import type { SimplifiedNode } from "../../../types/extractor-types.js";
 import { createVirtualFrame } from "./virtual-node.js";
+import { computeAutoLayoutGap } from "./auto-layout.js";
+import { getOptions } from "../../../../options.js";
 
 type PatternMatch = {
   loopItems: SimplifiedNode[];
@@ -8,8 +10,6 @@ type PatternMatch = {
   gapStep: number;
   length: number;
 };
-
-const MAX_GAP_STEP = 4;
 
 // 指纹计算主函数
 export function groupRepeatedPatterns(
@@ -101,7 +101,8 @@ function detectPattern(
     if (!allowGap) break;
 
     // 断裂间隔上限：不超过步长、不越界且不超过全局阈值
-    const maxGap = Math.min(length, nodes.length - p - length, MAX_GAP_STEP);
+    const { listPattern } = getOptions();
+    const maxGap = Math.min(length, nodes.length - p - length, listPattern.maxGapStep);
     if (maxGap < 1) break;
 
     const startGap = gapStep > 0 ? gapStep : 1;
@@ -188,21 +189,18 @@ function flushRun(run: SimplifiedNode[], result: SimplifiedNode[]) {
 }
 
 function createVirtualList(children: SimplifiedNode[], isVertical: boolean): SimplifiedNode {
-  // 计算元素间距
-  let itemSpacing = 0;
-  if (children.length >= 2) {
-    const first = children[0];
-    const second = children[1];
-    if (first.absRect && second.absRect) {
-      if (isVertical) {
-        itemSpacing = second.absRect.y - (first.absRect.y + first.absRect.height);
-      } else {
-        itemSpacing = second.absRect.x - (first.absRect.x + first.absRect.width);
-      }
-      itemSpacing = Math.max(0, Math.round(itemSpacing));
-    }
+  const { gap, uniform } = computeAutoLayoutGap(children, isVertical ? "column" : "row");
+  if (!uniform) {
+    return createVirtualFrame({
+      name: "List",
+      type: "CONTAINER",
+      semanticTag: "list",
+      layoutMode: "relative",
+      children: children,
+      visualSignature: children[0].visualSignature,
+      dirty: true
+    });
   }
-
   return createVirtualFrame({
     name: "List",
     type: "CONTAINER",
@@ -211,7 +209,7 @@ function createVirtualList(children: SimplifiedNode[], isVertical: boolean): Sim
       layoutMode: isVertical ? "VERTICAL" : "HORIZONTAL",
       primaryAxisAlignItems: "MIN",
       counterAxisAlignItems: "MIN",
-      itemSpacing: itemSpacing,
+      itemSpacing: gap,
     },
     children: children,
     visualSignature: children[0].visualSignature,

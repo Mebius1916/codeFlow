@@ -46,7 +46,9 @@ function collectStyleRefs(
   const refs = new Set<string>();
   addStyleRef(refs, node.styles);
   addStyleRef(refs, typeof node.layout === "string" ? node.layout : undefined);
-  addStyleRef(refs, node.fills);
+  if (node.type !== "TEXT" && node.type !== "SVG") {
+    addStyleRef(refs, node.fills);
+  }
   addStyleRef(refs, node.textStyle);
   addStyleRef(refs, node.strokes);
   addStyleRef(refs, node.effects);
@@ -59,7 +61,7 @@ function collectStyleRefs(
 
 // 清理节点上拆分的样式字段，仅保留 styles
 function clearStyleFields(node: SimplifiedNode) {
-  // node.layout = undefined;
+  node.layout = undefined;
   node.fills = undefined;
   node.textStyle = undefined;
   node.strokes = undefined;

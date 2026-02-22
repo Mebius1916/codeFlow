@@ -4,10 +4,15 @@ import { getNodeBoundingBox, getUnionRect } from "../../utils/geometry.js";
 import { createVirtualFrame } from "./utils/virtual-node.js";
 import { calculateLayoutGap } from "./utils/dynamic-threshold.js";
 import type { BoundingBox } from "../../types/simplified-types.js";
+import { computeAutoLayoutGap, isAutoLayoutNode } from "./utils/auto-layout.js";
 
 export function groupNodesByLayout(nodes: SimplifiedNode[]): SimplifiedNode[] {
   nodes.forEach((node) => {
     if (node.dirty && node.children && node.children.length > 0) {
+      // 如果是 autoLayout 就不用分组
+      if (isAutoLayoutNode(node)) {
+        return;
+      }
       node.children = groupNodesByLayout(node.children);
     }
   });
@@ -44,7 +49,7 @@ export function groupNodesByLayout(nodes: SimplifiedNode[]): SimplifiedNode[] {
   } else {
     // 3. 竞争决策：两边都能切开 (Grid 布局或稀疏布局)
     // 综合计算 "对齐代价" (Alignment Cost) 和 "相似度代价" (Similarity Cost)
-    
+
     // 对齐代价：越整齐越好 (Cost 越低)
     const rowAlignCost = calculateAlignmentCost(rowGroups, "row");
     const colAlignCost = calculateAlignmentCost(colGroups, "column");
@@ -63,48 +68,10 @@ export function groupNodesByLayout(nodes: SimplifiedNode[]): SimplifiedNode[] {
 
   // 4. 根据决策结果处理
   if (bestDirection === "row") {
-    const processedRows = rowGroups.map(group => {
-      if (group.length === 1) return group[0];
-      
-      const processedGroup = groupNodesByLayout(group);
-      
-      // 优化：防止冗余嵌套 (Row inside Row)
-      if (processedGroup.length === 1) {
-         const child = processedGroup[0];
-         // 如果孩子也是 Row，直接返回孩子（去壳）
-         if (child.type === "CONTAINER" && child.name === "Row") {
-            return child;
-         }
-         // 如果孩子是普通节点，包一层
-         if (child.type !== "CONTAINER") {
-            return createVirtualContainer(processedGroup, "row");
-         }
-         return child;
-      }
-      
-      return createVirtualContainer(processedGroup, "row");
-    });
+    const processedRows = rowGroups.map(group => buildGroup(group, "row"));
     return [...processedRows, ...absoluteNodes];
   } else if (bestDirection === "column") {
-    const processedCols = colGroups.map(group => {
-      if (group.length === 1) return group[0];
-      
-      const processedGroup = groupNodesByLayout(group);
-      
-      // 优化：防止冗余嵌套 (Column inside Column)
-      if (processedGroup.length === 1) {
-         const child = processedGroup[0];
-         if (child.type === "CONTAINER" && child.name === "Column") {
-            return child;
-         }
-         if (child.type !== "CONTAINER") {
-            return createVirtualContainer(processedGroup, "column");
-         }
-         return child;
-      }
-      
-      return createVirtualContainer(processedGroup, "column");
-    });
+    const processedCols = colGroups.map(group => buildGroup(group, "column"));
     return [...processedCols, ...absoluteNodes];
   }
 
@@ -132,7 +99,7 @@ function calculateSimilarityCost(groups: SimplifiedNode[][]): number {
 
   const variance = areas.reduce((sum, area) => sum + Math.pow(area - avgArea, 2), 0) / areas.length;
   const stdDev = Math.sqrt(variance);
-  
+
   // 返回变异系数 (CV)
   return stdDev / avgArea;
 }
@@ -151,17 +118,17 @@ function calculateAlignmentCost(groups: SimplifiedNode[][], direction: "row" | "
     // 计算该组所有节点的中心点
     const centers = group.map(n => {
       if (!n.absRect) return 0;
-      return direction === "row" 
+      return direction === "row"
         ? n.absRect.y + n.absRect.height / 2  // Row: 关注 Y 轴中心
         : n.absRect.x + n.absRect.width / 2;  // Col: 关注 X 轴中心
     });
-    
+
     const avgCenter = centers.reduce((a, b) => a + b, 0) / centers.length;
     if (avgCenter === 0) continue;
 
     const variance = centers.reduce((sum, c) => sum + Math.pow(c - avgCenter, 2), 0) / centers.length;
     const stdDev = Math.sqrt(variance);
-  
+
     // 累加该组的 CV
     totalCV += stdDev / Math.abs(avgCenter);
     validGroups++;
@@ -212,7 +179,20 @@ function splitByProjection(nodes: SimplifiedNode[], axis: "x" | "y", minGap: num
   return groups;
 }
 
-function createVirtualContainer(children: SimplifiedNode[], direction: "row" | "column"): SimplifiedNode {
+function createVirtualContainer(
+  children: SimplifiedNode[],
+  direction?: "row" | "column",
+  itemSpacing?: number
+): SimplifiedNode {
+  if (!direction) {
+    return createVirtualFrame({
+      name: "Group",
+      type: "CONTAINER",
+      layoutMode: "relative",
+      children,
+      dirty: true
+    });
+  }
   return createVirtualFrame({
     name: direction === "row" ? "Row" : "Column",
     type: "CONTAINER",
@@ -220,9 +200,16 @@ function createVirtualContainer(children: SimplifiedNode[], direction: "row" | "
       layoutMode: direction === "row" ? "HORIZONTAL" : "VERTICAL",
       primaryAxisAlignItems: "MIN",
       counterAxisAlignItems: "MIN",
-      itemSpacing: 0,
+      itemSpacing: itemSpacing ?? 0,
     },
     children: children,
     dirty: true
   });
+}
+
+function buildGroup(group: SimplifiedNode[], direction: "row" | "column"): SimplifiedNode {
+  if (group.length === 1) return group[0];
+  const { gap, uniform } = computeAutoLayoutGap(group, direction);
+  if (!uniform) return createVirtualContainer(group);
+  return createVirtualContainer(group, direction, gap);
 }

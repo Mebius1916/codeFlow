@@ -4,19 +4,18 @@ import { createVirtualFrame } from "./utils/virtual-node.js";
 import { areRectsTouching } from "../../utils/geometry.js";
 import { UnionFind } from "./utils/union-find.js";
 import { isMergeCandidate } from "../../utils/candidate-check.js";
-
-const SPATIAL_MERGE_THRESHOLD = 80; // Max size for an icon
-const MERGE_DISTANCE = 2; // Max distance in pixels to consider "touching"
+import { getOptions } from "../../../options.js";
 
 export function mergeSpatialIcons(nodes: SimplifiedNode[]): SimplifiedNode[] {
   if (nodes.length < 2) return nodes;
+  const { spatialMerging } = getOptions();
 
   const candidates: { index: number; rect: BoundingBox; node: SimplifiedNode }[] = [];
   const nonCandidates: { index: number; node: SimplifiedNode }[] = [];
 
   // 1. Filter candidates
   nodes.forEach((node, i) => {
-    if (isMergeCandidate(node, SPATIAL_MERGE_THRESHOLD)) {
+    if (isMergeCandidate(node, spatialMerging.threshold)) {
       candidates.push({ index: i, rect: node.absRect!, node });
     } else {
       nonCandidates.push({ index: i, node });
@@ -31,7 +30,7 @@ export function mergeSpatialIcons(nodes: SimplifiedNode[]): SimplifiedNode[] {
   // 并查集将符合条件的碎片合并到一个集合中
   for (let i = 0; i < candidates.length; i++) {
     for (let j = i + 1; j < candidates.length; j++) {
-      if (areRectsTouching(candidates[i].rect, candidates[j].rect, MERGE_DISTANCE)) {
+      if (areRectsTouching(candidates[i].rect, candidates[j].rect, spatialMerging.distance)) {
         uf.union(i, j);
       }
     }

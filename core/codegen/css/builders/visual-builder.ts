@@ -5,7 +5,7 @@ import { toCssColor } from "../utils/css-color.js";
 
 // 可视化样式构造器
 export const visualBuilder = {
-  fills: (fills: SimplifiedFill[]): Record<string, string> => {
+  fills: (fills: SimplifiedFill[], mode: "background" | "text" = "background"): Record<string, string> => {
     const styles: Record<string, string> = {};
     if (fills.length === 0) return styles;
 
@@ -27,7 +27,17 @@ export const visualBuilder = {
     // Optimization: Single solid color
     if (fills.length === 1 && isColor(fills[0])) {
       const color = toSolidColor(fills[0]);
-      if (color) styles["background-color"] = color;
+      if (color) {
+        if (mode === "text") {
+          styles["color"] = color;
+        } else {
+          styles["background-color"] = color;
+        }
+      }
+      return styles;
+    }
+
+    if (mode === "text") {
       return styles;
     }
 

@@ -17,11 +17,26 @@ export function formatStyleBody(style: any, stylesMap: Record<string, any> = {})
 export function generateGlobalCSS(globalVars: Record<string, any>): string {
   const styles = globalVars.styles || {};
   let css = "";
+  const cached = new Map<string, string[]>();
+  const order: string[] = [];
 
   Object.entries(styles).forEach(([id, styleObj]) => {
     const className = hashClassName(id);
     const body = formatStyleBody(styleObj, styles);
-    if (body) css += `.${className} { ${body} }\n`;
+    if (!body) return;
+    const existing = cached.get(body);
+    if (existing) {
+      existing.push(className);
+    } else {
+      cached.set(body, [className]);
+      order.push(body);
+    }
+  });
+
+  order.forEach((body) => {
+    const classNames = cached.get(body) || [];
+    if (classNames.length === 0) return;
+    css += `.${classNames.join(", .")} { ${body} }\n`;
   });
 
   return css;
@@ -74,7 +89,7 @@ const styleHandlers: Array<{
         "letterSpacing" in style),
     build: typographyBuilder,
   },
-  { match: (style) => Array.isArray(style), build: visualBuilder.fills },
+  { match: (style) => Array.isArray(style), build: (style) => visualBuilder.fills(style, "background") },
   {
     match: (style) =>
       style &&

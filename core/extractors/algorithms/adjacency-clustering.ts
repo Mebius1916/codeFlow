@@ -2,7 +2,7 @@ import type { SimplifiedNode } from "../../types/extractor-types.js";
 import { createVirtualFrame } from "./utils/virtual-node.js";
 import { areRectsTouching } from "../../utils/geometry.js";
 import { UnionFind } from "./utils/union-find.js";
-import { calculateAdjacencyThreshold } from "./utils/dynamic-threshold.js";
+import { calculateAdjacencyThreshold, computeAdjacencyBaseGap } from "./utils/dynamic-threshold.js";
 import { isClusterCandidate } from "../../utils/candidate-check.js";
 
 export function groupNodesByAdjacency(nodes: SimplifiedNode[]): SimplifiedNode[] {
@@ -29,16 +29,15 @@ export function groupNodesByAdjacency(nodes: SimplifiedNode[]): SimplifiedNode[]
 
   // 初始化一个并查集用于元素分组（只存索引）
   const uf = new UnionFind(candidates.length);
+  const baseGap = computeAdjacencyBaseGap(candidates);
 
   // 并查集的 check 操作
   for (let i = 0; i < candidates.length; i++) {
     for (let j = i + 1; j < candidates.length; j++) {
       const nodeA = candidates[i].node;
       const nodeB = candidates[j].node;
-      
-      // Dynamic Threshold Calculation
-      const threshold = calculateAdjacencyThreshold(nodeA, nodeB);
-      
+
+      const threshold = calculateAdjacencyThreshold(baseGap);
       if (areRectsTouching(nodeA.absRect!, nodeB.absRect!, threshold)) {
         uf.union(i, j);
       }

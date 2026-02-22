@@ -26,13 +26,6 @@ export function generateHTMLParts(design: SimplifiedDesign, context?: CodegenCon
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${design.name}</title>
     <style>
-        body { margin: 0; padding: 0; font-family: sans-serif; -webkit-font-smoothing: antialiased; }
-        * { box-sizing: border-box; }
-        /* Reset */
-        button { border: none; background: none; padding: 0; cursor: pointer; }
-        h1, h2, h3, h4, h5, h6, p { margin: 0; }
-        /* Global Styles */
-        ${css}
     </style>
 </head>
 <body>

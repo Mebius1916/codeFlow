@@ -1,42 +1,52 @@
 import type { SimplifiedNode } from "../../../types/extractor-types.js";
+import type { BoundingBox } from "../../../types/simplified-types.js";
+import { getOptions } from "../../../../options.js";
 
-/**
- * Calculates dynamic adjacency threshold between two nodes based on their types and sizes.
- * Used for Density-Based Clustering.
- */
-export function calculateAdjacencyThreshold(a: SimplifiedNode, b: SimplifiedNode): number {
-  // 1. Get approximate feature size (Use height for text as font-size proxy)
-  const sizeA = getFeatureSize(a);
-  const sizeB = getFeatureSize(b);
-
-  let threshold = 4;
-
-  // 2. Dynamic Calculation based on Types
-  if (a.type === "TEXT" && b.type === "TEXT") {
-    // Text + Text: High affinity. Allow gap up to 0.5x max line-height.
-    threshold = Math.max(sizeA, sizeB) * 0.5;
-  } 
-  else if ((a.type === "TEXT" && b.type !== "TEXT") || (a.type !== "TEXT" && b.type === "TEXT")) {
-    // Text + Icon/Image: Medium affinity. Allow gap up to 1.0x text height.
-    const textSize = a.type === "TEXT" ? sizeA : sizeB;
-    threshold = textSize * 1.0;
-  } 
-  else {
-    // Image + Image / Other: Low affinity. Strict gap.
-    // Allow 20% of smaller dimension.
-    threshold = Math.min(sizeA, sizeB) * 0.2;
-  }
-
-  // 3. Clamp values (Min 2px, Max 24px)
-  return Math.max(2, Math.min(threshold, 24));
+export function calculateAdjacencyThreshold(baseGap: number): number {
+  const { adjacencyThreshold } = getOptions();
+  const min = typeof adjacencyThreshold.min === "number" ? adjacencyThreshold.min : 2;
+  const max = typeof adjacencyThreshold.max === "number" ? adjacencyThreshold.max : 24;
+  const clamped = Math.max(min, Math.min(baseGap, max));
+  return adjacencyThreshold.override !== undefined ? adjacencyThreshold.override : clamped;
 }
 
-/**
- * Calculates dynamic layout gap threshold for a group of nodes.
- * Used for Recursive Projection Cutting.
- */
+export function computeAdjacencyBaseGap(
+  candidates: { index: number; node: SimplifiedNode }[],
+): number {
+  if (candidates.length < 2) return 2;
+  const gaps: number[] = [];
+  const rectGap = (a: BoundingBox, b: BoundingBox): number => {
+    const dx = Math.max(0, Math.max(a.x - (b.x + b.width), b.x - (a.x + a.width)));
+    const dy = Math.max(0, Math.max(a.y - (b.y + b.height), b.y - (a.y + a.height)));
+    return Math.max(dx, dy);
+  }
+  for (let i = 0; i < candidates.length; i++) {
+    const rectA = candidates[i].node.absRect as BoundingBox | undefined;
+    if (!rectA) continue;
+    let minGap = Infinity;
+    for (let j = 0; j < candidates.length; j++) {
+      if (i === j) continue;
+      const rectB = candidates[j].node.absRect as BoundingBox | undefined;
+      if (!rectB) continue;
+      const gap = rectGap(rectA, rectB);
+      if (gap < minGap) minGap = gap;
+    }
+    if (Number.isFinite(minGap)) gaps.push(minGap);
+  }
+
+  if (gaps.length === 0) return 2;
+  gaps.sort((a, b) => a - b);
+  const mid = Math.floor(gaps.length / 2);
+  return gaps.length % 2 === 1 ? gaps[mid] : (gaps[mid - 1] + gaps[mid]) / 2;
+}
+
+// roRead
 export function calculateLayoutGap(nodes: SimplifiedNode[], axis: "x" | "y"): number {
-  if (nodes.length === 0) return 2;
+  const { layoutGap } = getOptions();
+  const minGap = 2;
+  const ratio = 0.05;
+  if (nodes.length === 0) return minGap;
+  if (layoutGap.override !== undefined) return layoutGap.override;
 
   const totalSize = nodes.reduce((sum, n) => {
     if (!n.absRect) return sum;
@@ -45,8 +55,7 @@ export function calculateLayoutGap(nodes: SimplifiedNode[], axis: "x" | "y"): nu
 
   const avgSize = totalSize / nodes.length;
 
-  // Logic: 5% of average size, min 2px
-  return Math.max(2, avgSize * 0.05);
+  return Math.max(minGap, avgSize * ratio);
 }
 
 /**
@@ -54,6 +63,7 @@ export function calculateLayoutGap(nodes: SimplifiedNode[], axis: "x" | "y"): nu
  * 工业级 D2C 的最佳实践：避免单一阈值导致的过拟合或欠拟合
  * Used for Visual Fingerprinting.
  */
+// roRead
 export function quantizeSize(val: number): number {
   if (val < 50) {
     // 小元素 (Icon, Badge): 高精度，2px 容错
@@ -65,12 +75,4 @@ export function quantizeSize(val: number): number {
     // 大元素 (Card, Image): 低精度，10px 容错
     return Math.round(val / 10) * 10;
   }
-}
-
-function getFeatureSize(node: SimplifiedNode): number {
-  if (!node.absRect) return 0;
-  if (node.type === "TEXT") {
-    return node.absRect.height;
-  }
-  return Math.min(node.absRect.width, node.absRect.height);
 }
