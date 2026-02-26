@@ -17,6 +17,7 @@ export function extractFromDesign(
   globalVars: TraversalContext["globalVars"] = { styles: {} },
   options?: { reconstruction?: { enabled?: ReconstructionStepFlags } },
 ): { nodes: SimplifiedNode[]; globalVars: TraversalContext["globalVars"] } {
+
   const context: TraversalContext = {
     currentDepth: 0,
     parent: undefined,

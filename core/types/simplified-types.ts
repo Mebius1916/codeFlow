@@ -6,7 +6,6 @@ import type { Transform } from "@figma/rest-api-spec";
 
 export interface SimplifiedLayout {
   mode: "none" | "row" | "column";
-  hasAbsoluteChildren?: boolean;
   parentMode?: "none" | "row" | "column";
   justifyContent?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch";
   alignItems?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch";
@@ -32,7 +31,7 @@ export interface SimplifiedLayout {
     vertical?: "fixed" | "fill" | "hug";
   };
   overflowScroll?: ("x" | "y")[];
-  position?: "absolute";
+  position?: "absolute" | "relative" | 'static';
   textAutoResize?: "WIDTH_AND_HEIGHT" | "HEIGHT" | "NONE" | "TRUNCATE";
   textTruncation?: string;
   maxLines?: number;

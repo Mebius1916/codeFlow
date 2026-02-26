@@ -1,6 +1,9 @@
 export type AlgorithmOptions = {
   layoutGap: {
-    override?: number;
+    minGap?: number;
+  };
+  reparenting: {
+    partlyContainThreshold: number;
   };
   spatialMerging: {
     threshold: number;
@@ -12,13 +15,15 @@ export type AlgorithmOptions = {
   adjacencyThreshold: {
     min?: number;
     max?: number;
-    override?: number;
   };
 };
 
 const defaultOptions: AlgorithmOptions = {
   layoutGap: {
-    override: undefined,
+    minGap: 2,
+  },
+  reparenting: {
+    partlyContainThreshold: 0.85,
   },
   spatialMerging: {
     threshold: 80,
@@ -30,7 +35,6 @@ const defaultOptions: AlgorithmOptions = {
   adjacencyThreshold: {
     min: 2,
     max: 24,
-    override: undefined,
   },
 };
 
@@ -46,6 +50,10 @@ export function setOptions(next: Partial<AlgorithmOptions>): void {
     layoutGap: {
       ...currentOptions.layoutGap,
       ...next.layoutGap,
+    },
+    reparenting: {
+      ...currentOptions.reparenting,
+      ...next.reparenting,
     },
     spatialMerging: {
       ...currentOptions.spatialMerging,

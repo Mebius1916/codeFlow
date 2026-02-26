@@ -14,7 +14,6 @@ function normalizeNodeStyle(
   node: SimplifiedNode,
   globalVars: TraversalContext["globalVars"]
 ): SimplifiedNode {
-  normalizeChildren(node, globalVars);
   normalizeLayout(node, globalVars);
   const refs = collectStyleRefs(node, globalVars);
   if (refs.length > 0) {
@@ -22,13 +21,6 @@ function normalizeNodeStyle(
   }
   clearStyleFields(node);
   return node;
-}
-
-// 递归处理子节点
-function normalizeChildren(node: SimplifiedNode, globalVars: TraversalContext["globalVars"]) {
-  if (node.children && node.children.length > 0) {
-    node.children = node.children.map((child) => normalizeNodeStyle(child, globalVars));
-  }
 }
 
 // 将 layout 对象转为 styleId

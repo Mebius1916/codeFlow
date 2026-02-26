@@ -87,7 +87,6 @@ export interface SimplifiedNode {
   fills?: string;
   styles?: string;
   strokes?: string;
-  // Non-stylable stroke properties are kept on the node when stroke uses a named color style
   strokeWeight?: string;
   strokeDashes?: number[];
   strokeWeights?: string;
@@ -98,8 +97,7 @@ export interface SimplifiedNode {
   transform?: string; // css transform string
   blendMode?: string;
   // layout & alignment
-  layout?: string;
-  layoutMode?: "absolute" | "relative"; // Inferred layout positioning
+  layout?: SimplifiedLayout | string;
   // for rect-specific strokes, etc.
   componentId?: string;
   componentProperties?: ComponentProperties[];

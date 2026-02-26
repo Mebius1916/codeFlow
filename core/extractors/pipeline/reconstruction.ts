@@ -6,6 +6,7 @@ import { inferListPatterns } from "../algorithms/list-inference.js";
 import { groupNodesByAdjacency } from "../algorithms/adjacency-clustering.js";
 import { flattenRedundantNodes } from "../algorithms/flattening.js";
 import { inferSemanticTags } from "../algorithms/semantic-inference.js";
+import { normalizeNodeStyles } from "../algorithms/style-normalization.js";
 import type { SimplifiedNode, TraversalContext } from "../../types/extractor-types.js";
 
 export type ReconstructionStageName =
@@ -68,6 +69,11 @@ export function runReconstructionPipeline(
   // 8. Flattening
   if (globalVars && isStepEnabled(options?.enabled, "flattening")) {
     processedNodes = flattenRedundantNodes(processedNodes, globalVars);
+  }
+
+  // 9. Style Normalization (final pass)
+  if (globalVars) {
+    processedNodes = normalizeNodeStyles(processedNodes, globalVars);
   }
 
   return processedNodes;

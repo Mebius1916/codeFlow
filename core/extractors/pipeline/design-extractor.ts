@@ -5,7 +5,6 @@ import type {
 import { simplifyComponents, simplifyComponentSets } from "../../transformers/component.js";
 import type { SimplifiedDesign, TraversalContext } from "../../types/extractor-types.js";
 import { extractFromDesign } from "./node-processor.js";
-import { normalizeNodeStyles } from "../algorithms/style-normalization.js";
 import { resolveImageAssetsFromFigma } from "./utils/image-assets.js";
 import type { ReconstructionStepFlags } from "./reconstruction.js";
 import { parseAPIResponse } from "./utils/parse-api.js";
@@ -31,18 +30,16 @@ export async function simplifyRawFigmaObjectWithImages(
     extraStyles,
     imageAssets: { nodeIds: [], imageRefs: [], svgNodeIds: [] },
   };
+  
   const { nodes: extractedNodes, globalVars: finalGlobalVars } = extractFromDesign(
     rawNodes,
     globalVars,
     options.reconstruction ? { reconstruction: options.reconstruction } : undefined,
   );
 
-  // 类名合并优化：将所有节点的 styles 合并为单一 styleId
-  const normalizedNodes = normalizeNodeStyles(extractedNodes, finalGlobalVars);
-
   const design: SimplifiedDesign = {
     ...metadata,
-    nodes: normalizedNodes,
+    nodes: extractedNodes,
     components: simplifyComponents(components),
     componentSets: simplifyComponentSets(componentSets),
     globalVars: {

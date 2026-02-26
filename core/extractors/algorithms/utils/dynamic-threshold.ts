@@ -7,7 +7,7 @@ export function calculateAdjacencyThreshold(baseGap: number): number {
   const min = typeof adjacencyThreshold.min === "number" ? adjacencyThreshold.min : 2;
   const max = typeof adjacencyThreshold.max === "number" ? adjacencyThreshold.max : 24;
   const clamped = Math.max(min, Math.min(baseGap, max));
-  return adjacencyThreshold.override !== undefined ? adjacencyThreshold.override : clamped;
+  return clamped;
 }
 
 export function computeAdjacencyBaseGap(
@@ -38,24 +38,6 @@ export function computeAdjacencyBaseGap(
   gaps.sort((a, b) => a - b);
   const mid = Math.floor(gaps.length / 2);
   return gaps.length % 2 === 1 ? gaps[mid] : (gaps[mid - 1] + gaps[mid]) / 2;
-}
-
-// roRead
-export function calculateLayoutGap(nodes: SimplifiedNode[], axis: "x" | "y"): number {
-  const { layoutGap } = getOptions();
-  const minGap = 2;
-  const ratio = 0.05;
-  if (nodes.length === 0) return minGap;
-  if (layoutGap.override !== undefined) return layoutGap.override;
-
-  const totalSize = nodes.reduce((sum, n) => {
-    if (!n.absRect) return sum;
-    return sum + (axis === "x" ? n.absRect.width : n.absRect.height);
-  }, 0);
-
-  const avgSize = totalSize / nodes.length;
-
-  return Math.max(minGap, avgSize * ratio);
 }
 
 /**

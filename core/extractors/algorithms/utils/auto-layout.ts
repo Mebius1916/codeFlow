@@ -6,12 +6,12 @@ export function isAutoLayoutNode(node: SimplifiedNode): boolean {
   return (
     typeof layout === "object" &&
     !!layout &&
-    "layoutMode" in layout &&
-    ((layout as any).layoutMode === "HORIZONTAL" || (layout as any).layoutMode === "VERTICAL")
+    "mode" in layout &&
+    ((layout as any).mode === "row" || (layout as any).mode === "column")
   );
 }
 
-// 通过间距判断具体布局方式
+// 计算行/列相邻节点的间距
 export function computeAutoLayoutGap(
   children: SimplifiedNode[],
   direction: "row" | "column"

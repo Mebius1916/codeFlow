@@ -21,7 +21,7 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
     if (layout.padding) styles["padding"] = layout.padding;
     if (layout.alignSelf) styles["align-self"] = layout.alignSelf;
   }
-  if (layout.hasAbsoluteChildren) styles["position"] = "relative";
+  if (layout.position === "relative") styles["position"] = "relative";
 
   if (layout.minWidth !== undefined) styles["min-width"] = px(layout.minWidth);
   if (layout.maxWidth !== undefined) styles["max-width"] = px(layout.maxWidth);

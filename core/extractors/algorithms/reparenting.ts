@@ -5,9 +5,13 @@
 import type { SimplifiedNode } from "../../types/extractor-types.js";
 import { getRectArea, isRectContained, areRectsTouching } from "../../utils/geometry.js";
 import { canBeParent } from "../../utils/candidate-check.js";
+import { pixelRound } from "../../utils/common.js";
+import { getOptions } from "../../../options.js";
 
 export function reparentNodes(nodes: SimplifiedNode[]): SimplifiedNode[] {
   if (nodes.length === 0) return [];
+  const { reparenting } = getOptions();
+  const partlyContainThreshold = reparenting.partlyContainThreshold;
 
   // 1. 预处理：确保节点按 Z-Index 从低到高排序 (Bottom -> Top)
   const processingNodes = [...nodes];
@@ -26,28 +30,30 @@ export function reparentNodes(nodes: SimplifiedNode[]): SimplifiedNode[] {
     }
 
     // 尝试在剩余的节点 (层级比它高的，即浮在它上面的) 中寻找孩子
-    const childrenToAdopt: SimplifiedNode[] = [];
     const nonChildren: SimplifiedNode[] = [];
-
     for (const potentialChild of processingNodes) {
       if (!potentialChild.absRect) {
         nonChildren.push(potentialChild);
         continue;
       }
-
+      // FULLY_CONTAIN：A 完全包含 B，直接建立父子关系
       if (isRectContained(parent.absRect, potentialChild.absRect) && 
           getRectArea(parent.absRect) >= getRectArea(potentialChild.absRect)) {
-        
-        childrenToAdopt.push(potentialChild);
+        adoptAsAbsoluteChild(parent, potentialChild);
+      } else if (canBeParent(parent)) {
+        // Partly_CONTAIN：B 主要区域落在 A 内部，也建立父子关系
+        const overlapRatio = getOverlapRatio(parent.absRect, potentialChild.absRect);
+        if (
+          overlapRatio >= partlyContainThreshold &&
+          getRectArea(parent.absRect) >= getRectArea(potentialChild.absRect)
+        ) {
+          adoptAsAbsoluteChild(parent, potentialChild);
+        } else {
+          nonChildren.push(potentialChild);
+        }
       } else {
         nonChildren.push(potentialChild);
       }
-    }
-
-    if (childrenToAdopt.length > 0) {
-      if (!parent.children) parent.children = [];
-      parent.children.push(...childrenToAdopt);
-      parent.dirty = true;
     }
 
     processingNodes.length = 0;
@@ -73,15 +79,57 @@ function detectAbsoluteChildrenInList(nodes: SimplifiedNode[]) {
       const nodeB = nodes[j];
       if (!nodeB.absRect) continue;
       
-      // 只有实质性重叠才算 (gap = -1)
-      if (areRectsTouching(nodeA.absRect, nodeB.absRect, -1)) { 
-          // 冲突发生！面积小的变成 Absolute
-          if (getRectArea(nodeA.absRect) < getRectArea(nodeB.absRect)) {
-            nodeA.layoutMode = "absolute";
-          } else {
-            nodeB.layoutMode = "absolute";
-          }
+      // 是否相交
+      if (!areRectsTouching(nodeA.absRect, nodeB.absRect, -1)) continue;
+
+      // 确定是相交关系
+      if (getRectArea(nodeA.absRect) < getRectArea(nodeB.absRect)) {
+        nodeA.layout = {
+          ...(typeof nodeA.layout === "object" && nodeA.layout ? nodeA.layout : { mode: "none" }),
+          position: "absolute",
+        };
+      } else {
+        nodeB.layout = {
+          ...(typeof nodeB.layout === "object" && nodeB.layout ? nodeB.layout : { mode: "none" }),
+          position: "absolute",
+        };
       }
     }
   }
+}
+
+// 将 child 追加进 parent.children，并把 child 转成相对 parent 的绝对定位
+function adoptAsAbsoluteChild(parent: SimplifiedNode, child: SimplifiedNode) {
+  if (!parent.absRect || !child.absRect) return;
+  if (!parent.children) parent.children = [];
+  parent.children.push(child);
+  parent.dirty = true;
+  parent.layout = {
+    ...(typeof parent.layout === "object" && parent.layout ? parent.layout : { mode: "none" }),
+    position: "relative",
+  };
+  child.layout = {
+    ...(typeof child.layout === "object" && child.layout ? child.layout : { mode: "none" }),
+    position: "absolute",
+    parentMode: "none",
+    locationRelativeToParent: {
+      x: pixelRound(child.absRect.x - parent.absRect.x),
+      y: pixelRound(child.absRect.y - parent.absRect.y),
+    },
+  };
+}
+
+// 返回 b 的面积中有多少比例与 a 发生重叠（intersectionArea / bArea）
+function getOverlapRatio(a: { x: number; y: number; width: number; height: number }, b: { x: number; y: number; width: number; height: number }): number {
+  const ix1 = Math.max(a.x, b.x);
+  const iy1 = Math.max(a.y, b.y);
+  const ix2 = Math.min(a.x + a.width, b.x + b.width);
+  const iy2 = Math.min(a.y + a.height, b.y + b.height);
+  const iw = ix2 - ix1;
+  const ih = iy2 - iy1;
+  if (iw <= 0 || ih <= 0) return 0;
+  const intersectionArea = iw * ih;
+  const bArea = b.width * b.height;
+  if (bArea <= 0) return 0;
+  return intersectionArea / bArea;
 }

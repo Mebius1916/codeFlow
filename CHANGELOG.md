@@ -1,5 +1,28 @@
 # 更新日志 (CHANGELOG)
 
+## [v0.1.17] - 2026-02-26
+
+### 重建流水线与样式归一化自治化
+
+> **涉及文件**:
+>
+> - `core/extractors/pipeline/reconstruction.ts` (调整: 样式归一化下沉为最后一步)
+> - `core/extractors/algorithms/style-normalization.ts` (调整: 层级自治，移除递归)
+> - `core/extractors/algorithms/utils/virtual-node.ts` (修复: 虚拟容器同步子节点 parentMode)
+> - `core/extractors/algorithms/spatial-merging.ts` (调整: distance 动态化为平均最近邻间隔)
+> - `core/extractors/algorithms/reparenting.ts` / `options.ts` (调整: partlyContainThreshold 配置化，移除 override)
+> - `core/extractors/attributes/layout-extractor.ts` / `core/types/simplified-types.ts` (调整: layout 对象直出与定位字段精简)
+> - `core/extractors/algorithms/utils/layout-container.ts` / `core/extractors/algorithms/utils/group-calculation.ts` (新增: 分组构建与相对容器封装)
+>
+- **样式归一化 (Style Normalization)**:
+  - 下沉到重建流水线末尾，并改为层级自治处理，减少额外遍历与冗余递归。
+  - 虚拟容器创建时同步刷新子节点 `parentMode`，避免 sizing/fill 的 CSS 语义偏差。
+- **重建策略增强 (Reconstruction)**:
+  - 空间合并 distance 改为动态计算（平均最近邻间隔），提升对不同密度图标碎片的适应性。
+  - Reparenting 的 partlyContain 阈值配置化，options 移除 override 语义。
+- **布局与类型调整 (Layout & Types)**:
+  - layoutExtractor 直出 `SimplifiedLayout`，由样式归一化阶段统一收敛为 styleId。
+
 ## [v0.1.16] - 2026-02-23
 
 ### 布局推断与参数配置化

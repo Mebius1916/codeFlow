@@ -1,23 +1,16 @@
 import type { SimplifiedNode } from "../../types/extractor-types.js";
 
 export function inferSemanticTags(nodes: SimplifiedNode[]): SimplifiedNode[] {
-  return nodes.map(node => inferNode(node));
-}
-
-function inferNode(node: SimplifiedNode): SimplifiedNode {
-  if (node.children && node.children.length > 0) {
-    node.children = node.children.map(child => inferNode(child));
-  }
-
-  if (!node.semanticTag) {
-    const lowerName = node.name.toLowerCase();
-    const tagFromName = inferTagFromName(lowerName, node.type);
-    if (tagFromName) {
-      node.semanticTag = tagFromName;
+  return nodes.map((node) => {
+    if (!node.semanticTag) {
+      const lowerName = node.name.toLowerCase();
+      const tagFromName = inferTagFromName(lowerName, node.type);
+      if (tagFromName) {
+        node.semanticTag = tagFromName;
+      }
     }
-  }
-
-  return node;
+    return node;
+  });
 }
 
 function inferTagFromName(name: string, type: SimplifiedNode["type"]): SimplifiedNode["semanticTag"] | undefined {

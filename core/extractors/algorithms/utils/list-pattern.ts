@@ -1,6 +1,6 @@
 import type { SimplifiedNode } from "../../../types/extractor-types.js";
 import { createVirtualFrame } from "./virtual-node.js";
-import { computeAutoLayoutGap } from "./auto-layout.js";
+import { buildContainerByGap } from "./virtual-node.js";
 import { getOptions } from "../../../../options.js";
 
 type PatternMatch = {
@@ -11,7 +11,7 @@ type PatternMatch = {
   length: number;
 };
 
-// 指纹计算主函数
+// 查找最佳重复模式
 export function groupRepeatedPatterns(
   nodes: SimplifiedNode[],
 ): SimplifiedNode[] {
@@ -164,7 +164,10 @@ function createVirtualGroup(children: SimplifiedNode[]): SimplifiedNode {
   return createVirtualFrame({
     name: "Item Group",
     type: "CONTAINER",
-    layoutMode: "relative",
+    layout: {
+      mode: "none",
+      position: "static",
+    },
     children: children,
     visualSignature: children.map(c => c.visualSignature).join("+"),
     dirty: true
@@ -189,30 +192,11 @@ function flushRun(run: SimplifiedNode[], result: SimplifiedNode[]) {
 }
 
 function createVirtualList(children: SimplifiedNode[], isVertical: boolean): SimplifiedNode {
-  const { gap, uniform } = computeAutoLayoutGap(children, isVertical ? "column" : "row");
-  if (!uniform) {
-    return createVirtualFrame({
-      name: "List",
-      type: "CONTAINER",
-      semanticTag: "list",
-      layoutMode: "relative",
-      children: children,
-      visualSignature: children[0].visualSignature,
-      dirty: true
-    });
-  }
-  return createVirtualFrame({
+  return buildContainerByGap({
     name: "List",
-    type: "CONTAINER",
+    children,
+    direction: isVertical ? "column" : "row",
     semanticTag: "list",
-    layout: {
-      layoutMode: isVertical ? "VERTICAL" : "HORIZONTAL",
-      primaryAxisAlignItems: "MIN",
-      counterAxisAlignItems: "MIN",
-      itemSpacing: gap,
-    },
-    children: children,
-    visualSignature: children[0].visualSignature,
-    dirty: true
+    dirty: true,
   });
 }

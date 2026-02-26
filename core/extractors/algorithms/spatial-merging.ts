@@ -26,11 +26,12 @@ export function mergeSpatialIcons(nodes: SimplifiedNode[]): SimplifiedNode[] {
 
   // 2. Clustering using Union-Find
   const uf = new UnionFind(candidates.length);
+  const dynamicDistance = computeAverageNeighborGap(candidates, spatialMerging.distance);
 
   // 并查集将符合条件的碎片合并到一个集合中
   for (let i = 0; i < candidates.length; i++) {
     for (let j = i + 1; j < candidates.length; j++) {
-      if (areRectsTouching(candidates[i].rect, candidates[j].rect, spatialMerging.distance)) {
+      if (areRectsTouching(candidates[i].rect, candidates[j].rect, dynamicDistance)) {
         uf.union(i, j);
       }
     }
@@ -69,8 +70,39 @@ function createMergedIconNode(parts: SimplifiedNode[]): SimplifiedNode {
   return createVirtualFrame({
     name: "Merged Icon",
     type: "CONTAINER",
+    layout: {
+      mode: "none",
+      position: "static",
+    },
     semanticTag: "icon",
     children: parts,
-    layoutMode: "relative"
   });
+}
+
+function computeAverageNeighborGap(
+  candidates: { index: number; rect: BoundingBox; node: SimplifiedNode }[],
+  fallback: number
+): number {
+  if (candidates.length < 2) return fallback;
+  const gaps: number[] = [];
+  const rectGap = (a: BoundingBox, b: BoundingBox): number => {
+    const dx = Math.max(0, Math.max(a.x - (b.x + b.width), b.x - (a.x + a.width)));
+    const dy = Math.max(0, Math.max(a.y - (b.y + b.height), b.y - (a.y + a.height)));
+    return Math.max(dx, dy);
+  };
+  for (let i = 0; i < candidates.length; i++) {
+    const rectA = candidates[i].rect;
+    let minGap = Infinity;
+    for (let j = 0; j < candidates.length; j++) {
+      if (i === j) continue;
+      const rectB = candidates[j].rect;
+      const gap = rectGap(rectA, rectB);
+      if (gap < minGap) minGap = gap;
+    }
+    if (Number.isFinite(minGap)) gaps.push(minGap);
+  }
+  if (gaps.length === 0) return fallback;
+  const sum = gaps.reduce((acc, val) => acc + val, 0);
+  const avg = sum / gaps.length;
+  return Number.isFinite(avg) ? avg : fallback;
 }

@@ -69,7 +69,10 @@ export function groupNodesByAdjacency(nodes: SimplifiedNode[]): SimplifiedNode[]
         name: "Content Group",
         type: "CONTAINER",
         semanticTag: "group",
-        layoutMode: "relative",
+        layout: {
+          mode: "none",
+          position: "static",
+        },
         children: clusterItems.map(item => item.node),
       });
       
