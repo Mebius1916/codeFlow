@@ -11,6 +11,7 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
     styles["display"] = "flex";
     styles["flex-direction"] = layout.mode;
     if (layout.wrap) styles["flex-wrap"] = "wrap";
+    // layout.justifyContent ? 
     if (layout.justifyContent && layout.justifyContent !== "flex-start") {
       styles["justify-content"] = layout.justifyContent;
     }

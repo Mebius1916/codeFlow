@@ -26,6 +26,7 @@ export function generateHTMLParts(design: SimplifiedDesign, context?: CodegenCon
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${design.name}</title>
     <style>
+      ${css}
     </style>
 </head>
 <body>

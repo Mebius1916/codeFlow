@@ -8,6 +8,7 @@ export function flattenRedundantNodes(
   nodes: SimplifiedNode[],
   globalVars: SimplifiedDesign['globalVars']
 ): SimplifiedNode[] {
+  // 逐节点递归处理，dirty 节点才会进入递归与扁平化判断
   return nodes.map(node => flattenNode(node, globalVars));
 }
 
@@ -15,12 +16,12 @@ function flattenNode(
   node: SimplifiedNode,
   globalVars: SimplifiedDesign['globalVars']
 ): SimplifiedNode {
-  // 1. Recursively process children first (bottom-up approach)
-  if (node.children && node.children.length > 0) {
+  // 1. dirty 仅影响是否递归处理子节点
+  if (node.dirty && node.children && node.children.length > 0) {
     node.children = flattenRedundantNodes(node.children, globalVars);
   }
 
-  // 2. Check if current node is redundant
+  // 2. 扁平化判断与 dirty 无关
   if (isRedundant(node, globalVars)) {
     return node.children![0]; 
   }
@@ -35,16 +36,17 @@ function isRedundant(
   // Must have exactly one child
   if (!node.children || node.children.length !== 1) return false;
 
-  // Must be a container type
+  // 必须是容器节点，避免误删文本/图片/图标
   if (node.type !== 'CONTAINER') return false;
   
   
-  // Must have no visual styles
+  // 不能有可见样式，否则扁平化会丢失视觉信息
   if (hasVisibleStyles(node)) return false;
 
+  // 有语义标签的节点保留，避免语义信息丢失
   if (node.semanticTag) return false;
 
-  // Must have no layout impact (padding)
+  // 必须对布局没有影响（padding/gap/定位/尺寸等）
   if (hasLayoutImpact(node, globalVars)) return false;
 
   return true;
@@ -65,6 +67,7 @@ function hasLayoutImpact(
   const sizing = layout.sizing;
   const hasSizing = sizing && (sizing.horizontal || sizing.vertical);
   const dimensionOnlyKeys = ["mode", "sizing", "dimensions"];
+  // 仅有尺寸相关字段且父子边界一致时，不认为有布局影响
   const hasOnlyDimensions = Object.keys(layout).every(key => dimensionOnlyKeys.includes(key)) && !hasSizing;
   if (hasOnlyDimensions && node.absRect && child?.absRect) {
     const sameBounds = nearlyEqual(node.absRect.x, child.absRect.x)
@@ -73,6 +76,7 @@ function hasLayoutImpact(
       && nearlyEqual(node.absRect.height, child.absRect.height);
     if (sameBounds) return false;
   }
+  // 其余 layout 属性一旦存在，视为有布局影响
   if (layout.padding && layout.padding !== '0px' && layout.padding !== '0') return true;
   if (layout.gap && layout.gap !== '0px' && layout.gap !== '0') return true;
   if (layout.wrap) return true;

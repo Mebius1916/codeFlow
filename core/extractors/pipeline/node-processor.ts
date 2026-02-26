@@ -5,6 +5,8 @@ import type {
 } from "../../types/extractor-types.js";
 import type { ReconstructionStepFlags } from "./reconstruction.js";
 import { processNodes } from "./utils/core-process.js";
+import { flattenRedundantNodes } from "../algorithms/flattening.js";
+import { normalizeNodeStyles } from "../algorithms/style-normalization.js";
 
 /**
  * Traverse the Figma node tree and extract simplified nodes.
@@ -29,6 +31,9 @@ export function extractFromDesign(
     runReconstructionPipeline(children, globalVars, options?.reconstruction),
   );
 
+  rootNodes = flattenRedundantNodes(rootNodes, globalVars);
+  rootNodes = normalizeNodeStyles(rootNodes, globalVars);
+  
   // 剪枝操作，减少内存占用
   if (globalVars.extraStyles) {
     delete globalVars.extraStyles;

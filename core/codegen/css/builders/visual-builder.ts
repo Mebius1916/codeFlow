@@ -77,8 +77,11 @@ export const visualBuilder = {
         } else if (typedFill.type === "IMAGE") {
           const imageFill = typedFill as SimplifiedImageFill;
           if (imageFill.objectFit) objectFit = imageFill.objectFit;
-          size = imageFill.backgroundSize || (imageFill.isBackground === false ? "" : "cover");
-          repeat = imageFill.backgroundRepeat || (imageFill.isBackground === false ? "" : "no-repeat");
+          if (imageFill.isBackground === false) {
+            return;
+          }
+          size = imageFill.backgroundSize || "cover";
+          repeat = imageFill.backgroundRepeat || "no-repeat";
           position = (imageFill as any).backgroundPosition || "";
           layer = `url(${imageFill.imageRef || ""})`;
         } else if (typedFill.type === "PATTERN") {

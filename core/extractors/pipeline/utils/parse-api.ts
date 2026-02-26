@@ -6,9 +6,8 @@ import type {
   ComponentSet,
   Style,
 } from "@figma/rest-api-spec";
-/**
- * Parse the raw Figma API response to extract metadata, nodes, and components.
- */
+
+// 解析两种格式：1.部分内容 2.完整内容
 export function parseAPIResponse(data: GetFileResponse | GetFileNodesResponse) {
   const aggregatedComponents: Record<string, Component> = {};
   const aggregatedComponentSets: Record<string, ComponentSet> = {};

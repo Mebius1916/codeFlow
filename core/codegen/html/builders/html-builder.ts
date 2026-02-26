@@ -1,9 +1,10 @@
 
-import type { SimplifiedNode } from "../../../types/extractor-types.js";
+import type { SimplifiedNode, TraversalContext } from "../../../types/extractor-types.js";
+import type { SimplifiedImageFill } from "../../../types/simplified-types.js";
 import { buildInlineSvg } from "../utils/svg.js";
 import { hashClassName } from "../../../utils/hash.js";
 import { getTextSegmentStyleId } from "../../css/utils/text-style.js";
-
+import { resolveImageFill } from "../utils/fill.js";
 
 /**
  * HtmlNodeBuilder class responsible for constructing HTML for a single node.
@@ -11,18 +12,20 @@ import { getTextSegmentStyleId } from "../../css/utils/text-style.js";
  */
 export class HtmlNodeBuilder {
   private node: SimplifiedNode;
-  private globalVars?: { styles: Record<string, any>; styleCache?: Map<string, string> };
+  private globalVars?: TraversalContext["globalVars"];
   private tagName: string = "div";
   private attributes: Record<string, string> = {};
   private classes: string[] = [];
   private children: string[] = [];
   private isSelfClosing: boolean = false;
+  private imageFill?: SimplifiedImageFill;
   constructor(
     node: SimplifiedNode,
-    globalVars?: { styles: Record<string, any>; styleCache?: Map<string, string> }
+    globalVars?: TraversalContext["globalVars"]
   ) {
     this.node = node;
     this.globalVars = globalVars;
+    this.imageFill = resolveImageFill(node, globalVars);
     this.inferSemanticTag();
     this.processAttributes();
     this.processStyles();
@@ -44,6 +47,11 @@ export class HtmlNodeBuilder {
     // Priority 2: Type-based
     if (type === "TEXT") {
       this.tagName = "p";
+      return;
+    }
+
+    if (this.imageFill?.isBackground === false && this.imageFill.imageRef) {
+      this.tagName = "img";
       return;
     }
 
@@ -70,7 +78,8 @@ export class HtmlNodeBuilder {
 
     if (this.tagName === "img") {
       this.isSelfClosing = true;
-      if (this.node.src) this.attributes["src"] = this.node.src;
+      const src = this.imageFill?.imageRef || this.node.src;
+      if (src) this.attributes["src"] = src;
     }
 
     if (this.node.semanticTag === "list" || 

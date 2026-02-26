@@ -5,7 +5,7 @@ import type {
 import { simplifyComponents, simplifyComponentSets } from "../../transformers/component.js";
 import type { SimplifiedDesign, TraversalContext } from "../../types/extractor-types.js";
 import { extractFromDesign } from "./node-processor.js";
-import { resolveImageAssetsFromFigma } from "./utils/image-assets.js";
+import { resolveImageAssetsFromFigma } from "./image-assets.js";
 import type { ReconstructionStepFlags } from "./reconstruction.js";
 import { parseAPIResponse } from "./utils/parse-api.js";
 

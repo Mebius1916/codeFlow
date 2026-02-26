@@ -23,6 +23,26 @@
 - **布局与类型调整 (Layout & Types)**:
   - layoutExtractor 直出 `SimplifiedLayout`，由样式归一化阶段统一收敛为 styleId。
 
+### 图片资源回填与图片渲染修复
+
+> **涉及文件**:
+>
+> - `core/extractors/pipeline/image-assets.ts` (新增: 图片/SVG 资源回填入口)
+> - `core/extractors/pipeline/utils/fetch-urls.ts` / `core/extractors/pipeline/utils/apply-to-nodes.ts` (新增: URL 拉取与回填)
+> - `core/extractors/pipeline/utils/request-cache.ts` (新增: 请求缓存与缓存导出)
+> - `core/extractors/pipeline/utils/image-assets.ts` (删除: 旧实现拆分)
+> - `core/extractors/pipeline/reconstruction.ts` / `core/extractors/pipeline/node-processor.ts` (调整: flatten/style-normalization 下沉到抽取后处理)
+> - `core/codegen/html/builders/html-builder.ts` / `core/codegen/html/utils/fill.ts` (修复: 非背景图片填充输出为 `<img>` )
+> - `core/codegen/css/builders/visual-builder.ts` / `core/transformers/utils/style-utils.ts` (修复: `isBackground=false` 不再生成 `background-image`)
+> - `core/extractors/algorithms/flattening.ts` (调整: dirty 仅影响递归)
+>
+- **资源回填 (Assets)**:
+  - 图片/SVG 拉取与回填逻辑拆分为 fetch 与 apply 两步，并加入请求缓存与缓存导出能力。
+- **图片输出修复 (Image Rendering)**:
+  - `isBackground=false` 的图片 fill 使用 `<img src="...">` 输出，避免 `background-image` 与 `object-fit` 语义冲突。
+- **后处理收敛 (Post Processing)**:
+  - flatten 与样式归一化从重建流水线移出，统一在抽取结束后执行，降低阶段耦合。
+
 ## [v0.1.16] - 2026-02-23
 
 ### 布局推断与参数配置化
