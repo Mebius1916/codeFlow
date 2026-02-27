@@ -75,7 +75,9 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
   }
 
   // border radius
-  if (hasValue("cornerRadius", node) && typeof node.cornerRadius === "number") {
+  if (node.type === "ELLIPSE") {
+    result.borderRadius = "50%";
+  } else if (hasValue("cornerRadius", node) && typeof node.cornerRadius === "number") {
     result.borderRadius = `${node.cornerRadius}px`;
   }
   if (hasValue("rectangleCornerRadii", node, isRectangleCornerRadii)) {

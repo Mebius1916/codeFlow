@@ -9,6 +9,7 @@ export interface SimplifiedLayout {
   parentMode?: "none" | "row" | "column";
   justifyContent?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch";
   alignItems?: "flex-start" | "flex-end" | "center" | "space-between" | "baseline" | "stretch";
+  alignContent?: "flex-start" | "flex-end" | "center" | "space-between" | "space-around" | "stretch" | "baseline";
   alignSelf?: "flex-start" | "flex-end" | "center" | "stretch";
   wrap?: boolean;
   gap?: string;
@@ -35,6 +36,7 @@ export interface SimplifiedLayout {
   textAutoResize?: "WIDTH_AND_HEIGHT" | "HEIGHT" | "NONE" | "TRUNCATE";
   textTruncation?: string;
   maxLines?: number;
+  clipsContent?: boolean;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -59,6 +61,8 @@ export interface SimplifiedTextStyle {
   textBoxTrim?: string;
   textBoxEdge?: string;
   color?: any; // CSSColor or string
+  textIndent?: string;
+  listStyle?: string;
   richText?: {
     text: string;
     style: SimplifiedTextStyle;

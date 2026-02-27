@@ -140,7 +140,8 @@ export class HtmlNodeBuilder {
       innerHTML = this.node.richText.map((segment: any) => {
         const tagName = resolveRichTextTag(segment.style); // 判断富文本标签
         const segmentText = escapeHTML(segment.text).split("\n").join("<br/>"); // 转译 html 标签
-        const segmentStyleId = getTextSegmentStyleId(segment.style, this.node, this.globalVars, segment.effects); // 获取文本样式 id
+        const effectsToUse = segment.effects;
+        const segmentStyleId = getTextSegmentStyleId(segment.style, this.node, this.globalVars, effectsToUse); // 获取文本样式 id
         const className = segmentStyleId ? hashClassName(segmentStyleId) : "";
         const segmentClassAttr = className ? ` class="${className}"` : "";
         return `<${tagName}${segmentClassAttr}>${segmentText}</${tagName}>`;

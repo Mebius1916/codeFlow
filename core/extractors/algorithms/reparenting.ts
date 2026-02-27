@@ -103,7 +103,6 @@ function adoptAsAbsoluteChild(parent: SimplifiedNode, child: SimplifiedNode) {
   if (!parent.absRect || !child.absRect) return;
   if (!parent.children) parent.children = [];
   parent.children.push(child);
-  parent.dirty = true;
   parent.layout = {
     ...(typeof parent.layout === "object" && parent.layout ? parent.layout : { mode: "none" }),
     position: "relative",

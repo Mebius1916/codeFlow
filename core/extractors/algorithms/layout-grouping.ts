@@ -10,16 +10,6 @@ import {
   spliteByCost
 } from "./utils/group-calculation.js";
 export function groupNodesByLayout(nodes: SimplifiedNode[]): SimplifiedNode[] {
-  nodes.forEach((node) => {
-    if (node.dirty && node.children && node.children.length > 0) {
-      // 如果是 autoLayout 就不用分组
-      if (isAutoLayoutNode(node)) {
-        return;
-      }
-      node.children = groupNodesByLayout(node.children);
-    }
-  });
-
   // 排除绝对定位的节点
   const flowNodes: SimplifiedNode[] = [];
   const absoluteNodes: SimplifiedNode[] = [];
@@ -70,7 +60,6 @@ function buildGroup(group: SimplifiedNode[], direction: "row" | "column" ): Simp
     name: "Group",
     children: group,
     direction,
-    dirty: true,
     allowSingle: true,
   });
 }
@@ -87,11 +76,11 @@ function buildGroupWithSecondSplit(
   const bestSecondDirection = spliteByCost(splitSecondY, splitSecondX);
   if (bestSecondDirection === "row") {
     const children = splitSecondY.map(group => buildGroup(group, "row"));
-    return buildGroup(children, "row");
+    return buildGroup(children, "column");
   }
   if (bestSecondDirection === "column") {
     const children = splitSecondX.map(group => buildGroup(group, "column"));
-    return buildGroup(children, "column");
+    return buildGroup(children, "row");
   }
   return buildGroup(meta.group, direction);
 }

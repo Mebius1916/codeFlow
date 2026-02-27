@@ -8,7 +8,7 @@ import { computeAutoLayoutGap } from "./auto-layout.js";
 
 type BaseVirtualOptions = Pick<
   CreateVirtualFrameOptions,
-  "children" | "semanticTag" | "visualSignature" | "dirty"
+  "children" | "semanticTag" | "visualSignature"
 > & {
   name: string;
 };
@@ -23,7 +23,6 @@ export interface CreateVirtualFrameOptions {
     "section" | "header" | "footer" | "nav" | "article" |
     "aside" | "main" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   visualSignature?: string;
-  dirty?: boolean;
 }
 
 /**
@@ -37,8 +36,7 @@ export function createVirtualFrame(options: CreateVirtualFrameOptions): Simplifi
     layout,
     children,
     semanticTag,
-    visualSignature,
-    dirty
+    visualSignature
   } = options;
 
   if (layout && typeof layout === "object") {
@@ -64,8 +62,7 @@ export function createVirtualFrame(options: CreateVirtualFrameOptions): Simplifi
     absRect: unionRect, // 默认自带总包围盒
     children,
     semanticTag,
-    visualSignature,
-    dirty
+    visualSignature
   };
 
   if (layout) {
@@ -87,13 +84,12 @@ export function buildContainerByGap(
     children,
     direction,
     semanticTag,
-    dirty,
     allowSingle,
   } = options;
   if (allowSingle && children.length === 1) return children[0];
   const { gap, uniform } = computeAutoLayoutGap(children, direction);
   // 如果 gap 不同，就用相绝布局
-  if (!uniform) return createPositionContainer({ name, children, semanticTag, dirty });
+  if (!uniform) return createPositionContainer({ name, children, semanticTag });
   // 如果 gap 相同，就用 autoLayout
   return createAutoLayoutContainer({
     name,
@@ -101,7 +97,6 @@ export function buildContainerByGap(
     direction,
     gap,
     semanticTag,
-    dirty
   });
 }
 
@@ -112,8 +107,7 @@ function createAutoLayoutContainer(options: BaseVirtualOptions & { direction: "r
     direction,
     gap,
     semanticTag,
-    visualSignature,
-    dirty
+    visualSignature
   } = options;
   return createVirtualFrame({
     name,
@@ -124,8 +118,7 @@ function createAutoLayoutContainer(options: BaseVirtualOptions & { direction: "r
     },
     children,
     semanticTag,
-    visualSignature,
-    dirty
+    visualSignature
   });
 }
 
@@ -134,8 +127,7 @@ function createPositionContainer(options: BaseVirtualOptions) {
     name,
     children,
     semanticTag,
-    visualSignature,
-    dirty
+    visualSignature
   } = options;
   const container = createVirtualFrame({
     name,
@@ -143,8 +135,7 @@ function createPositionContainer(options: BaseVirtualOptions) {
     layout: { mode: "none", position: "relative" },
     children,
     semanticTag,
-    visualSignature,
-    dirty
+    visualSignature
   });
   const parentRect = container.absRect;
   if (parentRect) {

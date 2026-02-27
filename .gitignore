@@ -1,6 +1,3 @@
 /node_modules
-run-test.ts
-test-result.json
-output.html
 .npmrc
 .DS_Store

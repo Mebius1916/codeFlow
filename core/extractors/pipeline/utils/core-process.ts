@@ -52,6 +52,7 @@ export function processNodes(
         const children = processNodes(node.children, childContext, postProcessor);
         // 5. Post-Process Children (Optional)
         const processedChildren = postProcessor ? postProcessor(children) : children;
+        
         // 剪枝：移除空容器
         const prunedChildren = processedChildren.filter((child) => {
           if (child.type === "CONTAINER") {

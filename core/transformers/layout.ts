@@ -70,6 +70,25 @@ function convertAlign(
   }
 }
 
+function convertAlignContent(align: string) {
+  switch (align) {
+    case "MIN":
+      return "flex-start";
+    case "MAX":
+      return "flex-end";
+    case "CENTER":
+      return "center";
+    case "SPACE_BETWEEN":
+      return "space-between";
+    case "SPACE_AROUND":
+      return "space-around";
+    case "BASELINE":
+      return "baseline";
+    default:
+      return undefined;
+  }
+}
+
 function convertSelfAlign(align?: HasLayoutTrait["layoutAlign"]) {
   switch (align) {
     case "MIN":
@@ -138,6 +157,9 @@ function buildSimplifiedFrameValues(n: FigmaDocumentNode): SimplifiedLayout | { 
   if (overflowScroll.length > 0) frameValues.overflowScroll = overflowScroll;
 
   if (frameValues.mode === "none") {
+    if ("clipsContent" in n && n.clipsContent) {
+      frameValues.clipsContent = true;
+    }
     return frameValues;
   }
 
@@ -156,6 +178,9 @@ function buildSimplifiedFrameValues(n: FigmaDocumentNode): SimplifiedLayout | { 
 
   // Only include wrap if it's set to WRAP, since flex layouts don't default to wrapping
   frameValues.wrap = n.layoutWrap === "WRAP" ? true : undefined;
+  if (frameValues.wrap && n.counterAxisAlignContent) {
+    frameValues.alignContent = convertAlignContent(n.counterAxisAlignContent);
+  }
   frameValues.gap = n.itemSpacing ? `${n.itemSpacing ?? 0}px` : undefined;
   // gather padding
   if (n.paddingTop || n.paddingBottom || n.paddingLeft || n.paddingRight) {
@@ -165,6 +190,10 @@ function buildSimplifiedFrameValues(n: FigmaDocumentNode): SimplifiedLayout | { 
       bottom: n.paddingBottom ?? 0,
       left: n.paddingLeft ?? 0,
     });
+  }
+
+  if ("clipsContent" in n && n.clipsContent) {
+    frameValues.clipsContent = true;
   }
 
   return frameValues;
@@ -208,8 +237,10 @@ function buildSimplifiedLayoutValues(
   }
 
   if (n.type === "TEXT") {
-    if ("textAutoResize" in n && n.textAutoResize) {
+    if ("textAutoResize" in n) {
       layoutValues.textAutoResize = n.textAutoResize as SimplifiedLayout["textAutoResize"];
+    } else if ("style" in n && (n as any).style?.textAutoResize) {
+      layoutValues.textAutoResize = (n as any).style.textAutoResize;
     }
     if ("textTruncation" in n && (n as any).textTruncation) {
       layoutValues.textTruncation = (n as any).textTruncation;
@@ -225,9 +256,17 @@ function buildSimplifiedLayoutValues(
     isFrame(parent) &&
     !isInAutoLayoutFlow(n, parent)
   ) {
-    if (n.layoutPositioning === "ABSOLUTE") {
-      layoutValues.position = "absolute";
+    
+    layoutValues.position = "absolute";
+    if (n.absoluteBoundingBox && parent.absoluteBoundingBox) {
+      layoutValues.locationRelativeToParent = {
+        x: pixelRound(n.absoluteBoundingBox.x - parent.absoluteBoundingBox.x),
+        y: pixelRound(n.absoluteBoundingBox.y - parent.absoluteBoundingBox.y),
+      };
     }
+  } else if (n.layoutPositioning === "ABSOLUTE" && isFrame(parent)) {
+    // Explicitly handle AutoLayout children that are set to absolute position
+    layoutValues.position = "absolute";
     if (n.absoluteBoundingBox && parent.absoluteBoundingBox) {
       layoutValues.locationRelativeToParent = {
         x: pixelRound(n.absoluteBoundingBox.x - parent.absoluteBoundingBox.x),
@@ -275,6 +314,15 @@ function buildSimplifiedLayoutValues(
         dimensions.height = pixelRound(dimensions.height);
       }
       layoutValues.dimensions = dimensions;
+    }
+  }
+
+  // Add position relative if the node is a frame (and not absolute)
+  if (isFrame(n) && layoutValues.position !== "absolute") {
+    // Check if the frame has absolute children
+    const hasAbsoluteChildren = n.children?.some((child) => !isInAutoLayoutFlow(child, n));
+    if (hasAbsoluteChildren) {
+      layoutValues.position = "relative";
     }
   }
 

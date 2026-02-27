@@ -14,6 +14,9 @@ function normalizeNodeStyle(
   node: SimplifiedNode,
   globalVars: TraversalContext["globalVars"]
 ): SimplifiedNode {
+  if (node.children && node.children.length > 0) {
+    node.children = node.children.map((child) => normalizeNodeStyle(child, globalVars));
+  }
   normalizeLayout(node, globalVars);
   const refs = collectStyleRefs(node, globalVars);
   if (refs.length > 0) {

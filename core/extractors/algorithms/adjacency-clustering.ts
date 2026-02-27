@@ -6,12 +6,6 @@ import { calculateAdjacencyThreshold, computeAdjacencyBaseGap } from "./utils/dy
 import { isClusterCandidate } from "../../utils/candidate-check.js";
 
 export function groupNodesByAdjacency(nodes: SimplifiedNode[]): SimplifiedNode[] {
-  nodes.forEach((node) => {
-    if (node.dirty && node.children && node.children.length > 0) {
-      node.children = groupNodesByAdjacency(node.children);
-    }
-  });
-
   if (nodes.length < 2) return nodes;
 
   const candidates: { index: number; node: SimplifiedNode }[] = [];

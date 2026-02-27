@@ -8,9 +8,6 @@ import { groupRepeatedPatterns } from "./utils/list-pattern.js";
 
 export function inferListPatterns(nodes: SimplifiedNode[]): SimplifiedNode[] {
   nodes.forEach((node) => {
-    if (node.dirty && node.children && node.children.length > 0) {
-      node.children = inferListPatterns(node.children);
-    }
     if (!node.visualSignature) {
       node.visualSignature = generateVisualSignature(node);
     }

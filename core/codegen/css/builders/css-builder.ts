@@ -3,7 +3,7 @@ import { typographyBuilder } from "./typography-builder.js";
 import { visualBuilder } from "./visual-builder.js";
 import { hashClassName } from "../../../utils/hash.js";
 
-// 将样式对象解析为可写入 CSS 的 "prop: value;" 字符串
+// 将样式对象解析为可写入 CSS 的 "key: value;" 字符串
 export function formatStyleBody(style: any, stylesMap: Record<string, any> = {}): string {
   if (!style) return "";
   const styles = resolveStyleObject(style, stylesMap, new Set());
@@ -73,12 +73,22 @@ function effectsStyleBuilder(style: any): Record<string, string> {
   return styles;
 }
 
-// toRead
+/**
+  - Handler 1 (Layout) : 匹配 mode 属性。
+  - Handler 2 (Typography) : 匹配 fontFamily , fontSize 等。
+  - Handler 3 (Fills) : 匹配数组类型的 style 。
+  - Handler 4 (Strokes) : 匹配 colors 且有 strokeWeight 等。
+  - Handler 5 (Node Style) : 匹配 opacity , borderRadius 等。
+  - Handler 6 (Effects) : 匹配 textShadow , boxShadow 等。
+ */
 const styleHandlers: Array<{
   match: (style: any) => boolean;
   build: (style: any) => Record<string, string>;
 }> = [
-  { match: (style) => style && "mode" in style, build: layoutBuilder },
+  {
+    match: (style) => style && ("mode" in style || "position" in style),
+    build: layoutBuilder,
+  },
   {
     match: (style) =>
       style &&

@@ -31,9 +31,9 @@ export function extractFromDesign(
     runReconstructionPipeline(children, globalVars, options?.reconstruction),
   );
 
-  rootNodes = flattenRedundantNodes(rootNodes, globalVars);
+  rootNodes = flattenRedundantNodes(rootNodes);
   rootNodes = normalizeNodeStyles(rootNodes, globalVars);
-  
+
   // 剪枝操作，减少内存占用
   if (globalVars.extraStyles) {
     delete globalVars.extraStyles;

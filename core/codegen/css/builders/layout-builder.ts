@@ -6,11 +6,20 @@ import { px } from "../utils/css-color.js";
 export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> => {
   const styles: Record<string, string> = {};
 
+  if (layout.clipsContent) {
+    styles["overflow"] = "hidden";
+  }
+
   const isAutoLayout = layout.mode !== "none";
   if (isAutoLayout) {
     styles["display"] = "flex";
     styles["flex-direction"] = layout.mode;
-    if (layout.wrap) styles["flex-wrap"] = "wrap";
+    if (layout.wrap) {
+      styles["flex-wrap"] = "wrap";
+      if (layout.alignContent && layout.alignContent !== "flex-start") {
+        styles["align-content"] = layout.alignContent;
+      }
+    }
     // layout.justifyContent ? 
     if (layout.justifyContent && layout.justifyContent !== "flex-start") {
       styles["justify-content"] = layout.justifyContent;
@@ -51,7 +60,11 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
         }
       }
     } else if (sizing.horizontal === "hug") {
-      if (allowWidth) styles["width"] = "max-content";
+      if (allowWidth) {
+        styles["width"] = "max-content";
+      } else {
+        styles["white-space"] = "nowrap";
+      }
     } else if (layout.dimensions?.width && sizing.horizontal === "fixed") {
       if (allowWidth) styles["width"] = px(layout.dimensions.width);
     }
@@ -74,23 +87,14 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
   }
 
   // Positioning
-  if (
-    layout.locationRelativeToParent &&
-    layout.parentMode !== "row" &&
-    layout.parentMode !== "column"
-  ) {
-    styles["position"] = "absolute";
-    const { x, y } = layout.locationRelativeToParent;
-    styles["left"] = px(x);
-    styles["top"] = px(y);
-  } else if (layout.position === "absolute") {
+  if (layout.position === "absolute") {
     styles["position"] = "absolute";
     if (layout.locationRelativeToParent) {
       const { x, y } = layout.locationRelativeToParent;
       styles["left"] = px(x);
       styles["top"] = px(y);
     }
-  }
+  } 
 
   if (layout.overflowScroll && layout.overflowScroll.length > 0) {
     const hasX = layout.overflowScroll.includes("x");

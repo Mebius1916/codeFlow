@@ -60,6 +60,11 @@ export const typographyBuilder = (text: SimplifiedTextStyle): Record<string, str
   if (text.textBoxTrim) styles["text-box-trim"] = text.textBoxTrim;
   if (text.textBoxEdge) styles["text-box-edge"] = text.textBoxEdge;
   if (text.color) styles["color"] = toCssColor(text.color);
+  if (text.textIndent) styles["text-indent"] = text.textIndent;
+  if (text.listStyle) {
+    styles["display"] = "list-item";
+    styles["list-style"] = text.listStyle;
+  }
   styles["word-wrap"] = "break-word";
 
   return styles;

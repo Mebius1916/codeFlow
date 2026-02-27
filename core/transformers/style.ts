@@ -52,7 +52,17 @@ export function buildSimplifiedStrokes(
 ): SimplifiedStroke {
   let strokes: SimplifiedStroke = { colors: [] };
   if (hasValue("strokes", n) && Array.isArray(n.strokes) && n.strokes.length) {
-    strokes.colors = n.strokes.filter(isVisible).map((stroke) => parsePaint(stroke, hasChildren));
+    strokes.colors = n.strokes.filter(isVisible).map((stroke) => {
+      // Fallback for gradient strokes to use the first color stop
+      // This ensures borders are visible even if gradients aren't fully supported on borders
+      if (stroke.type.startsWith("GRADIENT") && stroke.gradientStops && stroke.gradientStops.length > 0) {
+        const firstStop = stroke.gradientStops[0];
+        // Use htmlColor to convert the color object to a CSS string
+        const color = htmlColor(firstStop.color, stroke.opacity);
+        return { type: "SOLID", color };
+      }
+      return parsePaint(stroke, hasChildren);
+    });
   }
 
   if (hasValue("strokeWeight", n) && typeof n.strokeWeight === "number" && n.strokeWeight > 0) {
@@ -82,6 +92,8 @@ export function buildSimplifiedStrokes(
  * @returns The converted SimplifiedFill
  */
 export function parsePaint(raw: Paint, hasChildren: boolean = false): SimplifiedFill {
+  if (!isVisible(raw)) return "transparent";
+
   const blendMode = toCssBlendMode((raw as any).blendMode);
   if (raw.type === "IMAGE") {
     const baseImageFill: SimplifiedImageFill = {

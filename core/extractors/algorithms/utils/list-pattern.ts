@@ -169,8 +169,7 @@ function createVirtualGroup(children: SimplifiedNode[]): SimplifiedNode {
       position: "static",
     },
     children: children,
-    visualSignature: children.map(c => c.visualSignature).join("+"),
-    dirty: true
+    visualSignature: children.map(c => c.visualSignature).join("+")
   });
 }
 
@@ -197,6 +196,5 @@ function createVirtualList(children: SimplifiedNode[], isVertical: boolean): Sim
     children,
     direction: isVertical ? "column" : "row",
     semanticTag: "list",
-    dirty: true,
   });
 }

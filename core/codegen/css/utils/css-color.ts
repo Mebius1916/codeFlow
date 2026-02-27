@@ -2,6 +2,7 @@ export function toCssColor(color: any): string {
   if (!color) return "transparent";
   if (typeof color === "string") return color;
   if (typeof color === "object" && color.type === "SOLID" && color.color) {
+    if (color.visible === false) return "transparent"; // Check visibility
     return typeof color.color === "string" ? color.color : toCssColor(color.color);
   }
   if (typeof color === "object" && "r" in color) {
@@ -12,7 +13,10 @@ export function toCssColor(color: any): string {
       return `rgba(${r}, ${g}, ${b}, ${color.a.toFixed(2)})`;
     }
     const toHex = (n: number) => n.toString(16).padStart(2, "0");
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+    const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+    if (hex === "#FFFFFF") return "white";
+    if (hex === "#000000") return "black";
+    return hex;
   }
   return "transparent";
 }

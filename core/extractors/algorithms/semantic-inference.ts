@@ -23,11 +23,8 @@ function inferTagFromName(name: string, type: SimplifiedNode["type"]): Simplifie
     if (name.match(/para|desc|body/)) return "p";
   }
 
-  if (name.includes("button") || name.includes("btn")) return "button";
-  if (name.includes("input")) return "input";
   if (name.includes("section")) return "section";
   if (name.includes("header")) return "header";
-  if (name.includes("footer")) return "footer";
   if (name.includes("nav")) return "nav";
   if (name.includes("article")) return "article";
   if (name.includes("aside")) return "aside";

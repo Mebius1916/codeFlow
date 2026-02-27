@@ -42,9 +42,22 @@ export function extractTextStyle(n: FigmaDocumentNode) {
       color: color
     };
 
+    if ("paragraphIndent" in style && typeof style.paragraphIndent === "number" && style.paragraphIndent !== 0) {
+      textStyle.textIndent = `${style.paragraphIndent}px`;
+    }
+
     if ("leadingTrim" in n && (n as any).leadingTrim === "CAP_HEIGHT") {
       textStyle.textBoxTrim = "trim-both";
       textStyle.textBoxEdge = "cap alphabetic";
+    }
+
+    if ("listOptions" in style && style.listOptions) {
+      const listOptions = style.listOptions as { type: string };
+      if (listOptions.type === "ORDERED") {
+        textStyle.listStyle = "decimal inside";
+      } else if (listOptions.type === "UNORDERED") {
+        textStyle.listStyle = "disc inside";
+      }
     }
 
     return textStyle;
@@ -200,6 +213,17 @@ function applyTextStyleOverrides(target: SimplifiedTextStyle, source: any) {
   }
   if (source.fontStyle && !target.fontStyle) {
     target.fontStyle = resolveFontStyle(source.fontStyle);
+  }
+  if ("paragraphIndent" in source && typeof source.paragraphIndent === "number" && source.paragraphIndent !== 0) {
+    target.textIndent = `${source.paragraphIndent}px`;
+  }
+  if ("listOptions" in source && source.listOptions) {
+    const listOptions = source.listOptions as { type: string };
+    if (listOptions.type === "ORDERED") {
+      target.listStyle = "decimal inside";
+    } else if (listOptions.type === "UNORDERED") {
+      target.listStyle = "disc inside";
+    }
   }
 }
 
