@@ -1,9 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import type { SimplifiedNode } from "../../../types/extractor-types.js";
 import type { BoundingBox } from "../../../types/simplified-types.js";
-import { getUnionRect } from "../../../utils/geometry.js";
+import { getUnionRect, calculateRelativePosition } from "../../../utils/geometry.js";
 import type { SimplifiedLayout } from "../../../types/simplified-types.js";;
-import { pixelRound } from "../../../utils/common.js";
 import { computeAutoLayoutGap } from "./auto-layout.js";
 
 type BaseVirtualOptions = Pick<
@@ -150,10 +149,8 @@ function createPositionContainer(options: BaseVirtualOptions) {
         ...resolvedLayout,
         position: "absolute",
         parentMode: "none",
-        locationRelativeToParent: {
-          x: pixelRound(childRect.x - parentRect.x),
-          y: pixelRound(childRect.y - parentRect.y),
-        },
+        locationRelativeToParent: 
+          calculateRelativePosition(childRect, parentRect),
       };
     });
   }

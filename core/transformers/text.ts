@@ -75,20 +75,8 @@ export function extractRichTextSegments(
   n: FigmaDocumentNode,
   baseStyle: SimplifiedTextStyle,
 ): RichTextSegment[] | undefined {
-  const styledSegments = (n as any).styledTextSegments as any[] | undefined;
   const sharedEffects = buildTextEffectsFromNode(n);
   const effects = Object.keys(sharedEffects).length ? sharedEffects : undefined;
-  if (Array.isArray(styledSegments) && styledSegments.length > 0) {
-    const segments = styledSegments
-      .map((segment): RichTextSegment | undefined => {
-        const text = segment.characters ?? segment.text;
-        if (!text) return undefined;
-        const style = buildSegmentTextStyle(segment, baseStyle);
-        return { text, style, effects };
-      })
-      .filter(isDefined);
-    return segments.length > 0 ? segments : undefined;
-  }
 
   const chars = (n as any).characters as string | undefined;
   const overrides = (n as any).characterStyleOverrides as number[] | undefined;
@@ -97,15 +85,19 @@ export function extractRichTextSegments(
     return undefined;
   }
 
-  const length = Math.min(chars.length, overrides.length);
+  // 确保 length 包含所有字符，防止因 overrides 数组比 chars 短而被截断
+  const length = chars.length;
   const segments: RichTextSegment[] = [];
   let currentText = "";
-  let currentStyleId = overrides[0];
+  // 默认使用第一个 override 或 0 作为初始 styleId
+  let currentStyleId = overrides.length > 0 ? overrides[0] : 0;
   let currentStyle = mergeTextStyle(baseStyle, overrideTable[currentStyleId]);
 
   // 拆分为不同文本样式的对象
   for (let i = 0; i < length; i++) {
-    const styleId = overrides[i];
+    // 如果 overrides 长度不足，后续字符回退到默认样式 (ID 0)
+    const styleId = i < overrides.length ? overrides[i] : 0;
+    
     // 样式发生改变时，将当前文本样式对象加入结果数组(合并样式相同的文本)
     if (styleId !== currentStyleId) {
       if (currentText) {
@@ -113,6 +105,7 @@ export function extractRichTextSegments(
       }
       currentText = chars[i];
       currentStyleId = styleId;
+      // 如果 styleId 为 0 且表中没有 0 的定义，则 mergeTextStyle 会处理 undefined，返回 baseStyle
       currentStyle = mergeTextStyle(baseStyle, overrideTable[styleId]);
     } else {
       currentText += chars[i];

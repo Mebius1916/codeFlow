@@ -5,6 +5,7 @@ import type {
   HasLayoutTrait,
 } from "@figma/rest-api-spec";
 import { generateCSSShorthand, pixelRound } from "../utils/common.js";
+import { calculateRelativePosition, isVisuallyCentered } from "../utils/geometry.js";
 import type { SimplifiedLayout } from "../types/simplified-types.js";
 
 export { SimplifiedLayout };
@@ -56,7 +57,7 @@ function convertAlign(
   switch (axisAlign) {
     case "MIN":
       // MIN, AKA flex-start, is the default alignment
-      return undefined;
+      return "flex-start";
     case "MAX":
       return "flex-end";
     case "CENTER":
@@ -89,11 +90,18 @@ function convertAlignContent(align: string) {
   }
 }
 
-function convertSelfAlign(align?: HasLayoutTrait["layoutAlign"]) {
+function convertSelfAlign(
+  align: HasLayoutTrait["layoutAlign"] | undefined,
+  sizing: HasLayoutTrait["layoutSizingHorizontal"] | HasLayoutTrait["layoutSizingVertical"],
+) {
+  if (sizing === "HUG" && align === "STRETCH") {
+    return "flex-start";
+  }
+
   switch (align) {
     case "MIN":
       // MIN, AKA flex-start, is the default alignment
-      return undefined;
+      return "flex-start";
     case "MAX":
       return "flex-end";
     case "CENTER":
@@ -151,6 +159,15 @@ function buildSimplifiedFrameValues(n: FigmaDocumentNode): SimplifiedLayout | { 
           : "column",
   };
 
+  // 视觉居中的元素，直接 flex 居中
+  if (frameValues.mode === "none" && n.children && n.children.length > 0) {
+    if (isVisuallyCentered(n)) {
+      frameValues.mode = "row";
+      frameValues.justifyContent = "center";
+      frameValues.alignItems = "center";
+    }
+  }
+
   const overflowScroll: SimplifiedLayout["overflowScroll"] = [];
   if (n.overflowDirection?.includes("HORIZONTAL")) overflowScroll.push("x");
   if (n.overflowDirection?.includes("VERTICAL")) overflowScroll.push("y");
@@ -174,7 +191,6 @@ function buildSimplifiedFrameValues(n: FigmaDocumentNode): SimplifiedLayout | { 
     axis: "counter",
     mode: frameValues.mode,
   });
-  frameValues.alignSelf = convertSelfAlign(n.layoutAlign);
 
   // Only include wrap if it's set to WRAP, since flex layouts don't default to wrapping
   frameValues.wrap = n.layoutWrap === "WRAP" ? true : undefined;
@@ -218,10 +234,25 @@ function buildSimplifiedLayoutValues(
     }
   }
 
-  layoutValues.sizing = {
+  // Calculate sizing
+  const sizing: SimplifiedLayout["sizing"] = {
     horizontal: convertSizing(n.layoutSizingHorizontal),
     vertical: convertSizing(n.layoutSizingVertical),
   };
+  layoutValues.sizing = sizing;
+
+  // Calculate alignSelf based on parent mode and sizing (Moved from frameValues)
+  // This logic belongs here because it depends on both parent direction and self sizing
+  let crossAxisSizing: HasLayoutTrait["layoutSizingHorizontal"] | HasLayoutTrait["layoutSizingVertical"] | undefined;
+
+  if (layoutValues.parentMode === "row") {
+    crossAxisSizing = "layoutSizingVertical" in n ? n.layoutSizingVertical : undefined;
+  } else if (layoutValues.parentMode === "column") {
+    crossAxisSizing = "layoutSizingHorizontal" in n ? n.layoutSizingHorizontal : undefined;
+  }
+
+  // Pass the relevant sizing to convertSelfAlign to handle the HUG vs STRETCH conflict
+  layoutValues.alignSelf = convertSelfAlign("layoutAlign" in n ? n.layoutAlign : undefined, crossAxisSizing);
 
   if ("minWidth" in n && typeof n.minWidth === "number") {
     layoutValues.minWidth = pixelRound(n.minWidth);
@@ -252,26 +283,21 @@ function buildSimplifiedLayoutValues(
 
   // Only include positioning-related properties if parent layout isn't flex or if the node is absolute
   if (
-    // If parent is a frame but not an AutoLayout, or if the node is absolute, include positioning-related properties
     isFrame(parent) &&
     !isInAutoLayoutFlow(n, parent)
   ) {
     
     layoutValues.position = "absolute";
     if (n.absoluteBoundingBox && parent.absoluteBoundingBox) {
-      layoutValues.locationRelativeToParent = {
-        x: pixelRound(n.absoluteBoundingBox.x - parent.absoluteBoundingBox.x),
-        y: pixelRound(n.absoluteBoundingBox.y - parent.absoluteBoundingBox.y),
-      };
+      layoutValues.locationRelativeToParent = 
+        calculateRelativePosition(n.absoluteBoundingBox, parent.absoluteBoundingBox);
     }
   } else if (n.layoutPositioning === "ABSOLUTE" && isFrame(parent)) {
     // Explicitly handle AutoLayout children that are set to absolute position
     layoutValues.position = "absolute";
     if (n.absoluteBoundingBox && parent.absoluteBoundingBox) {
-      layoutValues.locationRelativeToParent = {
-        x: pixelRound(n.absoluteBoundingBox.x - parent.absoluteBoundingBox.x),
-        y: pixelRound(n.absoluteBoundingBox.y - parent.absoluteBoundingBox.y),
-      };
+      layoutValues.locationRelativeToParent = 
+        calculateRelativePosition(n.absoluteBoundingBox, parent.absoluteBoundingBox);
     }
   }
 

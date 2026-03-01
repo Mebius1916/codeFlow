@@ -27,11 +27,14 @@ export function extractFromDesign(
   };
 
   // 1. Extraction Phase (with Injected Structure Pass)
-  let rootNodes = processNodes(nodes, context, (children) =>
-    runReconstructionPipeline(children, globalVars, options?.reconstruction),
+  let rootNodes = processNodes(nodes, context, (children, parent) =>
+    runReconstructionPipeline(children, globalVars, options?.reconstruction, parent),
   );
 
+  // 2. Flattening Phase
   rootNodes = flattenRedundantNodes(rootNodes);
+  
+  // 3. Style Normalization Phase
   rootNodes = normalizeNodeStyles(rootNodes, globalVars);
 
   // 剪枝操作，减少内存占用

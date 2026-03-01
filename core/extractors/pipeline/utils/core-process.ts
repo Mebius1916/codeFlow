@@ -13,7 +13,7 @@ import type {
 export function processNodes(
   nodes: FigmaDocumentNode[],
   context: TraversalContext,
-  postProcessor?: (nodes: SimplifiedNode[]) => SimplifiedNode[]
+  postProcessor?: (nodes: SimplifiedNode[], parent?: SimplifiedNode) => SimplifiedNode[]
 ): SimplifiedNode[] {
   const results: SimplifiedNode[] = [];
 
@@ -51,7 +51,7 @@ export function processNodes(
       if (hasValue("children", node) && node.children.length > 0) {
         const children = processNodes(node.children, childContext, postProcessor);
         // 5. Post-Process Children (Optional)
-        const processedChildren = postProcessor ? postProcessor(children) : children;
+        const processedChildren = postProcessor ? postProcessor(children, result) : children;
         
         // 剪枝：移除空容器
         const prunedChildren = processedChildren.filter((child) => {

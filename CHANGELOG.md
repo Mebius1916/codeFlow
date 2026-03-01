@@ -1,5 +1,59 @@
 # 更新日志 (CHANGELOG)
 
+## [v0.1.19] - 2026-03-01
+
+### 布局推断增强与文本提取修复
+
+> **涉及文件**:
+>
+> - `core/transformers/layout.ts` (增强: 视觉居中检测与对齐逻辑优化)
+> - `core/transformers/text.ts` (修复: 富文本分段越界截断问题)
+> - `core/utils/geometry.ts` (新增: `isVisuallyCentered` 与相对坐标计算)
+> - `core/extractors/pipeline/reconstruction.ts` / `core/extractors/algorithms/spatial-merging.ts` (调整: 禁用图标合并与上下文传递)
+> - `run-snapshot.ts` (新增: 本地快照测试脚本)
+
+- **布局推断 (Layout Inference)**:
+  - **视觉居中**: 新增 `isVisuallyCentered` 检测算法，当 Frame 内子元素在视觉上居中时，自动推断容器为 `flex` 布局并设置 `justify-content: center; align-items: center`。
+  - **对齐修正**: 优化 `alignSelf` 和 `alignItems` 的转换逻辑，对于默认值显式输出 `flex-start`，并处理 `HUG` + `STRETCH` 的冲突情况。
+  - **坐标计算**: 统一使用 `calculateRelativePosition` 处理绝对定位坐标，减少重复逻辑。
+- **文本提取 (Text Extraction)**:
+  - **富文本修复**: 修复 `extractRichTextSegments` 中因 `characterStyleOverrides` 数组长度小于文本长度导致的截断问题，确保所有文本都能被正确提取。
+  - **样式回退**: 增加了样式索引越界时的默认样式回退机制，防止样式应用错误。
+- **算法调整 (Algorithm Adjustments)**:
+  - **禁用合并**: 暂时禁用 `spatial_merge` (小图标空间合并) 步骤，因当前算法在复杂场景下稳定性不足。
+  - **上下文传递**: 重构重建流水线 (`reconstruction pipeline`)，支持在处理过程中向下传递 `parent` 节点上下文，为后续更精确的相对布局计算做准备。
+- **工程化 (Engineering)**:
+  - **测试脚本**: 新增 `run-snapshot.ts` 脚本，便于本地快速运行快照测试与生成 HTML/CSS 预览。
+
+## [v0.1.18] - 2026-02-27
+
+### 布局推断与样式提取修复
+
+> **涉及文件**:
+>
+> - `core/extractors/algorithms/layout-grouping.ts` (修复: 行列切割方向逻辑反转)
+> - `core/transformers/layout.ts` (修复: `textAutoResize` 回退检查与绝对定位子节点逻辑)
+> - `core/codegen/css/builders/layout-builder.ts` (调整: Auto Width 文本强制 `white-space: nowrap`)
+> - `core/transformers/style.ts` / `core/codegen/css/utils/css-color.ts` (修复: 严格检查 Paint 可见性与渐变描边兜底)
+> - `core/extractors/pipeline/utils/request-cache.ts` (增强: 缓存恢复与 Header 调试信息)
+> - `core/transformers/text.ts` (增强: 文本缩进与列表样式支持)
+
+- **布局推断 (Layout Inference)**:
+  - 修正了 `layout-grouping` 算法中行/列切分的容器方向判定逻辑（Best Split Direction），解决了水平列表被错误堆叠为垂直布局的问题。
+  - 完善了 `position: absolute` 的判定逻辑，特别是在 Frame 内混合了 AutoLayout 和绝对定位子节点的情况。
+  - 支持了 `clipsContent` 属性的正确提取。
+- **文本增强 (Text Enhancements)**:
+  - **自适应**: 兼容部分数据结构中 `textAutoResize` 位于 `style` 对象下的情况，并对 Auto Width (Hug) 文本显式输出 `white-space: nowrap`。
+  - **排版**: 新增了对 `paragraphIndent` (文本缩进) 和 `listOptions` (有序/无序列表样式) 的支持。
+- **样式与渲染 (Styles & Rendering)**:
+  - **可见性**: 增加了对 `Paint.visible` 属性的全局检查，确保隐藏的填充层（如不可见的白色背景）输出为 `transparent`。
+  - **描边**: 为渐变描边增加了纯色兜底（取首个颜色断点），防止边框消失。
+  - **圆角**: 修正了 `ELLIPSE` (圆形) 节点的 `borderRadius` 逻辑，强制输出 `50%`。
+- **工程化与调试 (Engineering)**:
+  - **缓存**: `request-cache` 支持从文件恢复缓存，并在请求失败时输出 Response Headers 以辅助调试。
+  - **清理**: 移除了 `visualSignature` 和 `dirty` 等内部字段的输出，净化了中间产物。
+  - **语义推断**: 调整了语义标签推断逻辑，移除了部分不准确的标签推断（如 `button`, `input`）。
+
 ## [v0.1.17] - 2026-02-26
 
 ### 重建流水线与样式归一化自治化

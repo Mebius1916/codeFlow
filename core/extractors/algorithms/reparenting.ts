@@ -3,27 +3,27 @@
  */
 
 import type { SimplifiedNode } from "../../types/extractor-types.js";
-import { getRectArea, isRectContained, areRectsTouching } from "../../utils/geometry.js";
+import { getRectArea, isRectContained, areRectsTouching, calculateRelativePosition } from "../../utils/geometry.js";
 import { canBeParent } from "../../utils/candidate-check.js";
-import { pixelRound } from "../../utils/common.js";
 import { getOptions } from "../../../options.js";
+import type { SimplifiedLayout } from "../../types/simplified-types.js";
 
-export function reparentNodes(nodes: SimplifiedNode[]): SimplifiedNode[] {
+export function reparentNodes(nodes: SimplifiedNode[], parent?: SimplifiedNode): SimplifiedNode[] {
   if (nodes.length === 0) return [];
   const { reparenting } = getOptions();
   const partlyContainThreshold = reparenting.partlyContainThreshold;
 
   // 1. 预处理：确保节点按 Z-Index 从低到高排序 (Bottom -> Top)
   const processingNodes = [...nodes];
-  
+
   // 用于存储处理后的新子节点列表 (未被吃掉的节点)
   const remainingNodes: SimplifiedNode[] = [];
-  
+
   // 2. 核心循环：贪心 "大背景吃小内容"
   while (processingNodes.length > 0) {
     // 取出当前层级最低的节点 (Candidate Parent, e.g. Card Background)
     const parent = processingNodes.shift()!;
-    
+
     if (!canBeParent(parent) || !parent.absRect) {
       remainingNodes.push(parent);
       continue;
@@ -37,8 +37,8 @@ export function reparentNodes(nodes: SimplifiedNode[]): SimplifiedNode[] {
         continue;
       }
       // FULLY_CONTAIN：A 完全包含 B，直接建立父子关系
-      if (isRectContained(parent.absRect, potentialChild.absRect) && 
-          getRectArea(parent.absRect) >= getRectArea(potentialChild.absRect)) {
+      if (isRectContained(parent.absRect, potentialChild.absRect) &&
+        getRectArea(parent.absRect) >= getRectArea(potentialChild.absRect)) {
         adoptAsAbsoluteChild(parent, potentialChild);
       } else if (canBeParent(parent)) {
         // Partly_CONTAIN：B 主要区域落在 A 内部，也建立父子关系
@@ -58,41 +58,56 @@ export function reparentNodes(nodes: SimplifiedNode[]): SimplifiedNode[] {
 
     processingNodes.length = 0;
     processingNodes.push(...nonChildren);
-    
+
     remainingNodes.push(parent);
   }
 
-  detectAbsoluteChildrenInList(remainingNodes);
+  detectAbsoluteChildrenInList(remainingNodes, parent);
 
   return remainingNodes;
 }
 
 // AABB 碰撞检测，用于选出绝对定位的节点
-function detectAbsoluteChildrenInList(nodes: SimplifiedNode[]) {
+function detectAbsoluteChildrenInList(nodes: SimplifiedNode[], parent?: SimplifiedNode) {
   if (nodes.length < 2) return;
-  
+
   for (let i = 0; i < nodes.length; i++) {
     const nodeA = nodes[i];
     if (!nodeA.absRect) continue;
-    
+
     for (let j = i + 1; j < nodes.length; j++) {
       const nodeB = nodes[j];
       if (!nodeB.absRect) continue;
-      
+
       // 是否相交
-      if (!areRectsTouching(nodeA.absRect, nodeB.absRect, -1)) continue;
+      if (!areRectsTouching(nodeA.absRect, nodeB.absRect, 0)) continue;
 
       // 确定是相交关系
+      
       if (getRectArea(nodeA.absRect) < getRectArea(nodeB.absRect)) {
         nodeA.layout = {
-          ...(typeof nodeA.layout === "object" && nodeA.layout ? nodeA.layout : { mode: "none" }),
+          ...(typeof nodeA.layout === "object" && nodeA.layout ? nodeA.layout : {}),
           position: "absolute",
+          mode: "none",
         };
+        // 补充坐标计算
+        if (parent?.absRect && nodeA.absRect) {
+          const resolvedLayout = nodeA.layout as SimplifiedLayout;
+          resolvedLayout.locationRelativeToParent =  
+            calculateRelativePosition(nodeA.absRect, parent.absRect);
+        }
       } else {
         nodeB.layout = {
-          ...(typeof nodeB.layout === "object" && nodeB.layout ? nodeB.layout : { mode: "none" }),
+          ...(typeof nodeB.layout === "object" && nodeB.layout ? nodeB.layout : {}),
           position: "absolute",
+          mode: "none",
         };
+        // 补充坐标计算
+        if (parent?.absRect && nodeB.absRect) {
+          const resolvedLayout = nodeB.layout as SimplifiedLayout;
+          resolvedLayout.locationRelativeToParent = 
+            calculateRelativePosition(nodeB.absRect, parent.absRect);
+        }
       }
     }
   }
@@ -111,10 +126,8 @@ function adoptAsAbsoluteChild(parent: SimplifiedNode, child: SimplifiedNode) {
     ...(typeof child.layout === "object" && child.layout ? child.layout : { mode: "none" }),
     position: "absolute",
     parentMode: "none",
-    locationRelativeToParent: {
-      x: pixelRound(child.absRect.x - parent.absRect.x),
-      y: pixelRound(child.absRect.y - parent.absRect.y),
-    },
+    locationRelativeToParent: 
+      calculateRelativePosition(child.absRect, parent.absRect),
   };
 }
 

@@ -16,15 +16,14 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
     styles["flex-direction"] = layout.mode;
     if (layout.wrap) {
       styles["flex-wrap"] = "wrap";
-      if (layout.alignContent && layout.alignContent !== "flex-start") {
+      if (layout.alignContent) {
         styles["align-content"] = layout.alignContent;
       }
     }
-    // layout.justifyContent ? 
-    if (layout.justifyContent && layout.justifyContent !== "flex-start") {
+    if (layout.justifyContent) {
       styles["justify-content"] = layout.justifyContent;
     }
-    if (layout.alignItems && layout.alignItems !== "flex-start") {
+    if (layout.alignItems) {
       styles["align-items"] = layout.alignItems;
     }
     if (layout.gap && layout.justifyContent !== "space-between") styles["gap"] = layout.gap;
@@ -60,9 +59,7 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
         }
       }
     } else if (sizing.horizontal === "hug") {
-      if (allowWidth) {
-        styles["width"] = "max-content";
-      } else {
+      if (!allowWidth) {
         styles["white-space"] = "nowrap";
       }
     } else if (layout.dimensions?.width && sizing.horizontal === "fixed") {
@@ -80,7 +77,7 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
         }
       }
     } else if (sizing.vertical === "hug") {
-      if (allowHeight) styles["height"] = "max-content";
+      // 移除 height: max-content，让 Flexbox 自动处理
     } else if (layout.dimensions?.height && sizing.vertical === "fixed") {
       if (allowHeight) styles["height"] = px(layout.dimensions.height);
     }

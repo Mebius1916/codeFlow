@@ -1,6 +1,60 @@
 import type { SimplifiedNode } from "../types/extractor-types.js";
 import type { BoundingBox } from "../types/simplified-types.js";
 
+import { pixelRound } from "./common.js";
+
+import type { Node as FigmaDocumentNode } from "@figma/rest-api-spec";
+
+// 判断子元素是否在父容器中视觉居中
+export function isVisuallyCentered(parent: FigmaDocumentNode, tolerance = 2): boolean {
+  if (
+    !("absoluteBoundingBox" in parent) ||
+    !parent.absoluteBoundingBox ||
+    !("children" in parent) ||
+    !parent.children ||
+    parent.children.length === 0
+  )
+    return false;
+
+  const childrenRects = parent.children
+    .filter((child): child is Extract<FigmaDocumentNode, { absoluteBoundingBox: any }> => "absoluteBoundingBox" in child && !!child.absoluteBoundingBox)
+    .map((child) => ({
+      x: child.absoluteBoundingBox!.x,
+      y: child.absoluteBoundingBox!.y,
+      width: child.absoluteBoundingBox!.width,
+      height: child.absoluteBoundingBox!.height,
+    }));
+
+  if (childrenRects.length === 0) return false;
+
+  // 使用现有的 getUnionRect 计算联合包围盒
+  const unionRect = getUnionRect(childrenRects);
+
+  // 2. 计算中心点差异
+  const childrenCenterX = unionRect.x + unionRect.width / 2;
+  const childrenCenterY = unionRect.y + unionRect.height / 2;
+
+  const parentCenterX = parent.absoluteBoundingBox.x + parent.absoluteBoundingBox.width / 2;
+  const parentCenterY = parent.absoluteBoundingBox.y + parent.absoluteBoundingBox.height / 2;
+
+  // 3. 判断是否居中
+  const diffX = Math.abs(childrenCenterX - parentCenterX);
+  const diffY = Math.abs(childrenCenterY - parentCenterY);
+
+  return diffX <= tolerance && diffY <= tolerance;
+}
+
+// 计算相对位置
+export function calculateRelativePosition(
+  childRect: { x: number; y: number },
+  parentRect: { x: number; y: number }
+): { x: number; y: number } {
+  return {
+    x: pixelRound(childRect.x - parentRect.x),
+    y: pixelRound(childRect.y - parentRect.y),
+  };
+}
+
 // 获取节点的几何信息
 export function getNodeBoundingBox(node: SimplifiedNode): BoundingBox | null {
   if (node.absRect) {

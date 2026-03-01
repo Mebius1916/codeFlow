@@ -1,7 +1,6 @@
 
 import type { SimplifiedNode, TraversalContext } from "../../../types/extractor-types.js";
 import type { SimplifiedImageFill } from "../../../types/simplified-types.js";
-import { buildInlineSvg } from "../utils/svg.js";
 import { hashClassName } from "../../../utils/hash.js";
 import { getTextSegmentStyleId } from "../../css/utils/text-style.js";
 import { resolveImageFill } from "../utils/fill.js";
@@ -33,25 +32,10 @@ export class HtmlNodeBuilder {
 
   // 1. Semantic Tag Inference
   private inferSemanticTag() {
-    const { type, semanticTag } = this.node;
+    const { type } = this.node;
 
-    // Priority 1: Explicit Semantic Tag (from Extractor)
-    if (semanticTag) {
-      if (semanticTag === "icon") this.tagName = "div";
-      else if (semanticTag === "list") this.tagName = "div";
-      else if (semanticTag === "group") this.tagName = "div";
-      else this.tagName = semanticTag;
-      return;
-    }
-
-    // Priority 2: Type-based
     if (type === "TEXT") {
       this.tagName = "p";
-      return;
-    }
-
-    if (this.imageFill?.isBackground === false && this.imageFill.imageRef) {
-      this.tagName = "img";
       return;
     }
 
@@ -130,8 +114,11 @@ export class HtmlNodeBuilder {
     }
 
     // 直接返回内联 SVG
-    if (this.node.type === "SVG" || this.node.semanticTag === "icon") {
-      return buildInlineSvg(this.node, openTag, this.tagName);
+    if (this.node.type === "SVG") {
+      if (this.node.svg) {
+        return `${openTag}>${this.node.svg}</${this.tagName}>`;
+      }
+      return `${openTag}></${this.tagName}>`;
     }
 
     // 富文本拼接

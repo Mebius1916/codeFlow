@@ -25,7 +25,8 @@ export type ReconstructionStepFlags = Partial<Record<ReconstructionStageName, bo
 export function runReconstructionPipeline(
   nodes: SimplifiedNode[],
   globalVars?: TraversalContext["globalVars"],
-  options?: { enabled?: ReconstructionStepFlags }
+  options?: { enabled?: ReconstructionStepFlags },
+  parent?: SimplifiedNode
 ): SimplifiedNode[] {
   if (nodes.length === 0) return [];
 
@@ -35,13 +36,14 @@ export function runReconstructionPipeline(
     : nodes;
 
   // 2. Spatial Merging
-  if (isStepEnabled(options?.enabled, "spatial_merge")) {
-    processedNodes = mergeSpatialIcons(processedNodes);
-  }
+  // 小图标合并算法不太稳定可用，所以暂时移除
+  // if (isStepEnabled(options?.enabled, "spatial_merge")) {
+  //   processedNodes = mergeSpatialIcons(processedNodes, parent);
+  // }
 
   // 3. Reparenting 
   if (isStepEnabled(options?.enabled, "reparenting")) {
-    processedNodes = reparentNodes(processedNodes);
+    processedNodes = reparentNodes(processedNodes, parent);
   }
 
   // 4. Layout Grouping 

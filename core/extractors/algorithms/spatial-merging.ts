@@ -1,12 +1,12 @@
 import type { SimplifiedNode } from "../../types/extractor-types.js";
-import type { BoundingBox } from "../../types/simplified-types.js";
+import type { BoundingBox, SimplifiedLayout } from "../../types/simplified-types.js";
 import { createVirtualFrame } from "./utils/virtual-node.js";
-import { areRectsTouching } from "../../utils/geometry.js";
+import { areRectsTouching, getUnionRect, calculateRelativePosition } from "../../utils/geometry.js";
 import { UnionFind } from "./utils/union-find.js";
 import { isMergeCandidate } from "../../utils/candidate-check.js";
 import { getOptions } from "../../../options.js";
 
-export function mergeSpatialIcons(nodes: SimplifiedNode[]): SimplifiedNode[] {
+export function mergeSpatialIcons(nodes: SimplifiedNode[], parent?: SimplifiedNode): SimplifiedNode[] {
   if (nodes.length < 2) return nodes;
   const { spatialMerging } = getOptions();
 
@@ -53,7 +53,7 @@ export function mergeSpatialIcons(nodes: SimplifiedNode[]): SimplifiedNode[] {
   for (const [_, clusterParts] of clusters) {
     if (clusterParts.length > 1) {
       // 小图标合并后的虚拟节点
-      const mergedNode = createMergedIconNode(clusterParts.map(c => c.node));
+      const mergedNode = createMergedIconNode(clusterParts.map(c => c.node), parent);
       // 插入位置选择最早出现的碎片index
       const minIdx = Math.min(...clusterParts.map(c => c.index));
       finalNodes.push({ node: mergedNode, sortIdx: minIdx });
@@ -66,14 +66,30 @@ export function mergeSpatialIcons(nodes: SimplifiedNode[]): SimplifiedNode[] {
 }
 
 // 计算所有碎片的总包围矩形
-function createMergedIconNode(parts: SimplifiedNode[]): SimplifiedNode {
+function createMergedIconNode(parts: SimplifiedNode[], parent?: SimplifiedNode): SimplifiedNode {
+   // 如果父容器是 Auto Layout (Flex)，则使用 static；否则使用 absolute
+  const parentLayout = parent?.layout;
+  const isParentAutoLayout =
+    typeof parentLayout === "object" && (parentLayout?.mode === "row" || parentLayout?.mode === "column");
+  const position = isParentAutoLayout ? "static" : "absolute";
+
+  const layout: SimplifiedLayout = {
+    mode: "row",
+    position: position,
+  };
+
+  const unionRect = getUnionRect(parts.map((p) => p.absRect).filter(Boolean) as BoundingBox[]);
+  
+  // 如果是绝对定位，必须计算相对坐标
+  if (position === "absolute" && parent?.absRect && unionRect) {
+    layout.locationRelativeToParent = 
+      calculateRelativePosition(unionRect, parent.absRect);
+  }
+
   return createVirtualFrame({
     name: "Merged Icon",
     type: "CONTAINER",
-    layout: {
-      mode: "none",
-      position: "static",
-    },
+    layout: layout,
     semanticTag: "icon",
     children: parts,
   });
