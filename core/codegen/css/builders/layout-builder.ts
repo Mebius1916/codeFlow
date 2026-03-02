@@ -26,10 +26,14 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
     if (layout.alignItems) {
       styles["align-items"] = layout.alignItems;
     }
-    if (layout.gap && layout.justifyContent !== "space-between") styles["gap"] = layout.gap;
-    if (layout.padding) styles["padding"] = layout.padding;
-    if (layout.alignSelf) styles["align-self"] = layout.alignSelf;
+    if (layout.gap && layout.justifyContent !== "space-between") {
+      styles["gap"] = layout.gap;
+    }
   }
+  
+  if (layout.padding) styles["padding"] = layout.padding;
+  if (layout.alignSelf) styles["align-self"] = layout.alignSelf;
+
   if (layout.position === "relative") styles["position"] = "relative";
 
   if (layout.minWidth !== undefined) styles["min-width"] = px(layout.minWidth);

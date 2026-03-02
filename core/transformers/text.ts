@@ -74,8 +74,8 @@ function isDefined<T>(value: T | undefined | null): value is T {
 export function extractRichTextSegments(
   n: FigmaDocumentNode,
   baseStyle: SimplifiedTextStyle,
+  sharedEffects: SimplifiedEffects = {}
 ): RichTextSegment[] | undefined {
-  const sharedEffects = buildTextEffectsFromNode(n);
   const effects = Object.keys(sharedEffects).length ? sharedEffects : undefined;
 
   const chars = (n as any).characters as string | undefined;
@@ -147,7 +147,7 @@ function extractSolidColorFromFills(fills: any): any | undefined {
     if (variableName) {
       return `var(--${variableName}, ${fallbackColor})`;
     }
-    return fill.color;
+    return fallbackColor;
   }
   if (
     fill &&
@@ -218,28 +218,4 @@ function applyTextStyleOverrides(target: SimplifiedTextStyle, source: any) {
       target.listStyle = "disc inside";
     }
   }
-}
-
-export function buildTextEffectsFromNode(n: FigmaDocumentNode): SimplifiedEffects {
-  const effects = hasValue("effects", n) ? n.effects.filter((e) => e.visible) : [];
-  const dropShadows = effects
-    .filter((e: any) => e.type === "DROP_SHADOW")
-    .map((e: any) => `${e.offset.x}px ${e.offset.y}px ${e.radius}px ${e.spread ?? 0}px ${htmlColor(e.color, e.color.a)}`);
-  const innerShadows = effects
-    .filter((e: any) => e.type === "INNER_SHADOW")
-    .map((e: any) => `inset ${e.offset.x}px ${e.offset.y}px ${e.radius}px ${e.spread ?? 0}px ${htmlColor(e.color, e.color.a)}`);
-  const textShadow = [...dropShadows, ...innerShadows].join(", ");
-  const filterBlurValues = effects
-    .filter((e: any) => e.type === "LAYER_BLUR")
-    .map((e: any) => `blur(${e.radius}px)`)
-    .join(" ");
-  const backdropFilterValues = effects
-    .filter((e: any) => e.type === "BACKGROUND_BLUR")
-    .map((e: any) => `blur(${e.radius}px)`)
-    .join(" ");
-  const result: SimplifiedEffects = {};
-  if (textShadow) result.textShadow = textShadow;
-  if (filterBlurValues) result.filter = filterBlurValues;
-  if (backdropFilterValues) result.backdropFilter = backdropFilterValues;
-  return result;
 }

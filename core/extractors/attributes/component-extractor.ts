@@ -1,24 +1,27 @@
 import type { ExtractorFn, SimplifiedNode } from "../../types/extractor-types.js";
-import { hasValue } from "../../utils/identity.js";
 
 /**
  * Extracts component-related properties from INSTANCE nodes.
  */
-export const componentExtractor: ExtractorFn = (node, _context) => {
+export const componentExtractor: ExtractorFn = (_node, context) => {
   const result: Partial<SimplifiedNode> = {};
+  
+  const rawType = context.features?.rawType;
 
-  if (node.type === "INSTANCE") {
-    if (hasValue("componentId", node)) {
-      result.componentId = node.componentId;
+  if (rawType === "INSTANCE") {
+    const compId = context.smartNode?.getComponentId();
+    if (compId) {
+      result.componentId = compId;
     }
 
     // Add specific properties for instances of components
-    if (hasValue("componentProperties", node)) {
-      result.componentProperties = Object.entries(node.componentProperties ?? {}).map(
-        ([name, { value, type }]) => ({
+    const compProps = context.smartNode?.getComponentProperties();
+    if (compProps) {
+      result.componentProperties = Object.entries(compProps).map(
+        ([name, prop]: [string, any]) => ({
           name,
-          value: value.toString(),
-          type,
+          value: prop.value.toString(),
+          type: prop.type,
         }),
       );
     }

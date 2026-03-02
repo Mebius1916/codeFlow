@@ -130,12 +130,10 @@ export const visualBuilder = {
     const isUniformWidth = !width.includes(" ");
     const align = strokes.strokeAlign;
 
-    if (align && isUniformWidth && (align === "CENTER" || align === "INSIDE" || align === "OUTSIDE")) {
+    if (align && isUniformWidth && (align === "CENTER" || align === "OUTSIDE")) {
       styles["outline"] = `${width} ${style} ${color}`;
       if (align === "CENTER") {
         styles["outline-offset"] = `calc(${width} / -2)`;
-      } else if (align === "INSIDE") {
-        styles["outline-offset"] = `calc(${width} * -1)`;
       }
     } else if (isUniformWidth) {
       styles["border"] = `${width} ${style} ${color}`;

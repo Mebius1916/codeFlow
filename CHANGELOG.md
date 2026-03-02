@@ -1,5 +1,26 @@
 # 更新日志 (CHANGELOG)
 
+## [v0.1.20] - 2026-03-02
+
+### 节点分析重构与几何算法优化
+
+> **涉及文件**:
+>
+> - `core/extractors/analysis/*` (新增: `SmartNode` 与 `analyzeNode` 核心分析模块)
+> - `core/utils/geometry.ts` (优化: 矩形切割 `subtractRect` 算法，移除冗余函数)
+> - `core/utils/identity.ts` (增强: `isFrame` 容器类型判定)
+> - `core/extractors/attributes/layout-extractor.ts` (适配: 迁移至 `SmartNode` API)
+> - `core/utils/style-helper.ts` (适配: 样式提取适配新节点结构)
+
+- **核心重构 (Core Refactor)**:
+  - **SmartNode**: 引入智能节点包装器，统一封装了 Figma 节点的属性访问、布局推断与特征提取逻辑，消除到处散落的类型断言。
+  - **布局分析**: `analyzeNode` 提供了更健壮的布局模式 (Layout Mode) 推断，整合了 AutoLayout 属性与几何特征分析。
+- **几何算法 (Geometry)**:
+  - **矩形切割**: 重写 `subtractRect` 算法，优化了遮挡剔除时的矩形分割逻辑，确保生成的碎片不重叠且完全覆盖剩余区域。
+  - **清理**: 移除了不再使用的 `isVisuallyCentered` 辅助函数。
+- **类型识别 (Identity)**:
+  - **容器判定**: `isFrame` 判定逻辑增强，现在正确识别 `GROUP`, `SECTION`, `INSTANCE` 等为潜在容器，而不仅仅依赖 `clipsContent`。
+
 ## [v0.1.19] - 2026-03-01
 
 ### 布局推断增强与文本提取修复

@@ -27,8 +27,12 @@ export function isFrame(val: unknown): val is HasFramePropertiesTrait {
   return (
     typeof val === "object" &&
     !!val &&
-    "clipsContent" in val &&
-    typeof val.clipsContent === "boolean"
+    (("clipsContent" in val && typeof (val as any).clipsContent === "boolean") ||
+      (val as any).type === "FRAME" ||
+      (val as any).type === "INSTANCE" ||
+      (val as any).type === "COMPONENT" ||
+      (val as any).type === "GROUP" ||
+      (val as any).type === "SECTION")
   );
 }
 

@@ -6,19 +6,20 @@ export function isImageNode(node: FigmaNode): boolean {
     return true;
   }
 
-  // 2. 遮罩组检测 (Mask Group)
-  // 逻辑: 如果是容器，包含 Mask 节点，且不包含可编辑文本（避免误伤UI内容），则视为完整图片
-  if (isMaskGroup(node) && !hasTextChild(node)) {
-    return true;
-  }
-
-  // 3. 导出设置检测
+  // 2. 导出设置检测
   if ("exportSettings" in node && Array.isArray(node.exportSettings)) {
     if (node.exportSettings.some((setting) => ["PNG", "JPG"].includes(setting.format))) {
+      // 只要明确配置了导出为图片，即使包含文本也应视为图片切片
       if (!hasTextChild(node)) {
         return true;
       }
     }
+  }
+
+  // 3. 遮罩组检测 (Mask Group)
+  // 逻辑: 如果是容器，包含 Mask 节点，且不包含可编辑文本（避免误伤UI内容），则视为完整图片
+  if (isMaskGroup(node) && !hasTextChild(node)) {
+    return true;
   }
 
   // 4. 命名检测

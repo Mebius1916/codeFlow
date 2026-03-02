@@ -10,7 +10,11 @@ export const layoutExtractor: ExtractorFn = (node, context) => {
   const result: Partial<SimplifiedNode> = {};
 
   // 1. Extract CSS Layout styles
-  const layout = buildSimplifiedLayout(node, context.parent);
+  if (!context.smartNode) {
+    return result;
+  }
+  
+  const layout = buildSimplifiedLayout(context.smartNode);
 
   if (Object.keys(layout).length > 1) {
     result.layout = layout;

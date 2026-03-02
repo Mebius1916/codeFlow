@@ -2,18 +2,17 @@ import type {
   DropShadowEffect,
   InnerShadowEffect,
   BlurEffect,
-  Node as FigmaDocumentNode,
 } from "@figma/rest-api-spec";
+import { SmartNode } from "../extractors/analysis/index.js";
 import { htmlColor } from "./style";
 import { resolveVariableColorName } from "./utils/text-utils.js";
-import { hasValue } from "../utils/identity.js";
 import type { SimplifiedEffects } from "../types/simplified-types.js";
 
 export { SimplifiedEffects };
 
-export function buildSimplifiedEffects(n: FigmaDocumentNode): SimplifiedEffects {
-  if (!hasValue("effects", n)) return {};
-  const effects = n.effects.filter((e) => e.visible);
+export function buildSimplifiedEffects(node: SmartNode): SimplifiedEffects {
+  const effects = node.getEffects();
+  if (!effects.length) return {};
 
   // Handle drop and inner shadows (both go into CSS box-shadow)
   const dropShadows = effects
@@ -42,7 +41,7 @@ export function buildSimplifiedEffects(n: FigmaDocumentNode): SimplifiedEffects 
   const result: SimplifiedEffects = {};
 
   if (boxShadow) {
-    if (n.type === "TEXT") {
+    if (node.isText()) {
       result.textShadow = boxShadow;
     } else {
       result.boxShadow = boxShadow;

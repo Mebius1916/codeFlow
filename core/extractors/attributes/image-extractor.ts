@@ -1,7 +1,5 @@
 import type { ExtractorFn } from "../../types/extractor-types.js";
 import { hasValue } from "../../utils/identity.js";
-import { isImageNode } from "../../transformers/image.js";
-import { isIcon } from "../../transformers/icon.js";
 
 export const imageExtractor: ExtractorFn = (node, context) => {
   const imageAssets = context.globalVars.imageAssets || { nodeIds: [], imageRefs: [], svgNodeIds: [] };
@@ -10,10 +8,14 @@ export const imageExtractor: ExtractorFn = (node, context) => {
   const svgNodeIds = imageAssets.svgNodeIds || [];
   imageAssets.svgNodeIds = svgNodeIds;
 
-  if (isImageNode(node)) {
+  // Use features from analysis if available
+  const isImage = context.features?.looksLikeImage;
+  const isSvg = context.features?.looksLikeIcon;
+
+  if (isImage) {
     pushUnique(ids, node.id);
   }
-  if (isIcon(node)) {
+  if (isSvg) {
     pushUnique(svgNodeIds, node.id);
   }
 

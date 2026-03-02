@@ -97,6 +97,10 @@ export function isIcon(node: FigmaNode): boolean {
 function checkChildrenRecursively(node: FigmaNode): { isValidIcon: boolean; hasVectorContent: boolean } {
   // 无子节点，直接返回
   if (!("children" in node) || !Array.isArray(node.children) || node.children.length === 0) {
+    // 检查自身是否有可见样式（针对空 Frame 作为占位符图标的情况）
+    if (hasVisibleStyles(node)) {
+        return { isValidIcon: true, hasVectorContent: false };
+    }
     return { isValidIcon: true, hasVectorContent: false };
   }
 

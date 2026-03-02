@@ -1,7 +1,6 @@
 import type { GlobalVars, StyleTypes, TraversalContext, SimplifiedNode } from "../types/extractor-types.js";
 import { generateVarId } from "./common.js";
-import { hasValue } from "./identity.js";
-import type { Node as FigmaDocumentNode } from "@figma/rest-api-spec";
+import { SmartNode } from "../extractors/analysis/index.js";
 
 // 将一个样式对象存到全局样式表里，并返回它的 id
 export function findOrCreateVar(globalVars: GlobalVars, value: StyleTypes, prefix: string): string {
@@ -32,12 +31,12 @@ export function findOrCreateVar(globalVars: GlobalVars, value: StyleTypes, prefi
 
 // Helper to fetch a Figma style name for specific style keys on a node
 export function getStyleName(
-  node: FigmaDocumentNode,
+  node: SmartNode,
   context: TraversalContext,
   keys: string[],
 ): string | undefined {
-  if (!hasValue("styles", node)) return undefined;
-  const styleMap = node.styles as Record<string, string>;
+  const styleMap = node.getStyles();
+  if (!styleMap) return undefined;
   for (const key of keys) {
     const styleId = styleMap[key];
     if (styleId) {

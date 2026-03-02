@@ -65,7 +65,8 @@ export function isVisible(node: any): boolean {
 /**
  * Round a pixel value to 2 decimal places to avoid floating point errors
  */
-export function pixelRound(value: number): number {
+export function pixelRound(value: number | undefined | null): number {
+  if (value === undefined || value === null) return 0;
   return Math.round(value * 100) / 100;
 }
 

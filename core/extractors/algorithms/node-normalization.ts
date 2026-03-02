@@ -1,6 +1,5 @@
-import type { Node as FigmaDocumentNode } from "@figma/rest-api-spec";
-import { isIcon } from "../../transformers/icon.js";
-import { isImageNode } from "../../transformers/image.js";
+
+import type { NodeFeatures } from "../analysis/types.js";
 
 export type NormalizedNodeType = 
   | "SVG"         // Vector/Icon
@@ -14,16 +13,14 @@ export interface NormalizedNodeResult {
 }
 
 /**
- * Analyzes a raw Figma node and determines its semantic role in the D2C system.
- * This maps Figma's 30+ node types into our 4 standard types:
- * - SVG (Icon)
- * - IMAGE (Bitmap)
- * - TEXT
- * - CONTAINER
+ * Phase 2: Classification
+ * Determines the semantic role of a node based on its analyzed features.
  */
-export function normalizeNodeType(node: FigmaDocumentNode): NormalizedNodeResult {
+export function normalizeNodeType(
+  features: NodeFeatures
+): NormalizedNodeResult {
   // 1. Check for Icon (SVG)
-  if (isIcon(node)) {
+  if (features.looksLikeIcon) {
     return {
       type: "SVG",
       isLeaf: true,
@@ -31,8 +28,7 @@ export function normalizeNodeType(node: FigmaDocumentNode): NormalizedNodeResult
   }
 
   // 2. Check for Image
-  // Images are treated as atomic leaf nodes
-  if (isImageNode(node)) {
+  if (features.looksLikeImage) {
     return {
       type: "IMAGE",
       isLeaf: true,
@@ -40,7 +36,7 @@ export function normalizeNodeType(node: FigmaDocumentNode): NormalizedNodeResult
   }
 
   // 3. Check for Text
-  if (node.type === "TEXT") {
+  if (features.looksLikeText) {
     return {
       type: "TEXT",
       isLeaf: true,

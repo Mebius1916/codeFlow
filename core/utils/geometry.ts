@@ -1,48 +1,6 @@
 import type { SimplifiedNode } from "../types/extractor-types.js";
 import type { BoundingBox } from "../types/simplified-types.js";
-
 import { pixelRound } from "./common.js";
-
-import type { Node as FigmaDocumentNode } from "@figma/rest-api-spec";
-
-// 判断子元素是否在父容器中视觉居中
-export function isVisuallyCentered(parent: FigmaDocumentNode, tolerance = 2): boolean {
-  if (
-    !("absoluteBoundingBox" in parent) ||
-    !parent.absoluteBoundingBox ||
-    !("children" in parent) ||
-    !parent.children ||
-    parent.children.length === 0
-  )
-    return false;
-
-  const childrenRects = parent.children
-    .filter((child): child is Extract<FigmaDocumentNode, { absoluteBoundingBox: any }> => "absoluteBoundingBox" in child && !!child.absoluteBoundingBox)
-    .map((child) => ({
-      x: child.absoluteBoundingBox!.x,
-      y: child.absoluteBoundingBox!.y,
-      width: child.absoluteBoundingBox!.width,
-      height: child.absoluteBoundingBox!.height,
-    }));
-
-  if (childrenRects.length === 0) return false;
-
-  // 使用现有的 getUnionRect 计算联合包围盒
-  const unionRect = getUnionRect(childrenRects);
-
-  // 2. 计算中心点差异
-  const childrenCenterX = unionRect.x + unionRect.width / 2;
-  const childrenCenterY = unionRect.y + unionRect.height / 2;
-
-  const parentCenterX = parent.absoluteBoundingBox.x + parent.absoluteBoundingBox.width / 2;
-  const parentCenterY = parent.absoluteBoundingBox.y + parent.absoluteBoundingBox.height / 2;
-
-  // 3. 判断是否居中
-  const diffX = Math.abs(childrenCenterX - parentCenterX);
-  const diffY = Math.abs(childrenCenterY - parentCenterY);
-
-  return diffX <= tolerance && diffY <= tolerance;
-}
 
 // 计算相对位置
 export function calculateRelativePosition(
@@ -95,12 +53,13 @@ export function areRectsTouching(a: BoundingBox, b: BoundingBox, gap = 0): boole
 }
 
 // 寻找一个能把所有碎片包裹在内的最小矩形
-export function getUnionRect(rects: BoundingBox[]): BoundingBox {
-  if (rects.length === 0) {
-    return { x: 0, y: 0, width: 0, height: 0 };
-  }
+export function getUnionRect(rects: { x: number; y: number; width: number; height: number }[]) {
+  if (rects.length === 0) return { x: 0, y: 0, width: 0, height: 0 };
 
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
 
   for (const rect of rects) {
     minX = Math.min(minX, rect.x);
@@ -117,62 +76,61 @@ export function getUnionRect(rects: BoundingBox[]): BoundingBox {
   };
 }
 
-// 四向分割算法
-export function subtractRect(subject: BoundingBox, clipper: BoundingBox): BoundingBox[] {
-  // 1. If no intersection, return original subject
-  if (!areRectsTouching(subject, clipper)) {
-    return [subject];
-  }
+// 从矩形 rect 中减去 occluder，返回剩余的矩形区域，用于查看一个元素是否被完全遮挡
+export function subtractRect(rect: BoundingBox, occluder: BoundingBox): BoundingBox[] {
+  // 1. 计算交集
+  const intersectX = Math.max(rect.x, occluder.x);
+  const intersectY = Math.max(rect.y, occluder.y);
+  const intersectRight = Math.min(rect.x + rect.width, occluder.x + occluder.width);
+  const intersectBottom = Math.min(rect.y + rect.height, occluder.y + occluder.height);
 
-  // 2. If clipper fully contains subject, return empty
-  // 先查看是否完全遮挡
-  if (isRectContained(clipper, subject)) {
-    return [];
-  }
+  const intersectWidth = intersectRight - intersectX;
+  const intersectHeight = intersectBottom - intersectY;
 
-  // 3. Calculate intersection
-  const x1 = Math.max(subject.x, clipper.x);
-  const y1 = Math.max(subject.y, clipper.y);
-  const x2 = Math.min(subject.x + subject.width, clipper.x + clipper.width);
-  const y2 = Math.min(subject.y + subject.height, clipper.y + clipper.height);
+  // 如果没有交集，返回原矩形
+  if (intersectWidth <= 0 || intersectHeight <= 0) {
+    return [rect];
+  }
 
   const result: BoundingBox[] = [];
 
-  // 4. Split subject into up to 4 rects around the intersection
-  // Top
-  if (subject.y < y1) {
+  // 2. 切割 Top
+  if (rect.y < intersectY) {
     result.push({
-      x: subject.x,
-      y: subject.y,
-      width: subject.width,
-      height: y1 - subject.y,
+      x: rect.x,
+      y: rect.y,
+      width: rect.width,
+      height: intersectY - rect.y,
     });
   }
-  // Bottom
-  if (subject.y + subject.height > y2) {
+
+  // 3. 切割 Bottom
+  if (rect.y + rect.height > intersectBottom) {
     result.push({
-      x: subject.x,
-      y: y2,
-      width: subject.width,
-      height: (subject.y + subject.height) - y2,
+      x: rect.x,
+      y: intersectBottom,
+      width: rect.width,
+      height: rect.y + rect.height - intersectBottom,
     });
   }
-  // Left (bounded by y1 and y2 vertically)
-  if (subject.x < x1) {
+
+  // 4. 切割 Left (注意高度范围限制在交集垂直范围内，避免与 Top/Bottom 重叠)
+  if (rect.x < intersectX) {
     result.push({
-      x: subject.x,
-      y: y1,
-      width: x1 - subject.x,
-      height: y2 - y1,
+      x: rect.x,
+      y: intersectY,
+      width: intersectX - rect.x,
+      height: intersectHeight,
     });
   }
-  // Right (bounded by y1 and y2 vertically)
-  if (subject.x + subject.width > x2) {
+
+  // 5. 切割 Right (注意高度范围限制在交集垂直范围内，避免与 Top/Bottom 重叠)
+  if (rect.x + rect.width > intersectRight) {
     result.push({
-      x: x2,
-      y: y1,
-      width: (subject.x + subject.width) - x2,
-      height: y2 - y1,
+      x: intersectRight,
+      y: intersectY,
+      width: rect.x + rect.width - intersectRight,
+      height: intersectHeight,
     });
   }
 

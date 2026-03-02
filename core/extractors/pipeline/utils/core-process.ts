@@ -1,9 +1,11 @@
 import type { Node as FigmaDocumentNode } from "@figma/rest-api-spec";
 import { hasValue } from "../../../utils/identity.js";
 import { normalizeNodeType } from "../../algorithms/node-normalization.js";
+import { analyzeNode } from "../../analysis/analyze.js";
 import { allExtractors } from "../../attributes/built-in.js";
 import { shouldPruneNode } from "../../../utils/node-check.js";
 import { isVisible } from "../../../utils/common.js";
+import { SmartNode } from "../../analysis/index.js";
 
 import type {
   TraversalContext,
@@ -23,16 +25,29 @@ export function processNodes(
       continue;
     }
 
-    // 1. Apply Extractors (Function Composition)
+    // 1. Analyze Features
+    const features = analyzeNode(node, context.parent);
+    
+    // 2. Wrap in Smart Node
+    const smartNode = new SmartNode(node, features, context.smartNode);
+
+    // 3. Classify (Normalize)
+    const { type: normalizedType, isLeaf } = normalizeNodeType(features);
+
+    // 4. Update Context with Smart Node
+    const nodeContext: TraversalContext = {
+      ...context,
+      features,
+      smartNode,
+    };
+
+    // 5. Apply Extractors (Function Composition)
     const extractedProps = allExtractors.reduce((acc, extractor) => {
-      const partial = extractor(node, context);
+      const partial = extractor(node, nodeContext);
       return { ...acc, ...partial };
     }, {} as Partial<SimplifiedNode>);
 
-    // 2. Normalize Node Type (Determine Semantic Role)
-    const { type: normalizedType, isLeaf } = normalizeNodeType(node);
-
-    // 3. Initialize Simplified Node
+    // 6. Initialize Simplified Node
     const result: SimplifiedNode = {
       id: node.id,
       name: node.name,
@@ -40,12 +55,13 @@ export function processNodes(
       ...extractedProps,
     };
 
-    // 4. Traverse Children (Recursive Step)
+    // 7. Traverse Children (Recursive Step)
     if (!isLeaf) {
       const childContext: TraversalContext = {
         ...context,
         currentDepth: context.currentDepth + 1,
         parent: node,
+        smartNode,
       };
 
       if (hasValue("children", node) && node.children.length > 0) {
@@ -67,7 +83,7 @@ export function processNodes(
       }
     }
 
-    // 5. Early Pruning (Aggressive Pruning)
+    // 7. Early Pruning (Aggressive Pruning)
     if (result.type === "CONTAINER") {
       if (shouldPruneNode(result)) {
         continue;

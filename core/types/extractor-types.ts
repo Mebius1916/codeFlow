@@ -1,4 +1,6 @@
 import type { Node as FigmaDocumentNode, Style } from "@figma/rest-api-spec";
+import type { NodeFeatures } from "../extractors/analysis/types.js";
+import type { SmartNode } from "../extractors/analysis/index.js";
 import type { 
   SimplifiedTextStyle, 
   SimplifiedLayout, 
@@ -38,6 +40,10 @@ export interface TraversalContext {
   globalVars: GlobalVars & { extraStyles?: Record<string, Style> };
   currentDepth: number;
   parent?: FigmaDocumentNode;
+  // Analysis Context
+  features?: NodeFeatures;
+  // Smart Node
+  smartNode?: SmartNode;
 }
 
 /**

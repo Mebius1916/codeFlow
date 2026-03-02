@@ -1,9 +1,10 @@
+import { SmartNode } from "../extractors/analysis/index.js";
 import type {
-  Node as FigmaDocumentNode,
   Paint,
+  GradientPaint,
 } from "@figma/rest-api-spec";
-import { generateCSSShorthand, isVisible } from "../utils/common.js";
-import { hasValue, isStrokeWeights, type CSSRGBAColor, type CSSHexColor } from "../utils/identity.js";
+import { isVisible } from "../utils/common.js";
+import type { CSSRGBAColor, CSSHexColor } from "../utils/identity.js";
 import { resolveVariableColorName } from "./utils/text-utils.js";
 import {
   translateScaleMode,
@@ -42,44 +43,46 @@ export function toCssBlendMode(mode?: string): string | undefined {
 /**
  * Build simplified stroke information from a Figma node
  *
- * @param n - The Figma node to extract stroke information from
+ * @param node - The SmartNode to extract stroke information from
  * @param hasChildren - Whether the node has children (affects paint processing)
  * @returns Simplified stroke object with colors and properties
  */
 export function buildSimplifiedStrokes(
-  n: FigmaDocumentNode,
+  node: SmartNode,
   hasChildren: boolean = false,
 ): SimplifiedStroke {
   let strokes: SimplifiedStroke = { colors: [] };
-  if (hasValue("strokes", n) && Array.isArray(n.strokes) && n.strokes.length) {
-    strokes.colors = n.strokes.filter(isVisible).map((stroke) => {
+  const visuals = node.getVisuals();
+  const rawStrokes = visuals.strokes;
+
+  if (rawStrokes && Array.isArray(rawStrokes) && rawStrokes.length) {
+    strokes.colors = rawStrokes.filter(isVisible).map((stroke) => {
       // Fallback for gradient strokes to use the first color stop
-      // This ensures borders are visible even if gradients aren't fully supported on borders
-      if (stroke.type.startsWith("GRADIENT") && stroke.gradientStops && stroke.gradientStops.length > 0) {
-        const firstStop = stroke.gradientStops[0];
-        // Use htmlColor to convert the color object to a CSS string
-        const color = htmlColor(firstStop.color, stroke.opacity);
-        return { type: "SOLID", color };
+      if (stroke.type.startsWith("GRADIENT")) {
+        const gradientStroke = stroke as GradientPaint;
+        if (gradientStroke.gradientStops && gradientStroke.gradientStops.length > 0) {
+          const firstStop = gradientStroke.gradientStops[0];
+          const color = htmlColor(firstStop.color, stroke.opacity);
+          return { type: "SOLID", color };
+        }
       }
       return parsePaint(stroke, hasChildren);
     });
   }
 
-  if (hasValue("strokeWeight", n) && typeof n.strokeWeight === "number" && n.strokeWeight > 0) {
-    strokes.strokeWeight = `${n.strokeWeight}px`;
+  if (visuals.individualStrokeWeights) {
+    const { top, right, bottom, left } = visuals.individualStrokeWeights;
+    strokes.strokeWeights = `${top}px ${right}px ${bottom}px ${left}px`;
+  } else if (visuals.strokeWeight && visuals.strokeWeight > 0) {
+    strokes.strokeWeight = `${visuals.strokeWeight}px`;
   }
 
-  if (hasValue("strokeDashes", n) && Array.isArray(n.strokeDashes) && n.strokeDashes.length) {
-    strokes.strokeDashes = n.strokeDashes;
+  if (visuals.strokeDashes && Array.isArray(visuals.strokeDashes) && visuals.strokeDashes.length) {
+    strokes.strokeDashes = visuals.strokeDashes;
   }
 
-  if (hasValue("individualStrokeWeights", n, isStrokeWeights)) {
-    strokes.strokeWeights = generateCSSShorthand(n.individualStrokeWeights);
-    strokes.strokeWeight = undefined;
-  }
-
-  if (hasValue("strokeAlign", n) && typeof n.strokeAlign === "string") {
-    strokes.strokeAlign = n.strokeAlign as SimplifiedStroke["strokeAlign"];
+  if (visuals.strokeAlign) {
+    strokes.strokeAlign = visuals.strokeAlign as SimplifiedStroke["strokeAlign"];
   }
 
   return strokes;

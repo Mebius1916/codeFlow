@@ -1,7 +1,7 @@
 import type { ExtractorFn, SimplifiedNode } from "../../types/extractor-types.js";
 import { buildSimplifiedStrokes, parsePaint, toCssBlendMode } from "../../transformers/style.js";
 import { buildSimplifiedEffects } from "../../transformers/effects.js";
-import { hasValue, isRectangleCornerRadii } from "../../utils/identity.js";
+import { hasValue } from "../../utils/identity.js";
 import { findOrCreateVar, getStyleName } from "../../utils/style-helper.js";
 
 /**
@@ -11,13 +11,17 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
   const result: Partial<SimplifiedNode> = {};
 
   // Check if node has children to determine CSS properties
-  const hasChildren =
-    hasValue("children", node) && Array.isArray(node.children) && node.children.length > 0;
+  const hasChildren = context.features 
+    ? context.features.hasChildren 
+    : (hasValue("children", node) && Array.isArray(node.children) && node.children.length > 0);
 
   // fills
-  if (hasValue("fills", node) && Array.isArray(node.fills) && node.fills.length) {
-    const fills = node.fills.map((fill) => parsePaint(fill, hasChildren)).reverse();
-    const styleName = getStyleName(node, context, ["fill", "fills"]);
+  const visuals = context.smartNode?.getVisuals();
+  const rawFills = visuals?.fills;
+
+  if (rawFills && Array.isArray(rawFills) && rawFills.length) {
+    const fills = rawFills.map((fill) => parsePaint(fill, hasChildren)).reverse();
+    const styleName = context.smartNode ? getStyleName(context.smartNode, context, ["fill", "fills"]) : undefined;
     if (styleName) {
       context.globalVars.styles[styleName] = fills;
       result.fills = styleName;
@@ -27,9 +31,9 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
   }
 
   // strokes
-  const strokes = buildSimplifiedStrokes(node, hasChildren);
+  const strokes = context.smartNode ? buildSimplifiedStrokes(context.smartNode, hasChildren) : { colors: [] };
   if (strokes.colors.length) {
-    const styleName = getStyleName(node, context, ["stroke", "strokes"]);
+    const styleName = context.smartNode ? getStyleName(context.smartNode, context, ["stroke", "strokes"]) : undefined;
     if (styleName) {
       const hasExtraStrokeProps =
         !!strokes.strokeWeight ||
@@ -48,9 +52,9 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
   }
 
   // effects
-  const effects = buildSimplifiedEffects(node);
+  const effects = context.smartNode ? buildSimplifiedEffects(context.smartNode) : {};
   if (Object.keys(effects).length) {
-    const styleName = getStyleName(node, context, ["effect", "effects"]);
+    const styleName = context.smartNode ? getStyleName(context.smartNode, context, ["effect", "effects"]) : undefined;
     if (styleName) {
       // Effects styles store only the effect values
       context.globalVars.styles[styleName] = effects;
@@ -65,7 +69,9 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
     result.opacity = node.opacity;
   }
 
-  if (hasValue("visible", node) && node.visible === false) {
+  // Use features for visibility check
+  const isVisible = context.features?.isVisible ?? (hasValue("visible", node) ? node.visible !== false : true);
+  if (!isVisible) {
     result.visible = false;
   }
 
@@ -77,11 +83,13 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
   // border radius
   if (node.type === "ELLIPSE") {
     result.borderRadius = "50%";
-  } else if (hasValue("cornerRadius", node) && typeof node.cornerRadius === "number") {
-    result.borderRadius = `${node.cornerRadius}px`;
-  }
-  if (hasValue("rectangleCornerRadii", node, isRectangleCornerRadii)) {
-    result.borderRadius = `${node.rectangleCornerRadii[0]}px ${node.rectangleCornerRadii[1]}px ${node.rectangleCornerRadii[2]}px ${node.rectangleCornerRadii[3]}px`;
+  } else {
+    const r = context.features?.visuals?.cornerRadius;
+    if (r !== undefined) {
+      result.borderRadius = Array.isArray(r)
+        ? `${r[0]}px ${r[1]}px ${r[2]}px ${r[3]}px`
+        : `${r}px`;
+    }
   }
 
   return result;

@@ -1,355 +1,182 @@
-import { isInAutoLayoutFlow, isFrame, isLayout, isRectangle } from "../utils/identity.js";
 import type {
-  Node as FigmaDocumentNode,
-  HasFramePropertiesTrait,
   HasLayoutTrait,
 } from "@figma/rest-api-spec";
 import { generateCSSShorthand, pixelRound } from "../utils/common.js";
-import { calculateRelativePosition, isVisuallyCentered } from "../utils/geometry.js";
+import { calculateRelativePosition } from "../utils/geometry.js";
 import type { SimplifiedLayout } from "../types/simplified-types.js";
+import { SmartNode } from "../extractors/analysis/index.js";
+import { 
+  convertFlexAlignment, 
+  convertFlexAlignContent, 
+  convertFigmaSizing, 
+  convertFlexAlignSelf 
+} from "./utils/flex-adapter.js";
 
 export { SimplifiedLayout };
 
 // Convert Figma's layout config into a more typical flex-like schema
 export function buildSimplifiedLayout(
-  n: FigmaDocumentNode,
-  parent?: FigmaDocumentNode,
+  node: SmartNode
 ): SimplifiedLayout {
-  const frameValues = buildSimplifiedFrameValues(n);
-  const layoutValues = buildSimplifiedLayoutValues(n, parent, frameValues.mode) || {};
-
+  const frameValues = buildSimplifiedFrameValues(node);
+  const layoutValues = buildSimplifiedLayoutValues(node, frameValues.mode) || {};
   return { ...frameValues, ...layoutValues };
 }
 
-// For flex layouts, process alignment and sizing
-function convertAlign(
-  axisAlign?:
-    | HasFramePropertiesTrait["primaryAxisAlignItems"]
-    | HasFramePropertiesTrait["counterAxisAlignItems"],
-  stretch?: {
-    children: FigmaDocumentNode[];
-    axis: "primary" | "counter";
-    mode: "row" | "column" | "none";
-  },
-) {
-  if (stretch && stretch.mode !== "none") {
-    const { children, mode, axis } = stretch;
-
-    // Compute whether to check horizontally or vertically based on axis and direction
-    const direction = getDirection(axis, mode);
-
-    const shouldStretch =
-      children.length > 0 &&
-      children.reduce((shouldStretch, c) => {
-        if (!shouldStretch) return false;
-        if ("layoutPositioning" in c && c.layoutPositioning === "ABSOLUTE") return true;
-        if (direction === "horizontal") {
-          return "layoutSizingHorizontal" in c && c.layoutSizingHorizontal === "FILL";
-        } else if (direction === "vertical") {
-          return "layoutSizingVertical" in c && c.layoutSizingVertical === "FILL";
-        }
-        return false;
-      }, true);
-
-    if (shouldStretch) return "stretch";
-  }
-
-  switch (axisAlign) {
-    case "MIN":
-      // MIN, AKA flex-start, is the default alignment
-      return "flex-start";
-    case "MAX":
-      return "flex-end";
-    case "CENTER":
-      return "center";
-    case "SPACE_BETWEEN":
-      return "space-between";
-    case "BASELINE":
-      return "baseline";
-    default:
-      return undefined;
-  }
-}
-
-function convertAlignContent(align: string) {
-  switch (align) {
-    case "MIN":
-      return "flex-start";
-    case "MAX":
-      return "flex-end";
-    case "CENTER":
-      return "center";
-    case "SPACE_BETWEEN":
-      return "space-between";
-    case "SPACE_AROUND":
-      return "space-around";
-    case "BASELINE":
-      return "baseline";
-    default:
-      return undefined;
-  }
-}
-
-function convertSelfAlign(
-  align: HasLayoutTrait["layoutAlign"] | undefined,
-  sizing: HasLayoutTrait["layoutSizingHorizontal"] | HasLayoutTrait["layoutSizingVertical"],
-) {
-  if (sizing === "HUG" && align === "STRETCH") {
-    return "flex-start";
-  }
-
-  switch (align) {
-    case "MIN":
-      // MIN, AKA flex-start, is the default alignment
-      return "flex-start";
-    case "MAX":
-      return "flex-end";
-    case "CENTER":
-      return "center";
-    case "STRETCH":
-      return "stretch";
-    default:
-      return undefined;
-  }
-}
-
-// interpret sizing
-function convertSizing(
-  s?: HasLayoutTrait["layoutSizingHorizontal"] | HasLayoutTrait["layoutSizingVertical"],
-) {
-  if (s === "FIXED") return "fixed";
-  if (s === "FILL") return "fill";
-  if (s === "HUG") return "hug";
-  return undefined;
-}
-
-function getDirection(
-  axis: "primary" | "counter",
-  mode: "row" | "column",
-): "horizontal" | "vertical" {
-  switch (axis) {
-    case "primary":
-      switch (mode) {
-        case "row":
-          return "horizontal";
-        case "column":
-          return "vertical";
-      }
-    case "counter":
-      switch (mode) {
-        case "row":
-          return "horizontal";
-        case "column":
-          return "vertical";
-      }
-  }
-}
-
-function buildSimplifiedFrameValues(n: FigmaDocumentNode): SimplifiedLayout | { mode: "none" } {
-  if (!isFrame(n)) {
+function buildSimplifiedFrameValues(node: SmartNode): SimplifiedLayout | { mode: "none" } {
+  if (!node.isContainer()) {
     return { mode: "none" };
   }
 
-  const frameValues: SimplifiedLayout = {
-    mode:
-      !n.layoutMode || n.layoutMode === "NONE"
-        ? "none"
-        : n.layoutMode === "HORIZONTAL"
-          ? "row"
-          : "column",
-  };
-
-  // 视觉居中的元素，直接 flex 居中
-  if (frameValues.mode === "none" && n.children && n.children.length > 0) {
-    if (isVisuallyCentered(n)) {
-      frameValues.mode = "row";
-      frameValues.justifyContent = "center";
-      frameValues.alignItems = "center";
-    }
-  }
+  const mode = node.getLayoutMode();
+  const frameValues: SimplifiedLayout = { mode };
+  
+  // Use raw node for children access (SmartNode wrapper for children could be added later)
+  const rawNode = node.raw as any;
 
   const overflowScroll: SimplifiedLayout["overflowScroll"] = [];
-  if (n.overflowDirection?.includes("HORIZONTAL")) overflowScroll.push("x");
-  if (n.overflowDirection?.includes("VERTICAL")) overflowScroll.push("y");
+  if (rawNode.overflowDirection?.includes("HORIZONTAL")) overflowScroll.push("x");
+  if (rawNode.overflowDirection?.includes("VERTICAL")) overflowScroll.push("y");
   if (overflowScroll.length > 0) frameValues.overflowScroll = overflowScroll;
 
   if (frameValues.mode === "none") {
-    if ("clipsContent" in n && n.clipsContent) {
+    if ("clipsContent" in rawNode && rawNode.clipsContent) {
       frameValues.clipsContent = true;
     }
     return frameValues;
   }
 
-  // TODO: convertAlign should be two functions, one for justifyContent and one for alignItems
-  frameValues.justifyContent = convertAlign(n.primaryAxisAlignItems ?? "MIN", {
-    children: n.children,
+  const { primary, counter } = node.getLayoutAlign();
+
+  frameValues.justifyContent = convertFlexAlignment(primary as any, {
+    children: rawNode.children,
     axis: "primary",
     mode: frameValues.mode,
   });
-  frameValues.alignItems = convertAlign(n.counterAxisAlignItems ?? "MIN", {
-    children: n.children,
+  frameValues.alignItems = convertFlexAlignment(counter as any, {
+    children: rawNode.children,
     axis: "counter",
     mode: frameValues.mode,
   });
 
-  // Only include wrap if it's set to WRAP, since flex layouts don't default to wrapping
-  frameValues.wrap = n.layoutWrap === "WRAP" ? true : undefined;
-  if (frameValues.wrap && n.counterAxisAlignContent) {
-    frameValues.alignContent = convertAlignContent(n.counterAxisAlignContent);
+  frameValues.wrap = rawNode.layoutWrap === "WRAP" ? true : undefined;
+  if (frameValues.wrap && rawNode.counterAxisAlignContent) {
+    frameValues.alignContent = convertFlexAlignContent(rawNode.counterAxisAlignContent);
   }
-  frameValues.gap = n.itemSpacing ? `${n.itemSpacing ?? 0}px` : undefined;
-  // gather padding
-  if (n.paddingTop || n.paddingBottom || n.paddingLeft || n.paddingRight) {
-    frameValues.padding = generateCSSShorthand({
-      top: n.paddingTop ?? 0,
-      right: n.paddingRight ?? 0,
-      bottom: n.paddingBottom ?? 0,
-      left: n.paddingLeft ?? 0,
-    });
-  }
+  
+  const gap = node.gap;
+  frameValues.gap = gap ? `${gap}px` : undefined;
 
-  if ("clipsContent" in n && n.clipsContent) {
-    frameValues.clipsContent = true;
+  const padding = node.padding;
+  const paddingStr = generateCSSShorthand(
+    pixelRound(padding.top),
+    pixelRound(padding.right),
+    pixelRound(padding.bottom),
+    pixelRound(padding.left),
+  );
+  
+  if (paddingStr) {
+    frameValues.padding = paddingStr;
   }
 
   return frameValues;
 }
 
 function buildSimplifiedLayoutValues(
-  n: FigmaDocumentNode,
-  parent: FigmaDocumentNode | undefined,
-  mode: "row" | "column" | "none",
+  node: SmartNode,
+  mode: "row" | "column" | "none"
 ): SimplifiedLayout | undefined {
-  if (!isLayout(n)) return undefined;
-
   const layoutValues: SimplifiedLayout = { mode };
 
-  if (isFrame(parent)) {
-    if (!parent.layoutMode || parent.layoutMode === "NONE") {
-      layoutValues.parentMode = "none";
-    } else if (parent.layoutMode === "HORIZONTAL") {
-      layoutValues.parentMode = "row";
-    } else {
-      layoutValues.parentMode = "column";
-    }
+  if (node.parent?.isContainer()) {
+    layoutValues.parentMode = node.parent.getLayoutMode();
+  } else {
+    layoutValues.parentMode = "none";
   }
 
   // Calculate sizing
+  const layoutSizing = node.getLayoutSizing();
   const sizing: SimplifiedLayout["sizing"] = {
-    horizontal: convertSizing(n.layoutSizingHorizontal),
-    vertical: convertSizing(n.layoutSizingVertical),
+    horizontal: convertFigmaSizing(layoutSizing.horizontal),
+    vertical: convertFigmaSizing(layoutSizing.vertical),
   };
   layoutValues.sizing = sizing;
 
-  // Calculate alignSelf based on parent mode and sizing (Moved from frameValues)
-  // This logic belongs here because it depends on both parent direction and self sizing
+  // Calculate alignSelf based on parent mode and sizing
   let crossAxisSizing: HasLayoutTrait["layoutSizingHorizontal"] | HasLayoutTrait["layoutSizingVertical"] | undefined;
 
   if (layoutValues.parentMode === "row") {
-    crossAxisSizing = "layoutSizingVertical" in n ? n.layoutSizingVertical : undefined;
+    crossAxisSizing = layoutSizing.vertical;
   } else if (layoutValues.parentMode === "column") {
-    crossAxisSizing = "layoutSizingHorizontal" in n ? n.layoutSizingHorizontal : undefined;
+    crossAxisSizing = layoutSizing.horizontal;
   }
 
-  // Pass the relevant sizing to convertSelfAlign to handle the HUG vs STRETCH conflict
-  layoutValues.alignSelf = convertSelfAlign("layoutAlign" in n ? n.layoutAlign : undefined, crossAxisSizing);
+  layoutValues.alignSelf = convertFlexAlignSelf(node.getLayoutAlignSelf(), crossAxisSizing);
 
-  if ("minWidth" in n && typeof n.minWidth === "number") {
-    layoutValues.minWidth = pixelRound(n.minWidth);
-  }
-  if ("maxWidth" in n && typeof n.maxWidth === "number") {
-    layoutValues.maxWidth = pixelRound(n.maxWidth);
-  }
-  if ("minHeight" in n && typeof n.minHeight === "number") {
-    layoutValues.minHeight = pixelRound(n.minHeight);
-  }
-  if ("maxHeight" in n && typeof n.maxHeight === "number") {
-    layoutValues.maxHeight = pixelRound(n.maxHeight);
-  }
+  const minMax = node.getMinMax();
+  if (minMax.minWidth !== undefined) layoutValues.minWidth = minMax.minWidth;
+  if (minMax.maxWidth !== undefined) layoutValues.maxWidth = minMax.maxWidth;
+  if (minMax.minHeight !== undefined) layoutValues.minHeight = minMax.minHeight;
+  if (minMax.maxHeight !== undefined) layoutValues.maxHeight = minMax.maxHeight;
 
-  if (n.type === "TEXT") {
-    if ("textAutoResize" in n) {
-      layoutValues.textAutoResize = n.textAutoResize as SimplifiedLayout["textAutoResize"];
-    } else if ("style" in n && (n as any).style?.textAutoResize) {
-      layoutValues.textAutoResize = (n as any).style.textAutoResize;
-    }
-    if ("textTruncation" in n && (n as any).textTruncation) {
-      layoutValues.textTruncation = (n as any).textTruncation;
-    }
-    if ("maxLines" in n && typeof (n as any).maxLines === "number") {
-      layoutValues.maxLines = (n as any).maxLines;
-    }
+  if (node.isText()) {
+    const textLayout = node.getTextLayout();
+    if (textLayout.autoResize) layoutValues.textAutoResize = textLayout.autoResize as any;
+    if (textLayout.truncation) layoutValues.textTruncation = textLayout.truncation as any;
+    if (textLayout.maxLines) layoutValues.maxLines = textLayout.maxLines;
   }
 
   // Only include positioning-related properties if parent layout isn't flex or if the node is absolute
   if (
-    isFrame(parent) &&
-    !isInAutoLayoutFlow(n, parent)
+    node.parent?.isContainer() &&
+    node.isAbsolute()
   ) {
-    
     layoutValues.position = "absolute";
-    if (n.absoluteBoundingBox && parent.absoluteBoundingBox) {
+    const selfRect = node.getBoundingBox();
+    const parentRect = node.parent.getBoundingBox();
+
+    if (selfRect && parentRect) {
       layoutValues.locationRelativeToParent = 
-        calculateRelativePosition(n.absoluteBoundingBox, parent.absoluteBoundingBox);
-    }
-  } else if (n.layoutPositioning === "ABSOLUTE" && isFrame(parent)) {
-    // Explicitly handle AutoLayout children that are set to absolute position
-    layoutValues.position = "absolute";
-    if (n.absoluteBoundingBox && parent.absoluteBoundingBox) {
-      layoutValues.locationRelativeToParent = 
-        calculateRelativePosition(n.absoluteBoundingBox, parent.absoluteBoundingBox);
+        calculateRelativePosition(selfRect, parentRect);
     }
   }
 
   // Handle dimensions based on layout growth and alignment
-  if (isRectangle("absoluteBoundingBox", n)) {
+  const bbox = node.getBoundingBox();
+  if (bbox) {
     const dimensions: { width?: number; height?: number; aspectRatio?: number } = {};
+    const grow = node.getLayoutGrow();
+    const alignSelf = node.getLayoutAlignSelf();
+    const parentMode = layoutValues.parentMode;
 
     // Only include dimensions that aren't meant to stretch
-    if (mode === "row") {
-      // AutoLayout row, only include dimensions if the node is not growing
-      if (!n.layoutGrow && n.layoutSizingHorizontal == "FIXED")
-        dimensions.width = n.absoluteBoundingBox.width;
-      if (n.layoutAlign !== "STRETCH" && n.layoutSizingVertical == "FIXED")
-        dimensions.height = n.absoluteBoundingBox.height;
-    } else if (mode === "column") {
-      // AutoLayout column, only include dimensions if the node is not growing
-      if (n.layoutAlign !== "STRETCH" && n.layoutSizingHorizontal == "FIXED")
-        dimensions.width = n.absoluteBoundingBox.width;
-      if (!n.layoutGrow && n.layoutSizingVertical == "FIXED")
-        dimensions.height = n.absoluteBoundingBox.height;
-
-      if (n.preserveRatio) {
-        dimensions.aspectRatio = n.absoluteBoundingBox?.width / n.absoluteBoundingBox?.height;
-      }
+    if (parentMode === "row") {
+      if (!grow && layoutSizing.horizontal === "FIXED")
+        dimensions.width = bbox.width;
+      if (alignSelf !== "STRETCH" && layoutSizing.vertical === "FIXED")
+        dimensions.height = bbox.height;
+    } else if (parentMode === "column") {
+      if (alignSelf !== "STRETCH" && layoutSizing.horizontal === "FIXED")
+        dimensions.width = bbox.width;
+      if (!grow && layoutSizing.vertical === "FIXED")
+        dimensions.height = bbox.height;
     } else {
-      // Node is not an AutoLayout. Include dimensions if the node is not growing (which it should never be)
-      if (!n.layoutSizingHorizontal || n.layoutSizingHorizontal === "FIXED") {
-        dimensions.width = n.absoluteBoundingBox.width;
-      }
-      if (!n.layoutSizingVertical || n.layoutSizingVertical === "FIXED") {
-        dimensions.height = n.absoluteBoundingBox.height;
-      }
+      // Not in AutoLayout
+      if (layoutSizing.horizontal === "FIXED") dimensions.width = bbox.width;
+      if (layoutSizing.vertical === "FIXED") dimensions.height = bbox.height;
     }
 
     if (Object.keys(dimensions).length > 0) {
-      if (dimensions.width) {
-        dimensions.width = pixelRound(dimensions.width);
-      }
-      if (dimensions.height) {
-        dimensions.height = pixelRound(dimensions.height);
-      }
+      if (dimensions.width) dimensions.width = pixelRound(dimensions.width);
+      if (dimensions.height) dimensions.height = pixelRound(dimensions.height);
       layoutValues.dimensions = dimensions;
     }
   }
 
   // Add position relative if the node is a frame (and not absolute)
-  if (isFrame(n) && layoutValues.position !== "absolute") {
-    // Check if the frame has absolute children
-    const hasAbsoluteChildren = n.children?.some((child) => !isInAutoLayoutFlow(child, n));
-    if (hasAbsoluteChildren) {
+  // TODO: Implement hasAbsoluteChildren check in Analysis phase
+  if (node.isContainer() && layoutValues.position !== "absolute") {
       layoutValues.position = "relative";
-    }
   }
 
   return layoutValues;
