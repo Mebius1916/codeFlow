@@ -1,5 +1,3 @@
-'use client'
-
 import { useCollaborationStore } from '../../lib/store'
 
 /**

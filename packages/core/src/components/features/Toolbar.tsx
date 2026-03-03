@@ -1,11 +1,10 @@
-'use client'
-
-import { useCollaborationStore, useRuntimeStore } from '../../lib/store'
+import { useCollaborationStore, useRuntimeStore, useEditorStore } from '../../lib/store'
 import { executeCode } from '../../lib/webcontainer/execute'
 
 export function Toolbar() {
   const { connectionStatus, users } = useCollaborationStore()
   const { currentProcess } = useRuntimeStore()
+  const { activeFile, openFiles, openFile, closeFile } = useEditorStore()
 
   const isExecuting = currentProcess?.status === 'running'
 
@@ -21,13 +20,48 @@ export function Toolbar() {
   }[connectionStatus]
 
   return (
-    <div className="h-14 bg-[#18181b] border-b border-white/10 flex items-center justify-between px-4 shadow-sm z-10">
-      <div className="flex items-center gap-4">
-        {/* 文件名标签 (模拟 IDE 标签页) */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1e1e1e] rounded-t-md border-t border-x border-white/10 text-gray-300 text-sm translate-y-[9px]">
-          <span className="text-blue-400">JS</span>
-          <span>main.js</span>
-        </div>
+    <div className="h-14 bg-[#18181b] border-b border-white/10 flex items-center justify-between px-4 shadow-sm z-10 overflow-hidden">
+      <div 
+        className="flex items-center gap-1 overflow-x-auto overflow-y-hidden mask-linear-fade flex-1 mr-4 h-full pt-2"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        <style>{`
+          .mask-linear-fade::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        {openFiles.map((file) => (
+          <div
+            key={file}
+            onClick={() => openFile(file)}
+            className={`
+              group flex items-center gap-2 px-3 py-1.5 rounded-t-md border-t border-x cursor-pointer text-sm transition-colors min-w-[100px] max-w-[200px] flex-shrink-0 h-full mt-auto
+              ${activeFile === file 
+                ? 'bg-[#1e1e1e] border-white/10 text-gray-300' 
+                : 'bg-transparent border-transparent text-gray-500 hover:bg-[#1e1e1e]/50 hover:text-gray-400'
+              }
+            `}
+          >
+            <span className={activeFile === file ? 'text-blue-400' : ''}>
+              {file.endsWith('js') ? 'JS' : file.endsWith('css') ? '#' : '📄'}
+            </span>
+            <span className="truncate flex-1">{file}</span>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                closeFile(file)
+              }}
+              className={`
+                p-0.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity
+                ${activeFile === file ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-white/10 text-gray-500 hover:text-gray-300'}
+              `}
+            >
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        ))}
       </div>
 
       <div className="flex items-center gap-4">

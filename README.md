@@ -1,6 +1,6 @@
 # 协同代码编辑器
 
-基于 Next.js 15 + React 19 + Yjs + Monaco Editor + WebContainer 的实时协同代码编辑器组件。
+基于 Vite + React 19 + Yjs + Monaco Editor + WebContainer 的实时协同代码编辑器组件。
 
 ## 📦 项目结构（Monorepo）
 
@@ -12,7 +12,7 @@ collaborative-editor/
 │   └── server/              # WebSocket 服务器包（需发布）
 │       └── src/
 ├── example/                 # 示例应用（需部署）
-│   └── app/
+│   └── src/
 └── pnpm-workspace.yaml
 ```
 
@@ -171,8 +171,8 @@ export default function Page() {
 - [X] 终端输出组件
 - [X] WebContainer 代码执行
 - [X] 用户ID稳定性管理
-- [ ] Yjs 协同编辑完善
-- [ ] 远程光标显示
+- [X] Yjs 协同编辑完善
+- [X] 远程光标显示
 - [ ] WebSocket 服务器优化
 - [ ] 断线重连机制
 

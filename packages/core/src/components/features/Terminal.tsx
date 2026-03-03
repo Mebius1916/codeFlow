@@ -1,5 +1,3 @@
-'use client'
-
 import { useEffect, useRef } from 'react'
 import { useRuntimeStore } from '../../lib/store'
 import { stripAnsi } from '../../lib/utils/ansi'

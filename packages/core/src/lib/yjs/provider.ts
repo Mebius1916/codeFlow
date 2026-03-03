@@ -1,5 +1,6 @@
 import * as Y from 'yjs'
 import type { WebsocketProvider } from 'y-websocket'
+import type { IndexeddbPersistence } from 'y-indexeddb'
 
 export interface ProviderConfig {
   roomId: string
@@ -25,22 +26,31 @@ function generateRandomColor(): string {
 export async function createYjsProvider(config: ProviderConfig): Promise<{
   yDoc: Y.Doc
   provider: WebsocketProvider
+  indexeddbProvider: IndexeddbPersistence
 }> {
   const { roomId, wsUrl, userId, userName = 'Anonymous', userColor } = config
 
   // 动态导入 y-websocket（仅客户端）
   const { WebsocketProvider } = await import('y-websocket')
+  const { IndexeddbPersistence } = await import('y-indexeddb')
 
   // 创建 Yjs 文档
   const yDoc = new Y.Doc()
 
+  // 1. 设置 IndexedDB 持久化
+  // 这会从本地数据库加载文档状态
+  const indexeddbProvider = new IndexeddbPersistence(roomId, yDoc)
+
   // 获取 WebSocket URL（开发环境默认 localhost:1234）
   const url = wsUrl || `ws://localhost:1234`
 
-  // 创建 WebSocket Provider
+  // 2. 创建 WebSocket Provider
   const provider = new WebsocketProvider(url, roomId, yDoc, {
     connect: true,
   })
+
+  // 等待 IndexedDB 数据加载完成
+  await indexeddbProvider.whenSynced
 
   // 设置用户信息到 Awareness
   provider.awareness.setLocalStateField('user', {
@@ -49,14 +59,17 @@ export async function createYjsProvider(config: ProviderConfig): Promise<{
     color: userColor || generateRandomColor(),
   })
 
-  return { yDoc, provider }
+  return { yDoc, provider, indexeddbProvider }
 }
 
 /**
  * 清理 Provider 资源
  */
-export function destroyProvider(provider: WebsocketProvider) {
+export function destroyProvider(provider: WebsocketProvider, indexeddbProvider?: IndexeddbPersistence) {
   provider.awareness.destroy()
   provider.destroy()
+  if (indexeddbProvider) {
+    indexeddbProvider.destroy()
+  }
 }
 
