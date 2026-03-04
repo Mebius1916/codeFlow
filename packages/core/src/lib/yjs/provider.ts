@@ -1,6 +1,7 @@
 import * as Y from 'yjs'
 import type { WebsocketProvider } from 'y-websocket'
 import type { IndexeddbPersistence } from 'y-indexeddb'
+import { updateRoomAccessAndCleanup } from './lru'
 
 export interface ProviderConfig {
   roomId: string
@@ -40,6 +41,11 @@ export async function createYjsProvider(config: ProviderConfig): Promise<{
   // 1. 设置 IndexedDB 持久化
   // 这会从本地数据库加载文档状态
   const indexeddbProvider = new IndexeddbPersistence(roomId, yDoc)
+
+  // 记录访问时间并执行 LRU 清理
+  updateRoomAccessAndCleanup(roomId).catch(err => {
+    console.error('[YJS] Failed to update LRU history:', err)
+  })
 
   // 获取 WebSocket URL（开发环境默认 localhost:1234）
   const url = wsUrl || `ws://localhost:1234`

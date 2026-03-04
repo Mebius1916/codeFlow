@@ -35,6 +35,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -45,7 +48,7 @@
 
 .yRemoteSelectionHead {
   position: absolute;
-  border-left: 2px solid #888; /* 默认颜色，防止 JS 注入延迟 */
+  border-l-2eft: 2px solid #888; /* 默认颜色，防止 JS 注入延迟 */
   border-top: none;
   border-bottom: none;
   height: 100% !important;

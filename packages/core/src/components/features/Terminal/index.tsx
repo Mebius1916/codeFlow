@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { useRuntimeStore } from '../../lib/store'
-import { stripAnsi } from '../../lib/utils/ansi'
+import { useRuntimeStore } from '../../../lib/store'
+import { stripAnsi } from '../../../lib/utils/ansi'
 
 export function Terminal() {
   const { terminalOutput, clearTerminal } = useRuntimeStore()
@@ -14,8 +14,8 @@ export function Terminal() {
   }, [terminalOutput])
 
   return (
-    <div className="h-full bg-[#18181b] border-t border-white/10 flex flex-col">
-      <div className="flex items-center justify-between px-4 py-2 bg-[#18181b] border-b border-white/5">
+    <div className="h-full bg-[#18181b] border-t border-[#2a2f4c] flex flex-col">
+      <div className="flex items-center justify-between px-4 py-2 bg-[#18181b] border-b border-[#2a2f4c]">
         <div className="flex items-center gap-2">
           <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

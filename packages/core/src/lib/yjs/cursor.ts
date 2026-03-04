@@ -45,7 +45,7 @@ export class CursorManager {
         cssRules += `
           .${cursorClassName} {
             position: absolute;
-            border-left: 2px solid ${color};
+            border-l-2eft: 2px solid ${color};
             height: 100%;
             box-sizing: border-box;
             z-index: 10;

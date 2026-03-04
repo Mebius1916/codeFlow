@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useUiStore } from '../../lib/store'
-import { Terminal } from './Terminal'
-import { useFeatures } from '../../lib/context/FeatureContext'
+import { useUiStore } from '../../../lib/store'
+import { Terminal } from '.'
+import { useFeatures } from '../../../lib/context/FeatureContext'
 
 export function TerminalPanel() {
   const { terminalHeight, setTerminalHeight } = useUiStore()
@@ -83,7 +83,7 @@ export function TerminalPanel() {
       
       {/* Terminal Panel */}
       <div 
-        className="border-t border-white/10 bg-[#1e1e1e] overflow-hidden"
+        className="border-t border-[#2a2f4c] bg-[#1e1e1e] overflow-hidden"
         style={{ height: terminalHeight }}
       >
         <Terminal />

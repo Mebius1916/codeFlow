@@ -1,12 +1,18 @@
 import { useCollaborationStore, useRuntimeStore, useEditorStore } from '../../lib/store'
 import { executeCode } from '../../lib/webcontainer/execute'
+import { useFeatures } from '../../lib/context/FeatureContext'
 
 export function Toolbar() {
   const { connectionStatus, users } = useCollaborationStore()
   const { currentProcess } = useRuntimeStore()
   const { activeFile, openFiles, openFile, closeFile } = useEditorStore()
+  const { toolbar: isEnabled } = useFeatures()
 
   const isExecuting = currentProcess?.status === 'running'
+
+  if (isEnabled === false) {
+    return null
+  }
 
   const handleRun = async () => {
     if (isExecuting) return
@@ -20,7 +26,7 @@ export function Toolbar() {
   }[connectionStatus]
 
   return (
-    <div className="h-14 bg-[#18181b] border-b border-white/10 flex items-center justify-between px-4 shadow-sm z-10 overflow-hidden">
+    <div className="h-14 bg-[#18181b] flex items-center justify-between px-4 shadow-sm z-10 overflow-hidden">
       <div 
         className="flex items-center gap-1 overflow-x-auto overflow-y-hidden mask-linear-fade flex-1 mr-4 h-full pt-2"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -37,7 +43,7 @@ export function Toolbar() {
             className={`
               group flex items-center gap-2 px-3 py-1.5 rounded-t-md border-t border-x cursor-pointer text-sm transition-colors min-w-[100px] max-w-[200px] flex-shrink-0 h-full mt-auto
               ${activeFile === file 
-                ? 'bg-[#1e1e1e] border-white/10 text-gray-300' 
+                ? 'bg-[#1e1e1e] border-[#2a2f4c] text-gray-300' 
                 : 'bg-transparent border-transparent text-gray-500 hover:bg-[#1e1e1e]/50 hover:text-gray-400'
               }
             `}

@@ -5,7 +5,10 @@ type Features = NonNullable<CodeEditorProps['features']>
 
 const defaultFeatures: Features = {
   terminal: false,
-  fileTree: true,
+  fileTree: false,
+  fileTreeHeader: true,
+  toolbar: false,
+  autoSave: false,
 }
 
 const FeatureContext = createContext<Features>(defaultFeatures)

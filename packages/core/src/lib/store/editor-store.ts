@@ -13,6 +13,8 @@ interface EditorState {
   closeFile: (path: string) => void
   updateFileContent: (path: string, content: string) => void
   addFile: (path: string, content: string) => void
+  deleteFile: (path: string) => void
+  renameFile: (oldPath: string, newPath: string) => void
 }
 
 export const useEditorStore = create<EditorState>()(
@@ -66,6 +68,48 @@ export const useEditorStore = create<EditorState>()(
       addFile: (path: string, content: string = '') => {
         const { files } = get()
         set({ files: { ...files, [path]: content } })
+      },
+
+      // 删除文件
+      deleteFile: (path: string) => {
+        const { files, openFiles, activeFile } = get()
+        const newFiles = { ...files }
+        delete newFiles[path]
+        
+        const newOpenFiles = openFiles.filter(f => f !== path)
+        let newActiveFile = activeFile
+        
+        // 如果删除的是当前激活文件，且还有其他文件打开，则切换
+        if (activeFile === path) {
+          newActiveFile = newOpenFiles.length > 0 ? newOpenFiles[newOpenFiles.length - 1] : null
+        }
+
+        set({ 
+          files: newFiles, 
+          openFiles: newOpenFiles, 
+          activeFile: newActiveFile 
+        })
+      },
+
+      // 重命名文件
+      renameFile: (oldPath: string, newPath: string) => {
+        const { files, openFiles, activeFile } = get()
+        const content = files[oldPath]
+        
+        if (content === undefined) return // 文件不存在
+
+        const newFiles = { ...files }
+        delete newFiles[oldPath]
+        newFiles[newPath] = content
+
+        const newOpenFiles = openFiles.map(f => f === oldPath ? newPath : f)
+        const newActiveFile = activeFile === oldPath ? newPath : activeFile
+
+        set({
+          files: newFiles,
+          openFiles: newOpenFiles,
+          activeFile: newActiveFile
+        })
       },
     }),
     {

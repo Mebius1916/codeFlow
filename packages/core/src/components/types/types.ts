@@ -22,29 +22,35 @@ export interface CodeEditorProps {
   // ===== 回调函数（外部传入）=====
   onSave?: (files: Record<string, string>) => void  // 保存回调
   onError?: (error: Error) => void                   // 错误回调
+  onStateChange?: (state: {                         // 编辑器状态变更回调
+    files: Record<string, string>
+    activeFile: string | null
+    openFiles: string[]
+  }) => void
 
   // ===== 功能配置 =====
   features?: {
     terminal?: boolean  // 是否启用终端，默认 false
     fileTree?: boolean  // 是否启用文件树，默认 true
+    fileTreeHeader?: boolean // 是否启用文件树头部，默认 true
+    toolbar?: boolean   // 是否启用工具栏，默认 true
+    autoSave?: boolean | number // 是否启用自动保存，true 为默认 1000ms，number 为自定义毫秒数，默认 false
   }
+
+  fileTreeActions?: any // 允许外部传入 useFileTreeActions 的返回值
 }
 
 /**
  * CodeEditor 暴露给外部的 Ref 接口
  */
 export interface CodeEditorRef {
-  /** 打开文件 */
   openFile: (path: string) => void
-  /** 关闭文件 */
   closeFile: (path: string) => void
-  /** 创建/更新文件 */
   addFile: (path: string, content?: string) => void
-  /** 获取当前所有文件内容 */
+  deleteFile: (path: string) => void
+  renameFile: (oldPath: string, newPath: string) => void
   getFiles: () => Record<string, string>
-  /** 获取当前激活的文件路径 */
   getActiveFile: () => string | null
-  /** 获取当前打开的文件列表 */
   getOpenFiles: () => string[]
 }
 
