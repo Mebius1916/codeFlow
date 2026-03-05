@@ -1,5 +1,38 @@
 # 更新日志 (CHANGELOG)
 
+## [v0.1.21] - 2026-03-05
+
+### 容器合并与样式健壮性优化
+
+> **涉及文件**:
+>
+> - `core/extractors/algorithms/flattening.ts` (重构: 父子容器合并算法)
+> - `core/utils/node-check.ts` (优化: 可见样式判断健壮性)
+> - `core/extractors/attributes/visuals-extractor.ts` (修复: 圆角输出条件)
+> - `core/extractors/algorithms/utils/virtual-node.ts` (修复: 虚拟容器 parentMode 缺失)
+> - `core/transformers/icon.ts` (增强: 图标检测尺寸阈值配置化)
+> - `core/transformers/image.ts` (修复: 图片填充检测与文本子节点互斥)
+> - `core/extractors/algorithms/adjacency-clustering.ts` (增强: 聚类方向推断与排序)
+> - `core/extractors/algorithms/layout-grouping.ts` (修复: 分组构建方向与上下文传递)
+> - `core/extractors/pipeline/reconstruction.ts` (优化: 节点预处理倒序与禁用不稳定步骤)
+
+- **容器合并 (Flattening Refactor)**:
+  - **父子合并**: 重构了 `flattenRedundantNodes`，将原有的“拍平”逻辑升级为“父子容器合并”。现在能识别单子节点的冗余父容器，将其 padding、alignSelf、sizing 等布局语义下推到子节点，并安全移除父层，显著减少了 HTML 嵌套深度。
+  - **逻辑统一**: 移除了分散的 `shouldFlattenWrapper` 和 `isRedundant`，统一收敛到 `mergeParentIntoOnlyChild` 流程，支持递归合并。
+- **样式健壮性 (Style Robustness)**:
+  - **可见性判断**: 优化 `hasVisibleStyles`，修复了之前只要有属性对象就判为可见的缺陷。现在会深入检查 `visible` 属性和 `opacity` 值，避免将不可见或全透明的样式误判为有效样式。
+  - **圆角输出**: `visualsExtractor` 现在仅在节点具有可见视觉（fills/strokes/effects）或 `clipsContent` 时才输出 `border-radius`，避免无意义的圆角属性阻碍容器合并。
+- **布局与分组 (Layout & Grouping)**:
+  - **虚拟容器**: 修复了 `createVirtualFrame` 创建的虚拟容器（如 `virtual-adjacency`）缺失 `parentMode` 的问题，确保 `sizing.horizontal = "fill"` 能正确转换为 CSS 的 `flex: 1` 或 `align-self: stretch`。
+  - **邻接聚类**: `adjacency-clustering` 引入了子节点排序与方向推断 (`inferClusterDirection`)，确保生成的虚拟分组具有正确的 Flex 方向。
+  - **布局分组**: 修正了 `layout-grouping` 构建分组时的方向传递，并确保 `parent` 上下文在递归构建中不丢失。
+- **类型识别增强 (Transformers)**:
+  - **图标检测**: `isIcon` 引入了可配置的尺寸阈值 (`iconDetection.minSize/maxSize`)，并放宽了对空容器图标（仅有样式）的检测，同时增加了对大尺寸插画的排除。
+  - **图片检测**: `isImageNode` 修复了包含文本子节点时仍被误判为图片的缺陷，并严格检查图片填充的 `visible` 属性。
+- **流水线优化 (Pipeline)**:
+  - **预处理**: 引入了节点倒序预处理（Top->Bottom 转 Bottom->Top），更符合 HTML 堆叠顺序。
+  - **稳定性**: 暂时禁用了 `list_inference` (列表推断) 与部分不稳定步骤，优先保证结构稳定性。
+
 ## [v0.1.20] - 2026-03-02
 
 ### 节点分析重构与几何算法优化
