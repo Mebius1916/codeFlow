@@ -16,7 +16,7 @@ export default function App() {
       "src/index.html": ``,
       "src/style.css": ``,
       "src/reset.css": ``,
-      "assets/remote-logo.png": "https://www.iplaysoft.com/free-images.html",
+      "assets/remote-logo.png": "../assets/Code.svg",
     }),
     [],
   );
@@ -49,6 +49,7 @@ export default function App() {
           features={{
             fileTree: true,
             fileTreeHeader: false,
+            preview: true,
           }}
           onStateChange={(state) => {
             setActiveFile(state.activeFile);

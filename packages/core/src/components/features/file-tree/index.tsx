@@ -1,6 +1,6 @@
 import { useUiStore, useEditorStore } from '../../../lib/store'
 import { useFeatures } from '../../../lib/context/FeatureContext'
-import { useResizablePanel, useFileTreeData } from '../../hooks'
+import { useResizable, useFileTreeData } from '../../hooks'
 import { FileTreeNode } from './FileTreeNode'
 import { NewFileItem } from './NewFileItem'
 import { ContextMenu } from './ContextMenu'
@@ -25,9 +25,10 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
   const { fileTree, handleFolderToggle } = useFileTreeData(files)
 
   // 使用自定义 Hook 处理调整大小
-  const { isDragging, handleMouseDown } = useResizablePanel({
-    initialWidth: fileTreeWidth,
-    onWidthChange: setFileTreeWidth
+  const { isDragging, handleMouseDown } = useResizable({
+    initialSize: fileTreeWidth,
+    onSizeChange: setFileTreeWidth,
+    direction: 'right'
   })
 
   // 使用自定义 Hook 处理业务逻辑

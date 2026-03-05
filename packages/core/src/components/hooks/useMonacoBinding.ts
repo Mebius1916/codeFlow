@@ -52,6 +52,9 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave }:
       bindingRef.current = binding
       syncCursorToAwareness(editor, provider)
 
+      // 初始同步 Yjs indexedDB 内容到 Zustand Store
+      useEditorStore.getState().addFile(activeFile, yText.toString())
+
       // 监听内容变化实现自动保存
       if (autoSave && onSave) {
         const delay = typeof autoSave === 'number' ? autoSave : 1000

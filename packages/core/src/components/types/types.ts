@@ -35,6 +35,7 @@ export interface CodeEditorProps {
     fileTreeHeader?: boolean // 是否启用文件树头部，默认 true
     toolbar?: boolean   // 是否启用工具栏，默认 true
     autoSave?: boolean | number // 是否启用自动保存，true 为默认 1000ms，number 为自定义毫秒数，默认 false
+    preview?: boolean
   }
 
   fileTreeActions?: any // 允许外部传入 useFileTreeActions 的返回值

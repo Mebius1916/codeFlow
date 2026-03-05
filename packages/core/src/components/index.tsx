@@ -2,10 +2,12 @@ import { useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Editor } from './Editor'
 import { TerminalPanel } from './features/Terminal/TerminalPanel'
 import { FileTreeHeader, FileTreePanel } from './features/file-tree'
+import { PreviewPanel } from './features/PreviewPanel'
 import { Toolbar } from './features/Toolbar'
 import { useEditorStore, useUiStore } from '../lib/store'
 import type { CodeEditorProps, CodeEditorRef } from './types/types'
 import { FeatureProvider } from '../lib/context/FeatureContext'
+import { useResizable } from './hooks'
 import { useFileTreeActions } from './features/file-tree/useFileTreeActions'
 
 export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
@@ -19,10 +21,19 @@ export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
   fileTreeActions: externalFileTreeActions, // 允许外部传入 actions
 }, ref) => {
   const { addFile, openFile, closeFile, deleteFile, renameFile, files, activeFile, openFiles } = useEditorStore()
-  const { fileTreeWidth } = useUiStore()
+  const { fileTreeWidth, previewWidth, setPreviewWidth } = useUiStore()
   const internalFileTreeActions = useFileTreeActions()
   const fileTreeActions = externalFileTreeActions || internalFileTreeActions
   
+  // 预览面板调整大小
+  const { handleMouseDown: handlePreviewResize } = useResizable({
+    initialSize: previewWidth,
+    onSizeChange: setPreviewWidth,
+    direction: 'left',
+    minSize: 200,
+    maxSize: 800
+  })
+
   // 监听状态变化并通知外部
   useEffect(() => {
     onStateChange?.({
@@ -43,13 +54,13 @@ export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
     getActiveFile: () => useEditorStore.getState().activeFile,
     getOpenFiles: () => useEditorStore.getState().openFiles,
   }))
-  
+
   // 初始化文件
   useEffect(() => {
     Object.entries(initialFiles).forEach(([path, content]) => {
       addFile(path, content)
     })
-    
+
     // 自动打开第一个文件
     const firstFile = Object.keys(initialFiles)[0]
     if (firstFile) {
@@ -59,7 +70,7 @@ export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
 
   return (
     <FeatureProvider features={features}>
-      <div 
+      <div
         className="flex flex-col bg-[#1e1e1e] overflow-hidden"
         style={{ height }}
       >
@@ -78,30 +89,50 @@ export const CodeEditor = forwardRef<CodeEditorRef, CodeEditorProps>(({
             </div>
           </div>
         )}
-        
+
         <div className="flex flex-1 overflow-hidden relative">
           {/* File Tree Panel */}
-      <div 
-        className="h-full border-r border-[#2a2f4c] flex flex-col"
-        style={{ width: fileTreeWidth, backgroundColor: 'rgb(15, 17, 25)' }}
-      >
-        <FileTreePanel
-          actions={fileTreeActions}
-          showHeader={features.toolbar === false && features.fileTreeHeader !== false}
-        />
-      </div>
-      
-      <div className="flex flex-1 flex-col overflow-hidden relative">
-        <div className="flex-1 overflow-hidden relative">
-              <Editor 
-                roomId={roomId} 
-                user={user} 
+          <div
+            className="h-full border-r border-[#2a2f4c] flex flex-col"
+            style={{ width: fileTreeWidth, backgroundColor: 'rgb(15, 17, 25)' }}
+          >
+            <FileTreePanel
+              actions={fileTreeActions}
+              showHeader={features.toolbar === false && features.fileTreeHeader !== false}
+            />
+          </div>
+
+          <div className="flex flex-1 flex-col overflow-hidden relative">
+            <div className="flex-1 overflow-hidden relative">
+              <Editor
+                roomId={roomId}
+                user={user}
                 wsUrl={wsUrl}
+                onSave={(files) => {
+                  // 这里可以处理保存逻辑
+                }}
               />
             </div>
-            
-            <TerminalPanel />
+
+            {features.terminal && (
+              <div className="border-t border-[#2a2f4c]">
+                <TerminalPanel />
+              </div>
+            )}
           </div>
+          {features.preview && (
+            <div
+              className="border-l border-[#2a2f4c] flex flex-col bg-[#1e1e1e] relative"
+              style={{ width: previewWidth }}
+            >
+              {/* Resize Handle */}
+              <div
+                className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/50 z-10 -ml-0.5 transition-colors"
+                onMouseDown={handlePreviewResize}
+              />
+              <PreviewPanel />
+            </div>
+          )}
         </div>
       </div>
     </FeatureProvider>
