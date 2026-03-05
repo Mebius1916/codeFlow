@@ -30,10 +30,13 @@ export function runReconstructionPipeline(
 ): SimplifiedNode[] {
   if (nodes.length === 0) return [];
 
+  // 0. Pre-processing: Reverse order from Figma (Top->Bottom) to HTML (Bottom->Top)
+  const processedNodesInput = [...nodes];
+
   // 1. Occlusion Culling
   let processedNodes = isStepEnabled(options?.enabled, "occlusion")
-    ? removeOccludedNodes(nodes, globalVars)
-    : nodes;
+    ? removeOccludedNodes(processedNodesInput, globalVars)
+    : processedNodesInput;
 
   // 2. Spatial Merging
   // 小图标合并算法不太稳定可用，所以暂时移除
@@ -48,17 +51,18 @@ export function runReconstructionPipeline(
 
   // 4. Layout Grouping 
   if (isStepEnabled(options?.enabled, "layout_grouping")) {
-    processedNodes = groupNodesByLayout(processedNodes);
+    processedNodes = groupNodesByLayout(processedNodes, parent);
   }
 
   // 5. List Inference
-  if (isStepEnabled(options?.enabled, "list_inference")) {
-    processedNodes = inferListPatterns(processedNodes);
-  }
+  // 特征分组收益太小且容易扰乱现有结构
+  // if (isStepEnabled(options?.enabled, "list_inference")) {
+  //   processedNodes = inferListPatterns(processedNodes);
+  // }
 
   // 6. Adjacency Clustering
   if (isStepEnabled(options?.enabled, "adjacency")) {
-    processedNodes = groupNodesByAdjacency(processedNodes);
+    processedNodes = groupNodesByAdjacency(processedNodes, parent);
   }
 
   // 7. Semantic Inference

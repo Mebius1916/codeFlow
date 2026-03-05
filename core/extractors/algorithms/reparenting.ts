@@ -13,15 +13,13 @@ export function reparentNodes(nodes: SimplifiedNode[], parent?: SimplifiedNode):
   const { reparenting } = getOptions();
   const partlyContainThreshold = reparenting.partlyContainThreshold;
 
-  // 1. 预处理：确保节点按 Z-Index 从低到高排序 (Bottom -> Top)
   const processingNodes = [...nodes];
 
   // 用于存储处理后的新子节点列表 (未被吃掉的节点)
   const remainingNodes: SimplifiedNode[] = [];
 
-  // 2. 核心循环：贪心 "大背景吃小内容"
   while (processingNodes.length > 0) {
-    // 取出当前层级最低的节点 (Candidate Parent, e.g. Card Background)
+    // 取出当前层级最低的节点
     const parent = processingNodes.shift()!;
 
     if (!canBeParent(parent) || !parent.absRect) {
@@ -61,15 +59,19 @@ export function reparentNodes(nodes: SimplifiedNode[], parent?: SimplifiedNode):
 
     remainingNodes.push(parent);
   }
-
-  detectAbsoluteChildrenInList(remainingNodes, parent);
+  detectAbsoluteChildrenInList(remainingNodes, parent,reparenting.absoluteOverlapThreshold);
 
   return remainingNodes;
 }
 
 // AABB 碰撞检测，用于选出绝对定位的节点
-function detectAbsoluteChildrenInList(nodes: SimplifiedNode[], parent?: SimplifiedNode) {
+function detectAbsoluteChildrenInList(nodes: SimplifiedNode[], parent?: SimplifiedNode, threshold?:number) {
   if (nodes.length < 2) return;
+
+  // Align with FigmaToCode: If parent is Auto Layout, respect native layout.
+  if (parent && typeof parent.layout === "object" && parent.layout && parent.layout.mode !== "none") {
+    return;
+  }
 
   for (let i = 0; i < nodes.length; i++) {
     const nodeA = nodes[i];
@@ -80,15 +82,14 @@ function detectAbsoluteChildrenInList(nodes: SimplifiedNode[], parent?: Simplifi
       if (!nodeB.absRect) continue;
 
       // 是否相交
-      if (!areRectsTouching(nodeA.absRect, nodeB.absRect, 0)) continue;
+      if (!areRectsTouching(nodeA.absRect, nodeB.absRect, threshold)) continue;
 
       // 确定是相交关系
-      
       if (getRectArea(nodeA.absRect) < getRectArea(nodeB.absRect)) {
         nodeA.layout = {
+          mode: "none",
           ...(typeof nodeA.layout === "object" && nodeA.layout ? nodeA.layout : {}),
           position: "absolute",
-          mode: "none",
         };
         // 补充坐标计算
         if (parent?.absRect && nodeA.absRect) {
@@ -98,9 +99,9 @@ function detectAbsoluteChildrenInList(nodes: SimplifiedNode[], parent?: Simplifi
         }
       } else {
         nodeB.layout = {
+          mode: "none",
           ...(typeof nodeB.layout === "object" && nodeB.layout ? nodeB.layout : {}),
           position: "absolute",
-          mode: "none",
         };
         // 补充坐标计算
         if (parent?.absRect && nodeB.absRect) {

@@ -22,6 +22,12 @@ export async function fetchNodeRenderUrls(nodeIds: string[], options: ImageResol
   for (const chunk of chunks) {
     const params = new URLSearchParams({ ids: chunk.join(","), format });
     if (format !== "svg" && scale && Number.isFinite(scale)) params.set("scale", String(scale));
+    
+    // SVG 强制裁剪到节点边界 (去除阴影/外发光带来的额外空白)
+    if (format === "svg") {
+      params.set("use_absolute_bounds", "true");
+    }
+
     const url = `https://api.figma.com/v1/images/${fileKey}?${params.toString()}`;
     const data = await requestJsonWithFigmaToken<{ images?: RawImageMap }>(url, token);
     if (!data?.images) continue;

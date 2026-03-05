@@ -1,11 +1,12 @@
 import type { SimplifiedNode } from "../../types/extractor-types.js";
-import { createVirtualFrame } from "./utils/virtual-node.js";
 import { areRectsTouching } from "../../utils/geometry.js";
 import { UnionFind } from "./utils/union-find.js";
-import { calculateAdjacencyThreshold, computeAdjacencyBaseGap } from "./utils/dynamic-threshold.js";
+import { calculateAdjacencyThreshold, computeAdjacencyBaseGap } from "./utils/dynamic.js";
 import { isClusterCandidate } from "../../utils/candidate-check.js";
+import { buildContainerByGap } from "./utils/virtual-node.js";
+import { inferClusterDirection } from "./utils/infer-direction.js";
 
-export function groupNodesByAdjacency(nodes: SimplifiedNode[]): SimplifiedNode[] {
+export function groupNodesByAdjacency(nodes: SimplifiedNode[], parent?: SimplifiedNode): SimplifiedNode[] {
   if (nodes.length < 2) return nodes;
 
   const candidates: { index: number; node: SimplifiedNode }[] = [];
@@ -58,16 +59,17 @@ export function groupNodesByAdjacency(nodes: SimplifiedNode[]): SimplifiedNode[]
   // Add clusters
   for (const [_, clusterItems] of clusters) {
     if (clusterItems.length > 1) {
-      // Create a virtual group for the cluster
-      const group = createVirtualFrame({
+      const sortedChildren = [...clusterItems]
+        .sort((a, b) => a.index - b.index)
+        .map((item) => item.node);
+
+      const direction = inferClusterDirection(sortedChildren);
+      const group = buildContainerByGap({
         name: "Content Group",
-        type: "CONTAINER",
-        semanticTag: "group",
-        layout: {
-          mode: "none",
-          position: "static",
-        },
-        children: clusterItems.map(item => item.node),
+        idPrefix: "virtual-adjacency",
+        children: sortedChildren,
+        direction,
+        parent,
       });
       
       // 最小索引插入

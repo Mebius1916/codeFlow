@@ -162,6 +162,7 @@ function signaturesMatch(
 
 function createVirtualGroup(children: SimplifiedNode[]): SimplifiedNode {
   return createVirtualFrame({
+    idPrefix: "virtual-list-pattern",
     name: "Item Group",
     type: "CONTAINER",
     layout: {
@@ -193,6 +194,7 @@ function flushRun(run: SimplifiedNode[], result: SimplifiedNode[]) {
 function createVirtualList(children: SimplifiedNode[], isVertical: boolean): SimplifiedNode {
   return buildContainerByGap({
     name: "List",
+    idPrefix: "virtual-list",
     children,
     direction: isVertical ? "column" : "row",
     semanticTag: "list",

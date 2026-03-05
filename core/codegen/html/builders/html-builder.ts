@@ -67,7 +67,6 @@ export class HtmlNodeBuilder {
     }
 
     if (this.node.semanticTag === "list" || 
-        this.node.semanticTag === "group" || 
         this.node.semanticTag === "icon") {
       this.attributes["data-semantic"] = this.node.semanticTag;
     }

@@ -3,6 +3,7 @@ import { buildSimplifiedStrokes, parsePaint, toCssBlendMode } from "../../transf
 import { buildSimplifiedEffects } from "../../transformers/effects.js";
 import { hasValue } from "../../utils/identity.js";
 import { findOrCreateVar, getStyleName } from "../../utils/style-helper.js";
+import { hasVisiblePaintsOrEffects } from "../../utils/node-check.js";
 
 /**
  * Extracts visual appearance properties (fills, strokes, effects, opacity, border radius).
@@ -81,14 +82,21 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
   }
 
   // border radius
-  if (node.type === "ELLIPSE") {
-    result.borderRadius = "50%";
-  } else {
-    const r = context.features?.visuals?.cornerRadius;
-    if (r !== undefined) {
-      result.borderRadius = Array.isArray(r)
-        ? `${r[0]}px ${r[1]}px ${r[2]}px ${r[3]}px`
-        : `${r}px`;
+  // Only apply border radius if there are visible styles (fills/strokes/effects) OR if the node clips content
+  const hasVisuals = hasVisiblePaintsOrEffects(node);
+  const hasClipsContent = hasValue("clipsContent", node) && node.clipsContent === true;
+
+  if (hasVisuals||hasClipsContent) {
+    if (node.type === "ELLIPSE") {
+      result.borderRadius = "50%";
+    } else {
+      const r = context.features?.visuals?.cornerRadius;
+      const hasRadius = Array.isArray(r) ? r.some((value) => value !== 0) : r !== 0;
+      if (r !== undefined && hasRadius) {
+        result.borderRadius = Array.isArray(r)
+          ? `${r[0]}px ${r[1]}px ${r[2]}px ${r[3]}px`
+          : `${r}px`;
+      }
     }
   }
 

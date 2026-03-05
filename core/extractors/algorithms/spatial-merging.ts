@@ -1,3 +1,6 @@
+/**
+ * 该算法暂时不启用
+ */
 import type { SimplifiedNode } from "../../types/extractor-types.js";
 import type { BoundingBox, SimplifiedLayout } from "../../types/simplified-types.js";
 import { createVirtualFrame } from "./utils/virtual-node.js";
@@ -67,11 +70,18 @@ export function mergeSpatialIcons(nodes: SimplifiedNode[], parent?: SimplifiedNo
 
 // 计算所有碎片的总包围矩形
 function createMergedIconNode(parts: SimplifiedNode[], parent?: SimplifiedNode): SimplifiedNode {
-   // 如果父容器是 Auto Layout (Flex)，则使用 static；否则使用 absolute
+  // 检查是否所有子节点都是绝对定位
+  const allAbsolute = parts.every(p => {
+    const layout = p.layout;
+    return typeof layout === "object" && layout && layout.position === "absolute";
+  });
+
   const parentLayout = parent?.layout;
   const isParentAutoLayout =
     typeof parentLayout === "object" && (parentLayout?.mode === "row" || parentLayout?.mode === "column");
-  const position = isParentAutoLayout ? "static" : "absolute";
+  
+  // 如果所有碎片都是绝对定位，或者父级不是 Auto Layout，则合并后的节点也应该是绝对定位
+  const position = (allAbsolute || !isParentAutoLayout) ? "absolute" : "static";
 
   const layout: SimplifiedLayout = {
     mode: "row",
@@ -87,6 +97,7 @@ function createMergedIconNode(parts: SimplifiedNode[], parent?: SimplifiedNode):
   }
 
   return createVirtualFrame({
+    idPrefix: "virtual-spatial-merge",
     name: "Merged Icon",
     type: "CONTAINER",
     layout: layout,

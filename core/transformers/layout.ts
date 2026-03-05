@@ -88,7 +88,7 @@ function buildSimplifiedLayoutValues(
 ): SimplifiedLayout | undefined {
   const layoutValues: SimplifiedLayout = { mode };
 
-  if (node.parent?.isContainer()) {
+  if (node.parent?.isContainer() && !node.isAbsolute()) {
     layoutValues.parentMode = node.parent.getLayoutMode();
   } else {
     layoutValues.parentMode = "none";

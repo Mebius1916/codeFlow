@@ -56,7 +56,7 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
       if (layout.parentMode === "row") {
         styles["flex"] = "1 1 0";
       } else if (allowWidth) {
-        if (layout.maxWidth !== undefined) {
+        if (layout.maxWidth !== undefined || layout.position === "absolute") {
           styles["width"] = "100%";
         } else {
           styles["align-self"] = "stretch";
@@ -74,7 +74,7 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
       if (layout.parentMode === "column") {
         styles["flex"] = "1 1 0";
       } else if (allowHeight) {
-        if (layout.maxHeight !== undefined) {
+        if (layout.maxHeight !== undefined || layout.position === "absolute") {
           styles["height"] = "100%";
         } else {
           styles["align-self"] = "stretch";

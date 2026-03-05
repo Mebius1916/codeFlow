@@ -36,16 +36,39 @@ export function shouldPruneNode(node: SimplifiedNode): boolean {
  * This function unifies style checking logic used across multiple modules.
  */
 export function hasVisibleStyles(node: SimplifiedNode | any): boolean {
+  if (node.opacity === 0) return false;
+
+  if (hasVisiblePaintsOrEffects(node)) {
+    return true;
+  }
+
+  // Border Radius (Structural Style)
+  // Sometimes a node is just a rounded container for clipping
+  if (node.borderRadius && node.borderRadius !== "0px" && node.borderRadius !== "0") {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Checks if a node has visible fills, strokes or effects (excluding borderRadius).
+ */
+export function hasVisiblePaintsOrEffects(node: SimplifiedNode | any): boolean {
+  if (node.opacity === 0) return false;
+
   // 1. Fills
   if (node.fills && node.fills !== "transparent") {
-    // If fills is an array (raw Figma node or intermediate state)
     if (Array.isArray(node.fills)) {
       const hasVisibleFill = node.fills.some(
         (paint: any) => paint.visible !== false && paint.opacity !== 0
       );
       if (hasVisibleFill) return true;
+    } else if (typeof node.fills === "object") {
+      if (node.fills.visible === false) return false;
+      if (node.fills.opacity === 0) return false;
+      return true;
     } else {
-      // If fills is a string ID or simplified object (SimplifiedNode)
       return true;
     }
   }
@@ -57,6 +80,10 @@ export function hasVisibleStyles(node: SimplifiedNode | any): boolean {
         (paint: any) => paint.visible !== false && paint.opacity !== 0
       );
       if (hasVisibleStroke) return true;
+    } else if (typeof node.strokes === "object") {
+      if (node.strokes.visible === false) return false;
+      if (node.strokes.opacity === 0) return false;
+      return true;
     } else {
       return true;
     }
@@ -66,19 +93,17 @@ export function hasVisibleStyles(node: SimplifiedNode | any): boolean {
   if (node.effects && node.effects !== "transparent") {
     if (Array.isArray(node.effects)) {
       const hasVisibleEffect = node.effects.some(
-        (effect: any) => effect.visible !== false
+        (effect: any) => effect.visible !== false && effect.opacity !== 0
       );
       if (hasVisibleEffect) return true;
+    } else if (typeof node.effects === "object") {
+      if (node.effects.visible === false) return false;
+      if (node.effects.opacity === 0) return false;
+      return true;
     } else {
       return true;
     }
   }
-
-  // 4. Border Radius (Structural Style)
-  // Sometimes a node is just a rounded container for clipping
-  if (node.borderRadius && node.borderRadius !== "0px" && node.borderRadius !== "0") {
-    return true;
-  }
-
+  
   return false;
 }

@@ -4,6 +4,7 @@ export type AlgorithmOptions = {
   };
   reparenting: {
     partlyContainThreshold: number;
+    absoluteOverlapThreshold: number;
   };
   spatialMerging: {
     threshold: number;
@@ -16,6 +17,10 @@ export type AlgorithmOptions = {
     min?: number;
     max?: number;
   };
+  iconDetection: {
+    minSize: number;
+    maxSize: number;
+  };
 };
 
 const defaultOptions: AlgorithmOptions = {
@@ -24,6 +29,7 @@ const defaultOptions: AlgorithmOptions = {
   },
   reparenting: {
     partlyContainThreshold: 0.85,
+    absoluteOverlapThreshold: -2,
   },
   spatialMerging: {
     threshold: 80,
@@ -35,6 +41,10 @@ const defaultOptions: AlgorithmOptions = {
   adjacencyThreshold: {
     min: 2,
     max: 24,
+  },
+  iconDetection: {
+    minSize: 64,
+    maxSize: 300,
   },
 };
 
@@ -66,6 +76,10 @@ export function setOptions(next: Partial<AlgorithmOptions>): void {
     adjacencyThreshold: {
       ...currentOptions.adjacencyThreshold,
       ...next.adjacencyThreshold,
+    },
+    iconDetection: {
+      ...currentOptions.iconDetection,
+      ...next.iconDetection,
     },
   };
 }

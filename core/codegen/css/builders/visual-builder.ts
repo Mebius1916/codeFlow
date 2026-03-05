@@ -60,9 +60,14 @@ export const visualBuilder = {
       let position = "";
       let blendMode = "normal";
       if (typeof fill === "string") {
-        layer = `linear-gradient(0deg, ${fill}, ${fill})`;
+        if (fill && fill !== "transparent" && fill !== "rgba(0, 0, 0, 0)") {
+          layer = `linear-gradient(0deg, ${fill}, ${fill})`;
+        }
       } else if ("r" in fill) {
-        layer = `linear-gradient(0deg, ${toCssColor(fill)}, ${toCssColor(fill)})`;
+        const color = toCssColor(fill);
+        if (color && color !== "transparent" && color !== "rgba(0, 0, 0, 0)") {
+          layer = `linear-gradient(0deg, ${color}, ${color})`;
+        }
       } else if (typeof fill === "object" && "type" in fill) {
         const typedFill = fill as SimplifiedImageFill | SimplifiedPatternFill | SimplifiedGradientFill | { type: "SOLID"; color: any; blendMode?: string };
         if ((typedFill as any).blendMode) {
@@ -71,7 +76,8 @@ export const visualBuilder = {
         }
         if (typedFill.type === "SOLID") {
           const color = toSolidColor(typedFill as any);
-          if (color) {
+          // Ignore fully transparent solid fills in background stack
+          if (color && color !== "transparent" && color !== "rgba(0, 0, 0, 0)") {
             layer = `linear-gradient(0deg, ${color}, ${color})`;
           }
         } else if (typedFill.type === "IMAGE") {

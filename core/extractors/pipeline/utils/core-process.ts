@@ -69,10 +69,9 @@ export function processNodes(
         // 5. Post-Process Children (Optional)
         const processedChildren = postProcessor ? postProcessor(children, result) : children;
         
-        // 剪枝：移除空容器
         const prunedChildren = processedChildren.filter((child) => {
           if (child.type === "CONTAINER") {
-            return !shouldPruneNode(child);
+            return !shouldPruneNode(child); // 剪枝：移除空容器
           }
           return true;
         });
@@ -85,7 +84,7 @@ export function processNodes(
 
     // 7. Early Pruning (Aggressive Pruning)
     if (result.type === "CONTAINER") {
-      if (shouldPruneNode(result)) {
+      if (shouldPruneNode(result)) { // 剪枝：移除空容器
         continue;
       }
     }

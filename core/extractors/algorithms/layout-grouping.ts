@@ -1,6 +1,5 @@
 
 import type { SimplifiedNode } from "../../types/extractor-types.js";
-import { isAutoLayoutNode } from "./utils/auto-layout.js";
 import { getOptions } from "../../../options.js";
 import { buildContainerByGap } from "./utils/virtual-node.js";
 import {
@@ -9,7 +8,7 @@ import {
   splitByProjection,
   spliteByCost
 } from "./utils/group-calculation.js";
-export function groupNodesByLayout(nodes: SimplifiedNode[]): SimplifiedNode[] {
+export function groupNodesByLayout(nodes: SimplifiedNode[], parent?: SimplifiedNode): SimplifiedNode[] {
   // 排除绝对定位的节点
   const flowNodes: SimplifiedNode[] = [];
   const absoluteNodes: SimplifiedNode[] = [];
@@ -45,42 +44,23 @@ export function groupNodesByLayout(nodes: SimplifiedNode[]): SimplifiedNode[] {
 
   // 根据决策结果处理
   if (bestDirection === "row") {
-    const processedRows = rowGroupMeta.map((meta) => buildGroupWithSecondSplit(meta, "row", minGap));
+    const processedRows = rowGroupMeta.map((meta) => buildGroup(meta.group, "column", parent));
     return [...processedRows, ...absoluteNodes];
   } else if (bestDirection === "column") {
-    const processedCols = colGroupMeta.map((meta) => buildGroupWithSecondSplit(meta, "column", minGap));
+    const processedCols = colGroupMeta.map((meta) => buildGroup(meta.group, "row", parent));
     return [...processedCols, ...absoluteNodes];
   }
 
   return [...flowNodes, ...absoluteNodes];
 }
 
-function buildGroup(group: SimplifiedNode[], direction: "row" | "column" ): SimplifiedNode {
+function buildGroup(group: SimplifiedNode[], direction: "row" | "column", parent?: SimplifiedNode): SimplifiedNode {
   return buildContainerByGap({
     name: "Group",
+    idPrefix: "virtual-layout-grouping",
     children: group,
     direction,
     allowSingle: true,
+    parent,
   });
-}
-
-function buildGroupWithSecondSplit(
-  meta: { group: SimplifiedNode[]; merged: boolean },
-  direction: "row" | "column",
-  minGap: number
-): SimplifiedNode {
-  // 非合并元素不参与第二次分组
-  if (!meta.merged) return buildGroup(meta.group, direction);
-  const splitSecondX = splitByProjection(meta.group, "x", minGap);
-  const splitSecondY = splitByProjection(meta.group, "y", minGap);
-  const bestSecondDirection = spliteByCost(splitSecondY, splitSecondX);
-  if (bestSecondDirection === "row") {
-    const children = splitSecondY.map(group => buildGroup(group, "row"));
-    return buildGroup(children, "column");
-  }
-  if (bestSecondDirection === "column") {
-    const children = splitSecondX.map(group => buildGroup(group, "column"));
-    return buildGroup(children, "row");
-  }
-  return buildGroup(meta.group, direction);
 }

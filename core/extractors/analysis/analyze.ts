@@ -3,8 +3,9 @@ import type { Node as FigmaNode } from "@figma/rest-api-spec";
 import type { NodeFeatures } from "./types.js";
 import { isIcon } from "../../transformers/icon.js";
 import { isImageNode } from "../../transformers/image.js";
-import { isFrame, isInAutoLayoutFlow } from "../../utils/identity.js";
+import { isFrame } from "../../utils/identity.js";
 import { isVisible, pixelRound } from "../../utils/common.js";
+import { isRectContained } from "../../utils/geometry.js";
 import { extractTextStyle, hasTextStyle } from "../../transformers/text.js";
 import type { SimplifiedTextStyle } from "../../types/simplified-types.js";
 
@@ -63,9 +64,23 @@ export function analyzeNode(node: FigmaNode, parent?: FigmaNode): NodeFeatures {
     }
   }
 
-  const isAbsolute = 
-    (node as any).layoutPositioning === "ABSOLUTE" || 
-    (parent && isFrame(parent) && !isInAutoLayoutFlow(node, parent));
+  let isAbsolute = false;
+  const layoutPositioning = (node as any).layoutPositioning;
+  if (layoutPositioning === "ABSOLUTE") {
+    isAbsolute = true;
+  } else if (parent) {
+    const parentLayoutMode = (parent as any).layoutMode;
+    const parentIsAutoLayout = parentLayoutMode === "HORIZONTAL" || parentLayoutMode === "VERTICAL";
+    if (!parentIsAutoLayout) {
+      isAbsolute = true;
+    } else {
+      const childBox = (node as any).absoluteBoundingBox;
+      const parentBox = (parent as any).absoluteBoundingBox;
+      if (childBox && parentBox && !isRectContained(parentBox, childBox)) {
+        isAbsolute = true;
+      }
+    }
+  }
 
   // Extract layout sizing
   const layoutSizing = {

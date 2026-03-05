@@ -1,5 +1,5 @@
 import type { SimplifiedNode } from "../../../types/extractor-types.js";
-import { quantizeSize } from "./dynamic-threshold.js";
+import { quantizeSize } from "./dynamic.js";
 import { FNV_OFFSET_BASIS_32, fnv1a32Update } from "../../../utils/hash.js";
 const nodeHashCache = new WeakMap<SimplifiedNode, number>();
 

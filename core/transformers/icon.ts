@@ -1,5 +1,6 @@
 import type { Node as FigmaNode } from "@figma/rest-api-spec";
 import { hasVisibleStyles } from "../utils/node-check.js";
+import { getOptions } from "../../options.js";
 
 // 基础图形
 const ICON_PRIMITIVE_TYPES: Set<string> = new Set([
@@ -26,9 +27,6 @@ const ICON_CONTAINER_TYPES: Set<string> = new Set([
 
 // 黑名单
 const DISALLOWED_CHILD_TYPES: Set<string> = new Set([
-  "FRAME",
-  "COMPONENT",
-  "INSTANCE",
   "TEXT",
   "SLICE",
   "CONNECTOR",
@@ -61,8 +59,13 @@ export function isIcon(node: FigmaNode): boolean {
   
   if (width === 0 || height === 0) return false; // Invisible or empty
 
+  const { iconDetection } = getOptions();
+  // 默认阈值：64，插画阈值：300
+  const defaultSize = iconDetection.minSize;
+  const illustrationSize = iconDetection.maxSize;
+
   if (isPrimitive) {
-    if (width > 64 || height > 64) return false;
+    if (width > defaultSize || height > defaultSize) return false;
   }
   
   if (isComplexVector) {
@@ -70,12 +73,18 @@ export function isIcon(node: FigmaNode): boolean {
   }
 
   if (isContainer) {
-    if (width > 64 || height > 64) return false;
+    // 如果尺寸超大，直接拒绝（除非有特殊命名）
+    if (width > illustrationSize || height > illustrationSize) return false;
+
     // 命名检查
     const name = node.name.toLowerCase();
-    if (name.includes("icon") || name.startsWith("ic_") || name.includes("svg") || name.includes("logo")) {
+    if (name.includes("icon") || name.startsWith("ic_") || name.includes("svg") || 
+        name.includes("logo") || name.includes("illustration") || 
+        name.includes("pic") || name.includes("img")) {
       return checkChildrenRecursively(node).isValidIcon;
     }
+
+    const isLargeIcon = width > defaultSize || height > defaultSize;
 
     // 递归检查子节点
     const checkResult = checkChildrenRecursively(node);
@@ -83,7 +92,7 @@ export function isIcon(node: FigmaNode): boolean {
 
     // 空容器如果具有可见的样式（如边框、填充），且尺寸符合图标标准，也应视为图标
     if (!checkResult.hasVectorContent) {
-      if (hasVisibleStyles(node)) return true;
+      if (hasVisibleStyles(node) && !isLargeIcon) return true; // 大尺寸空容器不视为 Icon
       return false;
     }
     
@@ -110,13 +119,19 @@ function checkChildrenRecursively(node: FigmaNode): { isValidIcon: boolean; hasV
     if ("visible" in child && child.visible === false) continue;
 
     if (DISALLOWED_CHILD_TYPES.has(child.type)) {
-      if (child.type === "GROUP") {
-        const subCheck = checkChildrenRecursively(child);
-        if (!subCheck.isValidIcon) return { isValidIcon: false, hasVectorContent: false };
-        if (subCheck.hasVectorContent) hasVectorContent = true;
-      } else {
-        return { isValidIcon: false, hasVectorContent: false };
-      }
+      return { isValidIcon: false, hasVectorContent: false };
+    }
+    
+    // 递归检查嵌套容器 (GROUP, FRAME, INSTANCE, COMPONENT)
+    if (
+      child.type === "GROUP" ||
+      child.type === "FRAME" ||
+      child.type === "INSTANCE" ||
+      child.type === "COMPONENT"
+    ) {
+      const subCheck = checkChildrenRecursively(child);
+      if (!subCheck.isValidIcon) return { isValidIcon: false, hasVectorContent: false };
+      if (subCheck.hasVectorContent) hasVectorContent = true;
     } else {
       // 遇到合法的 Vector/Shape
       hasVectorContent = true;

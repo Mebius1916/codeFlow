@@ -3,13 +3,16 @@ import type { Node as FigmaNode } from "@figma/rest-api-spec";
 export function isImageNode(node: FigmaNode): boolean {
   // 1. 自身包含图片填充
   if (hasImageFills(node)) {
+    // 如果有文本子节点，则不能单纯视为图片（应该是带背景的容器）
+    if (hasTextChild(node)) {
+      return false;
+    }
     return true;
   }
 
   // 2. 导出设置检测
   if ("exportSettings" in node && Array.isArray(node.exportSettings)) {
     if (node.exportSettings.some((setting) => ["PNG", "JPG"].includes(setting.format))) {
-      // 只要明确配置了导出为图片，即使包含文本也应视为图片切片
       if (!hasTextChild(node)) {
         return true;
       }
@@ -46,7 +49,7 @@ function isMaskGroup(node: FigmaNode): boolean {
 // 检查自身是否有图片填充
 function hasImageFills(node: FigmaNode): boolean {
   if ("fills" in node && Array.isArray(node.fills)) {
-    return node.fills.some((paint) => paint.type === "IMAGE");
+    return node.fills.some((paint) => paint.type === "IMAGE" && paint.visible !== false);
   }
   return false;
 }
