@@ -1,4 +1,5 @@
 export * from './useYjsCollaboration'
+export * from './useWebContainer'
 export * from './useMonacoBinding'
 export * from './useResizable'
 export * from './useFileTreeData'

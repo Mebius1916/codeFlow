@@ -1,15 +1,18 @@
 import { useRef } from 'react'
-import MonacoEditor from '@monaco-editor/react'
-import type * as Monaco from 'monaco-editor'
+import MonacoEditor, { loader } from '@monaco-editor/react'
+import * as monaco from 'monaco-editor'
 import { getLanguageFromPath } from '../../lib/utils/file'
+
+// 配置 monaco-editor 使用本地包，避免从 CDN 加载
+loader.config({ monaco })
 
 interface MonacoEditorWrapperProps {
   activeFile: string
-  onMount: (editor: Monaco.editor.IStandaloneCodeEditor) => void
+  onMount: (editor: monaco.editor.IStandaloneCodeEditor) => void
 }
 
 export function MonacoEditorWrapper({ activeFile, onMount }: MonacoEditorWrapperProps) {
-  const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null)
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const language = getLanguageFromPath(activeFile)
 
   return (

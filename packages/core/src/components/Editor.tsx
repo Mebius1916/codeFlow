@@ -19,7 +19,7 @@ interface EditorProps {
 }
 
 export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
-  const { activeFile, addFile } = useEditorStore()
+  const { activeFile } = useEditorStore()
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null)
   const editorDomRef = useRef<HTMLElement | null>(null)
   const [isEditorMounted, setIsEditorMounted] = useState(false)

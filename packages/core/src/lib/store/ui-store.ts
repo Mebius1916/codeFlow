@@ -19,8 +19,8 @@ export const useUiStore = create<UiState>((set) => ({
   // 初始状态
   theme: 'dark',
   terminalHeight: 200,
-  fileTreeWidth: 240,
-  previewWidth: 400,
+  fileTreeWidth: 250,
+  previewWidth: 520,
 
   // 设置主题
   setTheme: (theme: 'light' | 'dark') => {
