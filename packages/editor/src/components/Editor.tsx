@@ -1,0 +1,103 @@
+import { useEffect, useRef, useState } from 'react'
+import type * as Monaco from 'monaco-editor'
+import { useEditorStore } from '@collaborative-editor/shared'
+import { initMonaco } from '../lib/monaco/initMonaco'
+import { Loading } from './common/Loading'
+import { EmptyState } from './common/EmptyState'
+import { useYjsCollaboration } from '../hooks/useYjsCollaboration'
+import { useMonacoBinding } from '../hooks/useMonacoBinding'
+import { ImagePreview } from './features/ImagePreview'
+import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
+import type { EditorProps } from '../types'
+
+export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
+  const { activeFile } = useEditorStore()
+  const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null)
+  const editorDomRef = useRef<HTMLElement | null>(null)
+  const [isEditorMounted, setIsEditorMounted] = useState(false)
+  const [isMonacoReady, setIsMonacoReady] = useState(false)
+
+  const { isReady, providerRef, yDocRef } = useYjsCollaboration({
+    roomId,
+    user,
+    wsUrl,
+  })
+
+  const isImage = activeFile ? /\.(svg|png|jpg|jpeg|gif|webp)$/i.test(activeFile) : false
+
+  useEffect(() => {
+    if (!activeFile || isImage) return
+    if (isMonacoReady) return
+
+    let cancelled = false
+    initMonaco()
+      .then(() => {
+        if (!cancelled) setIsMonacoReady(true)
+      })
+      .catch(() => {
+        if (!cancelled) setIsMonacoReady(true)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeFile, isImage, isMonacoReady])
+
+  useMonacoBinding({
+    editor: isImage ? null : editorRef.current,
+    yDoc: yDocRef.current,
+    provider: providerRef.current,
+    activeFile,
+    onSave,
+  })
+
+  useEffect(() => {
+    const handleKeydownCapture = (e: KeyboardEvent) => {
+      const dom = editorDomRef.current
+      if (!dom) return
+
+      const target = e.target
+      if (!(target instanceof Node)) return
+      if (!dom.contains(target)) return
+
+      if (!/^F([1-9]|1[0-2])$/.test(e.key)) return
+
+      e.stopImmediatePropagation()
+      e.stopPropagation()
+    }
+
+    window.addEventListener('keydown', handleKeydownCapture, { capture: true })
+    return () => {
+      window.removeEventListener('keydown', handleKeydownCapture, { capture: true } as AddEventListenerOptions)
+    }
+  }, [])
+
+  if (!activeFile) {
+    return <EmptyState />
+  }
+
+  if (isImage) {
+    return <ImagePreview />
+  }
+
+  const isLoading = !isReady || !isMonacoReady || !isEditorMounted
+
+  return (
+    <>
+      {isLoading && <Loading text="正在初始化编辑器..." />}
+      <div style={{ display: isLoading ? 'none' : 'block', height: '100%' }}>
+        {isMonacoReady && (
+          <MonacoEditorWrapper
+            activeFile={activeFile}
+            onMount={(editor) => {
+              editorRef.current = editor
+              editorDomRef.current = editor.getDomNode()
+              setIsEditorMounted(true)
+            }}
+          />
+        )}
+      </div>
+    </>
+  )
+}
+

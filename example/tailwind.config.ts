@@ -4,7 +4,11 @@ const config: Config = {
   darkMode: ["class"],
   content: [
     "./src/**/*.{js,ts,jsx,tsx,mdx}",
-    "../packages/core/src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../packages/editor/src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../packages/file-tree/src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../packages/preview/src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../packages/topbar/src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../packages/shared/src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
@@ -36,4 +40,3 @@ const config: Config = {
 }
 
 export default config
-

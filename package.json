@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter example dev",
-    "build": "pnpm --filter @collaborative-editor/core build && pnpm --filter example build",
+    "build": "pnpm -r --filter @collaborative-editor/shared --filter @collaborative-editor/file-tree --filter @collaborative-editor/preview --filter @collaborative-editor/topbar --filter @collaborative-editor/editor build && pnpm --filter example build",
     "start": "pnpm --filter example start",
     "start:all": "pnpm --filter example start:all",
     "lint": "pnpm --filter example lint",

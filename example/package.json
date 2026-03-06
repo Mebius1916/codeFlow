@@ -14,8 +14,12 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "@collaborative-editor/core": "workspace:*",
+    "@collaborative-editor/editor": "workspace:*",
+    "@collaborative-editor/file-tree": "workspace:*",
+    "@collaborative-editor/preview": "workspace:*",
     "@collaborative-editor/server": "workspace:*",
+    "@collaborative-editor/shared": "workspace:*",
+    "@collaborative-editor/topbar": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

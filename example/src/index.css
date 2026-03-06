@@ -48,7 +48,7 @@
 
 .yRemoteSelectionHead {
   position: absolute;
-  border-l-2eft: 2px solid #888; /* 默认颜色，防止 JS 注入延迟 */
+  border-l-left: 2px solid #888; /* 默认颜色，防止 JS 注入延迟 */
   border-top: none;
   border-bottom: none;
   height: 100% !important;
