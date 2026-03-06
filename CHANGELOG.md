@@ -1,5 +1,32 @@
 # 更新日志 (CHANGELOG)
 
+## [v0.1.22] - 2026-03-06
+
+### CSS 输出复用与布局推断增强
+
+> **涉及文件**:
+>
+> - `core/codegen/css/builders/layout-builder.ts` (重构: 轴向尺寸处理抽离)
+> - `core/codegen/css/utils/axis-size.ts` (新增: 轴向 sizing 处理)
+> - `core/codegen/html/builders/html-builder.ts` (改进: refs 展开为多 class)
+> - `core/codegen/css/builders/css-builder.ts` (调整: 跳过 refs 组合样式输出)
+> - `core/extractors/algorithms/utils/layout-inference.ts` (新增: 虚拟容器与 gap 推断)
+> - `core/extractors/algorithms/style-normalization.ts` (增强: 布局重算与样式拆分)
+> - `core/transformers/layout.ts` (调整: Auto Layout 下 HUG 尺寸策略)
+> - `core/transformers/utils/flex-adapter.ts` (修复: HUG+STRETCH 输出)
+> - `core/extractors/pipeline/utils/core-process.ts` (新增: layoutMetaById 采样)
+> - `core/extractors/pipeline/utils/snapshot.ts` (新增: layoutMetaById 输出)
+>
+- **CSS 复用 (CSS Composition)**:
+  - **多 class 输出**: HTML 直接展开 `refs` 为多个 class，避免复用失效。
+  - **组合样式裁剪**: CSS 输出跳过 `{ refs }` 组合样式，减少重复规则。
+- **布局推断 (Layout Inference)**:
+  - **虚拟容器统一**: 新增 `layout-inference` 统一虚拟容器与 gap 推断逻辑。
+  - **尺寸策略**: Auto Layout 下 HUG 不再强制写入固定宽高。
+- **布局重算 (Layout Normalization)**:
+  - **alignSelf 重算**: 基于 layoutMetaById 在归一化阶段重算对齐。
+  - **layout 原子拆分**: 拆分可复用的 layout 原子，提升复用率。
+
 ## [v0.1.21] - 2026-03-05
 
 ### 容器合并与样式健壮性优化

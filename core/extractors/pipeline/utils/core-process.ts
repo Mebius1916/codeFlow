@@ -34,6 +34,18 @@ export function processNodes(
     // 3. Classify (Normalize)
     const { type: normalizedType, isLeaf } = normalizeNodeType(features);
 
+    if (!context.globalVars.layoutMetaById) context.globalVars.layoutMetaById = {};
+    context.globalVars.layoutMetaById[node.id] = {
+      layoutAlignSelf: (node as any).layoutAlign,
+      layoutSizing: {
+        horizontal: (node as any).layoutSizingHorizontal,
+        vertical: (node as any).layoutSizingVertical,
+      },
+      layoutGrow: (node as any).layoutGrow,
+      layoutMode: (node as any).layoutMode,
+      layoutPositioning: (node as any).layoutPositioning,
+    };
+
     // 4. Update Context with Smart Node
     const nodeContext: TraversalContext = {
       ...context,

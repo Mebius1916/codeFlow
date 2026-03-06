@@ -37,7 +37,9 @@ function getMergeableParentChild(
 
   const rawParentLayout = node.layout;
   const parentLayout: SimplifiedLayout =
-     rawParentLayout ? (rawParentLayout as SimplifiedLayout) : { mode: "none" };
+     typeof rawParentLayout === "object" && rawParentLayout
+      ? (rawParentLayout as SimplifiedLayout)
+      : { mode: "none", sizing: {} };
 
   if (parentLayout.clipsContent) return null;
   if (parentLayout.overflowScroll
@@ -47,7 +49,7 @@ function getMergeableParentChild(
       child.semanticTag !== node.semanticTag) return null;
 
   if (!child.layout) {
-    child.layout = { mode: "none" };
+    child.layout = { mode: "none", sizing: {} };
   } else if (typeof child.layout === "string") {
     return null;
   }
@@ -68,12 +70,13 @@ function mergeParentIntoOnlyChild(mergeable: MergeableParentChild): SimplifiedNo
   }
 
   // 合并Figma 的 Hug/Fill/Fixed 语义 到子布局
-  if (parentLayout.sizing) {
-    if (!childLayout.sizing) childLayout.sizing = {};
-    if (parentLayout.sizing.horizontal && !childLayout.sizing.horizontal) {
+  if (parentLayout.sizing.horizontal) {
+    if (parentLayout.sizing.horizontal === "fill" || !childLayout.sizing.horizontal) {
       childLayout.sizing.horizontal = parentLayout.sizing.horizontal;
     }
-    if (parentLayout.sizing.vertical && !childLayout.sizing.vertical) {
+  }
+  if (parentLayout.sizing.vertical) {
+    if (parentLayout.sizing.vertical === "fill" || !childLayout.sizing.vertical) {
       childLayout.sizing.vertical = parentLayout.sizing.vertical;
     }
   }

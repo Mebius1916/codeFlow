@@ -23,13 +23,13 @@ export function buildSimplifiedLayout(
   return { ...frameValues, ...layoutValues };
 }
 
-function buildSimplifiedFrameValues(node: SmartNode): SimplifiedLayout | { mode: "none" } {
+function buildSimplifiedFrameValues(node: SmartNode): SimplifiedLayout {
   if (!node.isContainer()) {
-    return { mode: "none" };
+    return { mode: "none", sizing: {} };
   }
 
   const mode = node.getLayoutMode();
-  const frameValues: SimplifiedLayout = { mode };
+  const frameValues: SimplifiedLayout = { mode, sizing: {} };
   
   // Use raw node for children access (SmartNode wrapper for children could be added later)
   const rawNode = node.raw as any;
@@ -86,7 +86,7 @@ function buildSimplifiedLayoutValues(
   node: SmartNode,
   mode: "row" | "column" | "none"
 ): SimplifiedLayout | undefined {
-  const layoutValues: SimplifiedLayout = { mode };
+  const layoutValues: SimplifiedLayout = { mode, sizing: {} };
 
   if (node.parent?.isContainer() && !node.isAbsolute()) {
     layoutValues.parentMode = node.parent.getLayoutMode();
@@ -148,6 +148,7 @@ function buildSimplifiedLayoutValues(
     const grow = node.getLayoutGrow();
     const alignSelf = node.getLayoutAlignSelf();
     const parentMode = layoutValues.parentMode;
+    const hasChildren = node.features.hasChildren;
 
     // Only include dimensions that aren't meant to stretch
     if (parentMode === "row") {
@@ -164,6 +165,15 @@ function buildSimplifiedLayoutValues(
       // Not in AutoLayout
       if (layoutSizing.horizontal === "FIXED") dimensions.width = bbox.width;
       if (layoutSizing.vertical === "FIXED") dimensions.height = bbox.height;
+    }
+
+    if (layoutValues.mode === "none") {
+      if (layoutSizing.horizontal === "HUG" && dimensions.width === undefined) {
+        dimensions.width = bbox.width;
+      }
+      if (layoutSizing.vertical === "HUG" && dimensions.height === undefined) {
+        dimensions.height = bbox.height;
+      }
     }
 
     if (Object.keys(dimensions).length > 0) {

@@ -40,6 +40,7 @@ export function extractFromDesign(
   // 剪枝操作，减少内存占用
   if (globalVars.extraStyles) {
     delete globalVars.extraStyles;
+    delete globalVars.layoutMetaById;
   }
 
   return {

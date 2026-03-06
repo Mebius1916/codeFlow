@@ -93,7 +93,7 @@ export function convertFlexAlignSelf(
   sizing: HasLayoutTrait["layoutSizingHorizontal"] | HasLayoutTrait["layoutSizingVertical"],
 ) {
   if (sizing === "HUG" && align === "STRETCH") {
-    return "flex-start";
+    return undefined; 
   }
 
   switch (align) {

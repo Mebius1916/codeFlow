@@ -1,4 +1,4 @@
-import type { Node as FigmaDocumentNode, Style } from "@figma/rest-api-spec";
+import type { HasFramePropertiesTrait, HasLayoutTrait, Node as FigmaDocumentNode, Style } from "@figma/rest-api-spec";
 import type { NodeFeatures } from "../extractors/analysis/types.js";
 import type { SmartNode } from "../extractors/analysis/index.js";
 import type { 
@@ -26,6 +26,17 @@ export type StyleTypes =
   | SimplifiedCompositeStyle
   | string;
 
+export interface LayoutMeta {
+  layoutAlignSelf?: HasLayoutTrait["layoutAlign"];
+  layoutSizing?: {
+    horizontal?: HasLayoutTrait["layoutSizingHorizontal"];
+    vertical?: HasLayoutTrait["layoutSizingVertical"];
+  };
+  layoutGrow?: number;
+  layoutMode?: HasFramePropertiesTrait["layoutMode"];
+  layoutPositioning?: HasLayoutTrait["layoutPositioning"];
+}
+
 export interface GlobalVars {
   styles: Record<string, StyleTypes>;
   styleCache?: Map<string, string>;
@@ -34,6 +45,7 @@ export interface GlobalVars {
     imageRefs: string[];
     svgNodeIds?: string[];
   };
+  layoutMetaById?: Record<string, LayoutMeta>;
 }
 
 export interface TraversalContext {

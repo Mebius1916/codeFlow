@@ -1,6 +1,7 @@
 
 import type { SimplifiedLayout } from "../../../types/simplified-types.js";
 import { px } from "../utils/css-color.js";
+import { applyAxisSizing } from '../utils/axis-size.js'
 
 // 布局构造器
 export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> => {
@@ -51,41 +52,8 @@ export const layoutBuilder = (layout: SimplifiedLayout): Record<string, string> 
     if (layout.dimensions?.width && allowWidth) styles["width"] = px(layout.dimensions.width);
     if (layout.dimensions?.height && allowHeight) styles["height"] = px(layout.dimensions.height);
   }
-  if (sizing) {
-    if (sizing.horizontal === "fill") {
-      if (layout.parentMode === "row") {
-        styles["flex"] = "1 1 0";
-      } else if (allowWidth) {
-        if (layout.maxWidth !== undefined || layout.position === "absolute") {
-          styles["width"] = "100%";
-        } else {
-          styles["align-self"] = "stretch";
-        }
-      }
-    } else if (sizing.horizontal === "hug") {
-      if (!allowWidth) {
-        styles["white-space"] = "nowrap";
-      }
-    } else if (layout.dimensions?.width && sizing.horizontal === "fixed") {
-      if (allowWidth) styles["width"] = px(layout.dimensions.width);
-    }
-
-    if (sizing.vertical === "fill") {
-      if (layout.parentMode === "column") {
-        styles["flex"] = "1 1 0";
-      } else if (allowHeight) {
-        if (layout.maxHeight !== undefined || layout.position === "absolute") {
-          styles["height"] = "100%";
-        } else {
-          styles["align-self"] = "stretch";
-        }
-      }
-    } else if (sizing.vertical === "hug") {
-      // 移除 height: max-content，让 Flexbox 自动处理
-    } else if (layout.dimensions?.height && sizing.vertical === "fixed") {
-      if (allowHeight) styles["height"] = px(layout.dimensions.height);
-    }
-  }
+  applyAxisSizing(styles, layout, "horizontal", allowWidth, sizing.horizontal);
+  applyAxisSizing(styles, layout, "vertical", allowHeight, sizing.vertical);
 
   // Positioning
   if (layout.position === "absolute") {

@@ -3,7 +3,7 @@ import { areRectsTouching } from "../../utils/geometry.js";
 import { UnionFind } from "./utils/union-find.js";
 import { calculateAdjacencyThreshold, computeAdjacencyBaseGap } from "./utils/dynamic.js";
 import { isClusterCandidate } from "../../utils/candidate-check.js";
-import { buildContainerByGap } from "./utils/virtual-node.js";
+import { buildContainerByGap } from "./utils/layout-inference.js";
 import { inferClusterDirection } from "./utils/infer-direction.js";
 
 export function groupNodesByAdjacency(nodes: SimplifiedNode[], parent?: SimplifiedNode): SimplifiedNode[] {

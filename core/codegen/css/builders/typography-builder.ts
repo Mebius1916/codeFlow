@@ -8,7 +8,7 @@ export const typographyBuilder = (text: SimplifiedTextStyle): Record<string, str
 
   if (text.fontFamily) styles["font-family"] = `"${text.fontFamily}", sans-serif`;
   if (text.fontSize) styles["font-size"] = px(text.fontSize);
-  if (text.fontWeight && text.fontWeight !== 400) styles["font-weight"] = String(text.fontWeight);
+  if (text.fontWeight) styles["font-weight"] = String(text.fontWeight);
   
   if (text.lineHeight) {
     const lh = typeof text.lineHeight === "number" ? px(text.lineHeight) : text.lineHeight;
@@ -51,7 +51,7 @@ export const typographyBuilder = (text: SimplifiedTextStyle): Record<string, str
   }
 
   if (text.fontStyle) {
-    const styleMap: any = { ITALIC: "italic", italic: "italic" };
+    const styleMap: any = { ITALIC: "italic", italic: "italic", NORMAL: "normal", normal: "normal" };
     if (styleMap[text.fontStyle]) {
       styles["font-style"] = styleMap[text.fontStyle];
     }

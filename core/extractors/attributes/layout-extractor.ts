@@ -16,6 +16,18 @@ export const layoutExtractor: ExtractorFn = (node, context) => {
   
   const layout = buildSimplifiedLayout(context.smartNode);
 
+  if (context.smartNode.isIcon()) {
+    if (layout.mode !== "none") {
+      layout.mode = "none";
+      layout.wrap = undefined;
+      layout.gap = undefined;
+      layout.alignContent = undefined;
+      layout.justifyContent = undefined;
+      layout.alignItems = undefined;
+      layout.padding = undefined;
+    }
+  }
+
   if (Object.keys(layout).length > 1) {
     result.layout = layout;
   }

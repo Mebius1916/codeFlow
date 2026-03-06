@@ -13,21 +13,18 @@ export function shouldPruneNode(node: SimplifiedNode): boolean {
   if (hasChildren) {
     return false;
   }
-
   if (node.visible === false) {
     return false;
   }
-
   // 2. Never prune content nodes
   if (node.type === "TEXT" || node.type === "IMAGE" || node.type === "SVG") {
     return false;
   }
-
   // 3. Check for visual styles
   if (hasVisibleStyles(node)) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -37,17 +34,12 @@ export function shouldPruneNode(node: SimplifiedNode): boolean {
  */
 export function hasVisibleStyles(node: SimplifiedNode | any): boolean {
   if (node.opacity === 0) return false;
-
   if (hasVisiblePaintsOrEffects(node)) {
     return true;
   }
-
-  // Border Radius (Structural Style)
-  // Sometimes a node is just a rounded container for clipping
   if (node.borderRadius && node.borderRadius !== "0px" && node.borderRadius !== "0") {
     return true;
   }
-
   return false;
 }
 
@@ -56,7 +48,6 @@ export function hasVisibleStyles(node: SimplifiedNode | any): boolean {
  */
 export function hasVisiblePaintsOrEffects(node: SimplifiedNode | any): boolean {
   if (node.opacity === 0) return false;
-
   // 1. Fills
   if (node.fills && node.fills !== "transparent") {
     if (Array.isArray(node.fills)) {
@@ -72,7 +63,6 @@ export function hasVisiblePaintsOrEffects(node: SimplifiedNode | any): boolean {
       return true;
     }
   }
-
   // 2. Strokes
   if (node.strokes && node.strokes !== "transparent") {
     if (Array.isArray(node.strokes)) {
@@ -88,7 +78,6 @@ export function hasVisiblePaintsOrEffects(node: SimplifiedNode | any): boolean {
       return true;
     }
   }
-
   // 3. Effects
   if (node.effects && node.effects !== "transparent") {
     if (Array.isArray(node.effects)) {

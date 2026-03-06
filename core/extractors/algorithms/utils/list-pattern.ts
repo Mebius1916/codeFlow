@@ -1,6 +1,6 @@
 import type { SimplifiedNode } from "../../../types/extractor-types.js";
 import { createVirtualFrame } from "./virtual-node.js";
-import { buildContainerByGap } from "./virtual-node.js";
+import { buildContainerByGap } from "./layout-inference.js";
 import { getOptions } from "../../../../options.js";
 
 type PatternMatch = {
@@ -167,6 +167,7 @@ function createVirtualGroup(children: SimplifiedNode[]): SimplifiedNode {
     type: "CONTAINER",
     layout: {
       mode: "none",
+      sizing: {},
       position: "static",
     },
     children: children,

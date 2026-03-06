@@ -11,6 +11,7 @@ export function createSnapshotWriter(outputDir: string, fileName: string = "test
       globalVars: {
         styles: globalVars.styles,
         imageAssets: globalVars.imageAssets,
+        layoutMetaById: globalVars.layoutMetaById,
       },
     };
     fs.writeFileSync(path.join(outputDir, fileName), JSON.stringify(payload, null, 2), "utf8");

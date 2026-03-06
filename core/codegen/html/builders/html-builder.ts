@@ -75,21 +75,11 @@ export class HtmlNodeBuilder {
   // 3. Style & Class Processing
   private processStyles() {
     const { node } = this;
-
-    // Collect Classes (from Global CSS)
-    const addClass = (id: string | undefined) => {
-      if (id) this.classes.push(hashClassName(id));
-    };
     if (node.styles) {
-      addClass(node.styles);
-    } else {
-      if (typeof node.layout === "string") addClass(node.layout);
-      addClass(node.fills);
-      addClass(node.textStyle);
-      addClass(node.strokes);
-      if (Array.isArray(node.effects)) node.effects.forEach(e => addClass(e));
-      else addClass(node.effects);
-    }    
+      if (!this.globalVars?.styles) return;
+      const ids = expandStyleRefs(node.styles, this.globalVars.styles, new Set());
+      ids.forEach((ref) => this.classes.push(hashClassName(ref)));
+    }
   }
 
   public addChild(html: string) {
@@ -128,8 +118,10 @@ export class HtmlNodeBuilder {
         const segmentText = escapeHTML(segment.text).split("\n").join("<br/>"); // 转译 html 标签
         const effectsToUse = segment.effects;
         const segmentStyleId = getTextSegmentStyleId(segment.style, this.node, this.globalVars, effectsToUse); // 获取文本样式 id
-        const className = segmentStyleId ? hashClassName(segmentStyleId) : "";
-        const segmentClassAttr = className ? ` class="${className}"` : "";
+        const segmentClasses = segmentStyleId && this.globalVars?.styles
+          ? expandStyleRefs(segmentStyleId, this.globalVars.styles, new Set()).map(hashClassName).join(" ")
+          : "";
+        const segmentClassAttr = segmentClasses ? ` class="${segmentClasses}"` : "";
         return `<${tagName}${segmentClassAttr}>${segmentText}</${tagName}>`;
       }).join("");
     }
@@ -160,4 +152,14 @@ function resolveRichTextTag(style: any): string {
   if (features?.SUBS) return "sub";
   if (features?.SUPS) return "sup";
   return "span";
+}
+
+function expandStyleRefs(id: string, stylesMap: Record<string, any>, seen: Set<string>): string[] {
+  if (seen.has(id)) return [];
+  seen.add(id);
+  const style = stylesMap[id];
+  if (style?.refs && Array.isArray(style.refs)) {
+    return style.refs.flatMap((ref: string) => expandStyleRefs(ref, stylesMap, seen));
+  }
+  return [id];
 }

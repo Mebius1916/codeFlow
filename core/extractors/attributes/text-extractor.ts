@@ -29,7 +29,21 @@ export const textExtractor: ExtractorFn = (node, context) => {
 
     if (textStyle) {
       const styleName = context.smartNode ? getStyleName(context.smartNode, context, ["text", "typography"]) : undefined;
+      
+      let useStyleName = false;
       if (styleName) {
+        const existingStyle = context.globalVars.styles[styleName];
+        if (!existingStyle) {
+          useStyleName = true;
+        } else {
+          // Check for conflict: only reuse style name if styles are identical
+          if (JSON.stringify(existingStyle) === JSON.stringify(textStyle)) {
+            useStyleName = true;
+          }
+        }
+      }
+
+      if (useStyleName && styleName) {
         context.globalVars.styles[styleName] = textStyle;
         result.textStyle = styleName;
       } else {

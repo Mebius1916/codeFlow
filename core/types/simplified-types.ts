@@ -27,7 +27,7 @@ export interface SimplifiedLayout {
     aspectRatio?: number;
   };
   padding?: string;
-  sizing?: {
+  sizing: {
     horizontal?: "fixed" | "fill" | "hug";
     vertical?: "fixed" | "fill" | "hug";
   };

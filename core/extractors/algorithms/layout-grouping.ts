@@ -1,7 +1,7 @@
 
 import type { SimplifiedNode } from "../../types/extractor-types.js";
 import { getOptions } from "../../../options.js";
-import { buildContainerByGap } from "./utils/virtual-node.js";
+import { buildContainerByGap } from "./utils/layout-inference.js";
 import {
   calculateGlobalAverageSize,
   mergeAdjacentGroupsWithMeta,

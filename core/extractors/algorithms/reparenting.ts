@@ -86,9 +86,11 @@ function detectAbsoluteChildrenInList(nodes: SimplifiedNode[], parent?: Simplifi
 
       // 确定是相交关系
       if (getRectArea(nodeA.absRect) < getRectArea(nodeB.absRect)) {
+        const baseLayout: SimplifiedLayout =
+          typeof nodeA.layout === "object" && nodeA.layout ? nodeA.layout : { mode: "none", sizing: {} };
         nodeA.layout = {
+          ...baseLayout,
           mode: "none",
-          ...(typeof nodeA.layout === "object" && nodeA.layout ? nodeA.layout : {}),
           position: "absolute",
         };
         // 补充坐标计算
@@ -98,9 +100,11 @@ function detectAbsoluteChildrenInList(nodes: SimplifiedNode[], parent?: Simplifi
             calculateRelativePosition(nodeA.absRect, parent.absRect);
         }
       } else {
+        const baseLayout: SimplifiedLayout =
+          typeof nodeB.layout === "object" && nodeB.layout ? nodeB.layout : { mode: "none", sizing: {} };
         nodeB.layout = {
+          ...baseLayout,
           mode: "none",
-          ...(typeof nodeB.layout === "object" && nodeB.layout ? nodeB.layout : {}),
           position: "absolute",
         };
         // 补充坐标计算
@@ -119,12 +123,16 @@ function adoptAsAbsoluteChild(parent: SimplifiedNode, child: SimplifiedNode) {
   if (!parent.absRect || !child.absRect) return;
   if (!parent.children) parent.children = [];
   parent.children.push(child);
+  const parentBaseLayout: SimplifiedLayout =
+    typeof parent.layout === "object" && parent.layout ? parent.layout : { mode: "none", sizing: {} };
   parent.layout = {
-    ...(typeof parent.layout === "object" && parent.layout ? parent.layout : { mode: "none" }),
+    ...parentBaseLayout,
     position: "relative",
   };
+  const childBaseLayout: SimplifiedLayout =
+    typeof child.layout === "object" && child.layout ? child.layout : { mode: "none", sizing: {} };
   child.layout = {
-    ...(typeof child.layout === "object" && child.layout ? child.layout : { mode: "none" }),
+    ...childBaseLayout,
     position: "absolute",
     parentMode: "none",
     locationRelativeToParent: 

@@ -85,6 +85,7 @@ function createMergedIconNode(parts: SimplifiedNode[], parent?: SimplifiedNode):
 
   const layout: SimplifiedLayout = {
     mode: "row",
+    sizing: {},
     position: position,
   };
 
