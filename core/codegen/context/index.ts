@@ -3,6 +3,7 @@ import type { SimplifiedDesign, GlobalVars } from "../../types/extractor-types.j
 export interface CodegenContext {
   design: SimplifiedDesign;
   globalVars: GlobalVars;
+  assets: Map<string, string>;
 }
 
 export function createCodegenContext(design: SimplifiedDesign): CodegenContext {
@@ -13,5 +14,6 @@ export function createCodegenContext(design: SimplifiedDesign): CodegenContext {
       imageAssets: design.globalVars.imageAssets,
       styleCache: design.globalVars.styleCache,
     },
+    assets: new Map(),
   };
 }

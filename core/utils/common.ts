@@ -59,6 +59,7 @@ export function generateVarId(prefix: string): string {
  * Check if a Figma node is visible
  */
 export function isVisible(node: any): boolean {
+  if (!node) return false;
   return node.visible !== false;
 }
 

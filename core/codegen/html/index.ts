@@ -17,7 +17,7 @@ export function generateHTMLParts(design: SimplifiedDesign, context?: CodegenCon
   context: CodegenContext;
 } {
   const ctx = context ?? createCodegenContext(design);
-  const bodyContent = design.nodes.map(node => generateNodeRecursive(node, ctx.globalVars)).join("\n");
+  const bodyContent = design.nodes.map(node => generateNodeRecursive(node, ctx)).join("\n");
   const css = generateCSS(ctx);
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -39,13 +39,13 @@ export function generateHTMLParts(design: SimplifiedDesign, context?: CodegenCon
 
 function generateNodeRecursive(
   node: SimplifiedNode,
-  globalVars: { styles: Record<string, any>; styleCache?: Map<string, string> }
+  context: CodegenContext
 ): string {
-  const builder = new HtmlNodeBuilder(node, globalVars);
+  const builder = new HtmlNodeBuilder(node, context.globalVars, context);
 
   if (node.children && node.children.length > 0) {
     node.children.forEach(child => {
-      const childHtml = generateNodeRecursive(child, globalVars);
+      const childHtml = generateNodeRecursive(child, context);
       if (childHtml) builder.addChild(childHtml);
     });
   }

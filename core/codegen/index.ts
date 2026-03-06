@@ -8,6 +8,7 @@ interface CodegenResult {
   css: string;
   body: string;
   context: CodegenContext;
+  assets: Map<string, string>;
 }
 
 export default function codegen(design: SimplifiedDesign): CodegenResult {
@@ -19,5 +20,6 @@ export default function codegen(design: SimplifiedDesign): CodegenResult {
     css: parts.css,
     body: parts.body,
     context: parts.context,
+    assets: parts.context.assets,
   };
 }

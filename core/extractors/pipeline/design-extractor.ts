@@ -19,6 +19,8 @@ export async function simplifyRawFigmaObjectWithImages(
     token: string;
     format?: "png" | "jpg" | "svg" | "pdf";
     scale?: number;
+    assetsDir?: string;
+    assetsUrlPrefix?: string;
     reconstruction?: { enabled?: ReconstructionStepFlags };
   },
 ): Promise<SimplifiedDesign> {

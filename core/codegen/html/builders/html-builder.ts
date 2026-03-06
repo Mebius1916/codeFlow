@@ -1,6 +1,7 @@
 
 import type { SimplifiedNode, TraversalContext } from "../../../types/extractor-types.js";
 import type { SimplifiedImageFill } from "../../../types/simplified-types.js";
+import type { CodegenContext } from "../../context/index.js";
 import { hashClassName } from "../../../utils/hash.js";
 import { getTextSegmentStyleId } from "../../css/utils/text-style.js";
 import { resolveImageFill } from "../utils/fill.js";
@@ -12,6 +13,7 @@ import { resolveImageFill } from "../utils/fill.js";
 export class HtmlNodeBuilder {
   private node: SimplifiedNode;
   private globalVars?: TraversalContext["globalVars"];
+  private context?: CodegenContext;
   private tagName: string = "div";
   private attributes: Record<string, string> = {};
   private classes: string[] = [];
@@ -20,10 +22,12 @@ export class HtmlNodeBuilder {
   private imageFill?: SimplifiedImageFill;
   constructor(
     node: SimplifiedNode,
-    globalVars?: TraversalContext["globalVars"]
+    globalVars?: TraversalContext["globalVars"],
+    context?: CodegenContext
   ) {
     this.node = node;
     this.globalVars = globalVars;
+    this.context = context;
     this.imageFill = resolveImageFill(node, globalVars);
     this.inferSemanticTag();
     this.processAttributes();
@@ -44,6 +48,12 @@ export class HtmlNodeBuilder {
       return;
     }
 
+    if (type === "SVG") {
+      if (this.context && this.node.svg) {
+        this.tagName = "img";
+        this.isSelfClosing = true;
+      }
+    }
   }
 
   // 2. Attribute Processing
@@ -64,6 +74,14 @@ export class HtmlNodeBuilder {
       this.isSelfClosing = true;
       const src = this.imageFill?.imageRef || this.node.src;
       if (src) this.attributes["src"] = src;
+
+      // Handle SVG extraction
+      if (this.node.type === "SVG" && this.context && this.node.svg) {
+        const filename = `icon-${this.node.id.replace(/[:;]/g, "-")}.svg`;
+        this.context.assets.set(filename, this.node.svg);
+        this.attributes["src"] = `./assets/${filename}`;
+        this.attributes["alt"] = this.node.name || "icon";
+      }
     }
 
     if (this.node.semanticTag === "list" || 

@@ -1,7 +1,6 @@
 import type { LayoutMeta, SimplifiedNode, TraversalContext } from "../../../types/extractor-types.js";
 import type { SimplifiedLayout } from "../../../types/simplified-types.js";
 import { convertFlexAlignSelf } from "../../../transformers/utils/flex-adapter.js";
-import type { SimplifiedTextStyle } from "../../../types/simplified-types.js";
 import { findOrCreateVar } from "../../../utils/style-helper.js";
 
 export function normalizeDerivedLayout(
@@ -25,33 +24,6 @@ export function normalizeDerivedLayout(
   layout.alignSelf = convertFlexAlignSelf(meta.layoutAlignSelf, crossAxisSizing as any);
 }
 
-export function buildTextRefs(
-  node: SimplifiedNode,
-  globalVars: TraversalContext["globalVars"],
-) {
-  if (!node.textStyle) return {};
-
-  const baseId =
-    typeof node.textStyle === "string"
-      ? node.textStyle
-      : findOrCreateVar(globalVars, node.textStyle as any, "text");
-
-  const styleObj = globalVars.styles?.[baseId];
-  if (!styleObj || (styleObj as any).refs) {
-    return { textId: baseId };
-  }
-
-  const { atom, rest } = extractTextAtoms(styleObj as SimplifiedTextStyle);
-  let atomId: string | undefined;
-
-  if (atom) {
-    atomId = findOrCreateVar(globalVars, atom as any, "text-atom");
-  }
-
-  const restId = findOrCreateVar(globalVars, rest as any, "text");
-  node.textStyle = restId;
-  return { atomId, textId: restId };
-}
 
 export function buildLayoutRefs(
   node: SimplifiedNode,
@@ -94,27 +66,4 @@ function extractLayoutAtoms(layout: SimplifiedLayout): {
   if (atom.alignSelf) delete rest.alignSelf;
 
   return { atom: Object.keys(atom).length > 0 ? atom : undefined, rest };
-}
-
-function extractTextAtoms(text: SimplifiedTextStyle) {
-  const atom: Partial<SimplifiedTextStyle> = {};
-
-  if (text.fontFamily) atom.fontFamily = text.fontFamily;
-  if (text.fontSize) atom.fontSize = text.fontSize;
-  if (text.lineHeight) atom.lineHeight = text.lineHeight;
-  if (text.letterSpacing) atom.letterSpacing = text.letterSpacing;
-
-  if (Object.keys(atom).length === 0) {
-    return { atom: undefined, rest: text };
-  }
-
-  const rest: SimplifiedTextStyle = {
-    ...text,
-    fontFamily: undefined,
-    fontSize: undefined,
-    lineHeight: undefined,
-    letterSpacing: undefined,
-  };
-
-  return { atom, rest };
 }

@@ -19,6 +19,8 @@ export async function extractFigmaAsJSON(
     token: string;
     format?: "png" | "jpg" | "svg" | "pdf";
     scale?: number,
+    assetsDir?: string,
+    assetsUrlPrefix?: string,
   },
 ): Promise<SimplifiedDesign> {
   return simplifyRawFigmaObjectWithImages(figmaData, options);
