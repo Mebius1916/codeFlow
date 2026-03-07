@@ -1,82 +1,116 @@
 import { useEffect, useRef, useState } from 'react'
-import type { WebsocketProvider } from 'y-websocket'
-import type { IndexeddbPersistence } from 'y-indexeddb'
-import type * as Y from 'yjs'
+import * as Y from 'yjs'
+import { useShallow } from 'zustand/react/shallow'
 import { useCollaborationStore } from '../store/collaboration-store'
-import { createYjsProvider, destroyProvider } from '../lib/yjs'
-import type { CodeEditorUser } from '@collaborative-editor/shared'
+import { useEditorStore, type CodeEditorUser } from '@collaborative-editor/shared'
+import { YjsWorkerProvider } from '../lib/yjs/provider'
+import { getSnapshot } from '@collaborative-editor/yjs-local-forage'
+// @ts-ignore
+import YjsWorker from '../lib/yjs/worker.ts?worker'
 
 export function useYjsCollaboration({
   roomId,
   user,
   wsUrl,
+  enablePersistence,
 }: {
   roomId: string
   user: CodeEditorUser
   wsUrl?: string
+  enablePersistence?: boolean
 }) {
   const [isReady, setIsReady] = useState(false)
-  const providerRef = useRef<WebsocketProvider | null>(null)
-  const indexeddbProviderRef = useRef<IndexeddbPersistence | null>(null)
+  const [provider, setProvider] = useState<YjsWorkerProvider | null>(null)
   const yDocRef = useRef<Y.Doc | null>(null)
+  const workerRef = useRef<Worker | null>(null)
 
-  const { setYDoc, setConnectionStatus, setCurrentUser, setUsers } = useCollaborationStore()
+  const { setYDoc, setConnectionStatus, setCurrentUser, setUsers } = useCollaborationStore(
+    useShallow((state) => ({
+      setYDoc: state.setYDoc,
+      setConnectionStatus: state.setConnectionStatus,
+      setCurrentUser: state.setCurrentUser,
+      setUsers: state.setUsers,
+    }))
+  )
 
   useEffect(() => {
     let mounted = true
+    
+    const yDoc = new Y.Doc()
+    yDocRef.current = yDoc
+    setYDoc(yDoc)
 
-    const initCollaboration = async () => {
-      try {
-        setConnectionStatus('connecting')
-        const { yDoc, provider, indexeddbProvider } = await createYjsProvider({
-          roomId,
-          wsUrl,
-          userId: user.id,
-          userName: user.name,
-          userColor: user.color,
-        })
+    const worker = new YjsWorker()
+    workerRef.current = worker
 
-        if (!mounted) return
+    // Create bridge provider
+    const newProvider = new YjsWorkerProvider(worker, yDoc)
+    setProvider(newProvider)
 
-        providerRef.current = provider
-        indexeddbProviderRef.current = indexeddbProvider
-        yDocRef.current = yDoc as any
-        setYDoc(yDoc)
+    setConnectionStatus('connecting')
 
-        setCurrentUser({
-          id: user.id,
-          name: user.name || 'Anonymous',
-          color: user.color || '',
-        })
-
-        const updateUsers = () => {
-          const states = Array.from(provider.awareness.getStates().values())
-          const users = states.map((state: any) => state.user).filter(Boolean)
-          setUsers(users)
-        }
-
-        provider.awareness.on('change', updateUsers)
-        updateUsers()
-
-        provider.on('status', ({ status }: { status: 'connected' | 'disconnected' | 'connecting' }) => {
-          setConnectionStatus(status === 'connected' ? 'connected' : status === 'connecting' ? 'connecting' : 'disconnected')
-        })
-
-        setIsReady(true)
-      } catch {
-        setConnectionStatus('disconnected')
+    // 🚀 Try to load snapshot immediately for optimistic UI
+    getSnapshot(roomId).then((snapshot) => {
+      if (snapshot && mounted && Object.keys(snapshot).length > 0) {
+        console.log(`[Editor] 📸 Loaded snapshot with ${Object.keys(snapshot).length} files`)
+        useEditorStore.getState().initializeFiles(snapshot)
       }
+    })
+
+    // Initialize Worker
+    worker.postMessage({
+      type: 'init',
+      payload: {
+        roomId,
+        wsUrl,
+        userId: user.id,
+        userName: user.name,
+        userColor: user.color,
+        enablePersistence,
+      }
+    })
+
+    // Listen for ready signal
+    worker.addEventListener('message', (e: MessageEvent) => {
+      if (e.data.type === 'ready') {
+        console.log('[Editor] 🚀 Worker is Ready')
+        if (mounted) setIsReady(true)
+      }
+    })
+
+    setCurrentUser({
+      id: user.id,
+      name: user.name || 'Anonymous',
+      color: user.color || '',
+    })
+
+    // Sync users from awareness
+    const updateUsers = () => {
+      const states = Array.from(newProvider.awareness.getStates().values())
+      const users = states.map((state: any) => state.user).filter(Boolean)
+      setUsers(users)
     }
 
-    initCollaboration()
+    newProvider.awareness.on('change', updateUsers)
+    updateUsers() // Initial sync
+    
+    // Sync connection status
+    newProvider.on('status', ({ status }: { status: 'connected' | 'disconnected' | 'connecting' }) => {
+      setConnectionStatus(status === 'connected' ? 'connected' : status === 'connecting' ? 'connecting' : 'disconnected')
+    })
 
     return () => {
       mounted = false
-      if (providerRef.current) {
-        destroyProvider(providerRef.current, indexeddbProviderRef.current || undefined)
-      }
+      worker.postMessage({ type: 'destroy' })
+      worker.terminate()
+      newProvider.destroy()
+      yDoc.destroy()
+      
+      workerRef.current = null
+      setProvider(null)
+      yDocRef.current = null
     }
-  }, [roomId, user.id, user.name, user.color, wsUrl, setYDoc, setConnectionStatus, setCurrentUser, setUsers])
+  }, [roomId, user.id, user.name, user.color, wsUrl, enablePersistence, setYDoc, setConnectionStatus, setCurrentUser, setUsers])
 
-  return { isReady, providerRef, yDocRef }
+  return { isReady, provider, yDocRef }
 }

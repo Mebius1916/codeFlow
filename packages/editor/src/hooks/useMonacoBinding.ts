@@ -1,20 +1,21 @@
 import { useEffect, useRef } from 'react'
 import type * as Monaco from 'monaco-editor'
 import * as Y from 'yjs'
-import type { WebsocketProvider } from 'y-websocket'
 import { createMonacoBinding, syncCursorToAwareness } from '../lib/yjs'
 import { useEditorStore, useFeatures } from '@collaborative-editor/shared'
 import { initMonaco } from '../lib/monaco/initMonaco'
+import type { YjsWorkerProvider } from '../lib/yjs/provider'
 
 interface UseMonacoBindingProps {
   editor: Monaco.editor.IStandaloneCodeEditor | null
   yDoc: Y.Doc | null
-  provider: WebsocketProvider | null
+  provider: YjsWorkerProvider | null
   activeFile: string | null
   onSave?: (files: Record<string, string>) => void
+  isReady: boolean
 }
 
-export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave }: UseMonacoBindingProps) {
+export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, isReady }: UseMonacoBindingProps) {
   const bindingRef = useRef<Awaited<ReturnType<typeof createMonacoBinding>> | null>(null)
   const { autoSave } = useFeatures()
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -27,6 +28,7 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave }:
 
   useEffect(() => {
     if (!editor || !yDoc || !provider || !activeFile) return
+    if (!editor.getDomNode()) return
 
     if (bindingRef.current) {
       bindingRef.current.destroy()
@@ -36,6 +38,7 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave }:
     let isMounted = true
 
     const bindNewFile = async () => {
+      const start = performance.now()
       const monaco = await initMonaco()
 
       let model = modelsRef.current.get(activeFile)
@@ -52,17 +55,20 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave }:
         }
       }
 
-      if (model && !model.isDisposed()) {
+      if (model && !model.isDisposed() && editor.getDomNode()) {
         editor.setModel(model)
         const yText = yDoc.getText(activeFile)
         try {
           const snapshotContent = useEditorStore.getState().files[activeFile] || ''
+          
           if (model.getValue().length === 0 && snapshotContent) {
+            console.log(`[Editor] 📝 Fill snapshot for ${activeFile} (${snapshotContent.length} chars)`)
             model.setValue(snapshotContent)
           }
         } catch {}
 
-        if (isMounted) {
+        if (isMounted && isReady) {
+          console.log(`[Editor] 🔗 Bind Yjs for ${activeFile}`)
           const binding = await createMonacoBinding(yText, editor, provider)
 
           if (isMounted) {
@@ -106,6 +112,8 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave }:
           }
         }
       }
+      const duration = performance.now() - start
+      console.log(`[Editor] Switch file ${activeFile} in ${duration.toFixed(1)}ms`)
     }
 
     bindNewFile()
@@ -120,6 +128,5 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave }:
         clearTimeout(saveTimeoutRef.current)
       }
     }
-  }, [editor, yDoc, provider, activeFile, autoSave])
+  }, [editor, yDoc, provider, activeFile, autoSave, isReady])
 }
-

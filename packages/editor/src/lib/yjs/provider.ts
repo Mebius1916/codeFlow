@@ -1,59 +1,76 @@
 import * as Y from 'yjs'
-import type { WebsocketProvider } from 'y-websocket'
-import type { IndexeddbPersistence } from 'y-indexeddb'
-import { updateRoomAccessAndCleanup } from './lru'
+import { ObservableV2 } from 'lib0/observable'
+import * as awarenessProtocol from 'y-protocols/awareness'
 
-export interface ProviderConfig {
-  roomId: string
-  wsUrl?: string
-  userId: string
-  userName?: string
-  userColor?: string
-}
+export class YjsWorkerProvider extends ObservableV2<any> {
+  public awareness: awarenessProtocol.Awareness
+  public connected = false
+  private worker: Worker
 
-function generateRandomColor(): string {
-  return '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')
-}
+  constructor(worker: Worker, doc: Y.Doc) {
+    super()
+    this.worker = worker
+    this.awareness = new awarenessProtocol.Awareness(doc)
+    
+    // 监听 Worker 消息
+    this.worker.addEventListener('message', (e) => {
+      const { type, payload } = e.data
+      // 光标更新
+      if (type === 'awareness-update') {
+        awarenessProtocol.applyAwarenessUpdate(
+          this.awareness,
+          payload as Uint8Array,
+          'worker'
+        )
+      }
+      // websocket 连接状态更新
+      if (type === 'status') {
+        this.connected = payload === 'connected'
+        this.emit('status', [{ status: payload }])
+      }
+      // 文档更新
+      if (type === 'update') {
+        Y.applyUpdate(doc, payload as Uint8Array, 'worker')
+      }
+    })
 
-export async function createYjsProvider(config: ProviderConfig): Promise<{
-  yDoc: Y.Doc
-  provider: WebsocketProvider
-  indexeddbProvider: IndexeddbPersistence
-}> {
-  const { roomId, wsUrl, userId, userName = 'Anonymous', userColor } = config
+    // 将主线程（本地用户）产生的更新转发给 Worker
+    doc.on('update', (update: Uint8Array, origin: any) => {
+      if (origin !== 'worker') {
+        this.worker.postMessage({
+          type: 'update',
+          payload: update
+        })
+      }
+    })
 
-  const { WebsocketProvider } = await import('y-websocket')
-  const { IndexeddbPersistence } = await import('y-indexeddb')
+    this.awareness.on('update', ({ added, updated, removed }: any, origin: any) => {
+      if (origin === 'worker') return
+      
+      const awarenessUpdate = awarenessProtocol.encodeAwarenessUpdate(
+        this.awareness,
+        added.concat(updated).concat(removed)
+      )
+      
+      this.worker.postMessage({
+        type: 'awareness-update',
+        payload: awarenessUpdate
+      })
+    })
+  }
 
-  const yDoc = new Y.Doc()
-  const indexeddbProvider = new IndexeddbPersistence(roomId, yDoc)
+  connect() {
+    this.connected = true
+    this.emit('status', [{ status: 'connected' }])
+  }
 
-  updateRoomAccessAndCleanup(roomId).catch((err) => {
-    console.error('[YJS] Failed to update LRU history:', err)
-  })
+  disconnect() {
+    this.connected = false
+    this.emit('status', [{ status: 'disconnected' }])
+  }
 
-  const url = wsUrl || `ws://localhost:1234`
-
-  const provider = new WebsocketProvider(url, roomId, yDoc, {
-    connect: true,
-  })
-
-  await indexeddbProvider.whenSynced
-
-  provider.awareness.setLocalStateField('user', {
-    id: userId,
-    name: userName,
-    color: userColor || generateRandomColor(),
-  })
-
-  return { yDoc, provider, indexeddbProvider }
-}
-
-export function destroyProvider(provider: WebsocketProvider, indexeddbProvider?: IndexeddbPersistence) {
-  provider.awareness.destroy()
-  provider.destroy()
-  if (indexeddbProvider) {
-    indexeddbProvider.destroy()
+  destroy() {
+    this.disconnect()
+    this.awareness.destroy()
   }
 }
-

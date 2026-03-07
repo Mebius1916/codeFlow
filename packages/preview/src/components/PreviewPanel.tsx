@@ -4,7 +4,7 @@ import { useWebContainer } from '../hooks/useWebContainer'
 import { PreviewToolbar } from './PreviewToolbar'
 
 export function PreviewPanel() {
-  const { files } = useEditorStore()
+  const files = useEditorStore((state) => state.files)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
   const { previewUrl, isLoading, error, logs } = useWebContainer(files)

@@ -1,12 +1,17 @@
-import { FeatureProvider, useEditorStore, useResizable, useUiStore } from "@collaborative-editor/shared";
+import { FeatureProvider, useEditorStore, useResizable, useUiStore, useShallow } from "@collaborative-editor/shared";
 import { FileTreePanel, useFileTreeActions } from "@collaborative-editor/file-tree";
-import { PreviewPanel } from "@collaborative-editor/preview";
 import { TopBar } from "@collaborative-editor/topbar";
-import { lazy, Suspense, useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Loading } from "./components/Loading";
 
 const LazyEditor = lazy(async () => {
   const mod = await import("@collaborative-editor/editor");
   return { default: mod.Editor };
+});
+
+const LazyPreviewPanel = lazy(async () => {
+  const mod = await import("@collaborative-editor/preview");
+  return { default: mod.PreviewPanel };
 });
 
 type LazyEditorType = React.ComponentType<{
@@ -16,20 +21,36 @@ type LazyEditorType = React.ComponentType<{
   onSave?: (files: Record<string, string>) => void;
 }>;
 const Editor = LazyEditor as unknown as LazyEditorType;
+const PreviewPanel = LazyPreviewPanel as unknown as React.ComponentType;
 
 export default function App() {
   const userId = useMemo(() => `demo_${Math.random().toString(36).slice(2, 9)}`, []);
   const fileTreeActions = useFileTreeActions();
-  const { activeFile, openFiles, openFile, closeFile, addFile } = useEditorStore();
-  const { previewWidth, setPreviewWidth } = useUiStore();
+  const { activeFile, openFiles, openFile, closeFile, addFile } = useEditorStore(
+    useShallow((state) => ({
+      activeFile: state.activeFile,
+      openFiles: state.openFiles,
+      openFile: state.openFile,
+      closeFile: state.closeFile,
+      addFile: state.addFile,
+    }))
+  );
+  const { previewWidth, setPreviewWidth } = useUiStore(
+    useShallow((state) => ({
+      previewWidth: state.previewWidth,
+      setPreviewWidth: state.setPreviewWidth,
+    }))
+  );
   const initializedRef = useRef(false);
+  const [previewKey, setPreviewKey] = useState(0);
+  const [previewEnabled, setPreviewEnabled] = useState(false);
 
   const initialFiles = useMemo(
     () => ({
       "src/index.html": ``,
       "src/style.css": ``,
       "src/reset.css": ``,
-      "assets/remote-logo.png": "../assets/Code.svg",
+      "assets/remote-logo.svg": "../assets/Code.svg",
     }),
     [],
   );
@@ -72,7 +93,7 @@ export default function App() {
           onNewFolder={() => fileTreeActions.handleStartCreate(null, "folder")}
         />
 
-        <div className="flex flex-1 overflow-hidden relative">
+        <div className="flex flex-1 overflow-hidden relative border-t border-[#2a2f4c]">
           <div
             className="h-full border-r box-border flex flex-col"
             style={{
@@ -86,13 +107,7 @@ export default function App() {
 
           <div className="flex flex-1 flex-col overflow-hidden relative">
             <div className="flex-1 overflow-hidden relative">
-              <Suspense
-                fallback={
-                  <div className="h-full w-full flex items-center justify-center text-gray-400 text-sm">
-                    正在加载编辑器...
-                  </div>
-                }
-              >
+              <Suspense fallback={<Loading text="正在初始化编辑器..." />}>
                 <Editor
                   roomId="demo-room"
                   user={{
@@ -109,11 +124,34 @@ export default function App() {
             className="border-l border-[#2a2f4c] flex flex-col bg-[#1e1e1e] relative"
             style={{ width: previewWidth }}
           >
+            <div className="h-8 bg-[#111827] border-b border-[#2a2f4c] flex items-center justify-between px-2">
+              <span className="text-xs text-gray-400">预览</span>
+              <button
+                className="text-xs text-blue-400 hover:text-blue-300"
+                onClick={() => {
+                  if (!previewEnabled) {
+                    setPreviewEnabled(true);
+                    return;
+                  }
+                  setPreviewKey((prev) => prev + 1);
+                }}
+              >
+                {previewEnabled ? "刷新" : "启动"}
+              </button>
+            </div>
             <div
               className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/50 z-10 -ml-0.5 transition-colors"
               onMouseDown={handlePreviewResize}
             />
-            <PreviewPanel />
+            {previewEnabled ? (
+              <Suspense fallback={<Loading text="预览加载中..." />}>
+                <PreviewPanel key={previewKey} />
+              </Suspense>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-xs text-gray-500">
+                点击启动预览
+              </div>
+            )}
           </div>
         </div>
       </div>

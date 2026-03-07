@@ -12,14 +12,6 @@ function clampWidth(width: number) {
   return Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, width))
 }
 
-function getResizeState(): ResizeState {
-  const w = window as unknown as { __codeFlowFileTreeResizeState?: ResizeState }
-  if (!w.__codeFlowFileTreeResizeState) {
-    w.__codeFlowFileTreeResizeState = { hoverCount: 0, dragging: false }
-  }
-  return w.__codeFlowFileTreeResizeState
-}
-
 export function initFileTreeResizeCssVars() {
   const raw = window.localStorage.getItem(STORAGE_KEY)
   const persistedWidth = raw ? Number(raw) : Number.NaN
@@ -28,6 +20,14 @@ export function initFileTreeResizeCssVars() {
   root.style.setProperty('--file-tree-width', `${width}px`)
   root.style.setProperty('--file-tree-border-color', '#2a2f4c')
   root.style.setProperty('--file-tree-handle-bg', 'transparent')
+}
+
+function getResizeState(): ResizeState {
+  const w = window as unknown as { __codeFlowFileTreeResizeState?: ResizeState }
+  if (!w.__codeFlowFileTreeResizeState) {
+    w.__codeFlowFileTreeResizeState = { hoverCount: 0, dragging: false }
+  }
+  return w.__codeFlowFileTreeResizeState
 }
 
 function applyVisualState() {
@@ -84,7 +84,6 @@ export function useFileTreeResizeCssVars() {
       applyVisualState()
     },
   })
-
   const onMouseEnter = useCallback(() => {
     const state = getResizeState()
     state.hoverCount += 1

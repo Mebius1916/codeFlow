@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { StateCreator } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import localforage from 'localforage'
 
 interface EditorState {
   activeFile: string | null
@@ -13,6 +14,7 @@ interface EditorState {
   addFile: (path: string, content: string) => void
   deleteFile: (path: string) => void
   renameFile: (oldPath: string, newPath: string) => void
+  initializeFiles: (files: Record<string, string>) => void
 }
 
 const createEditorState: StateCreator<EditorState> = (set, get) => ({
@@ -20,13 +22,20 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
       openFiles: [],
       files: {},
 
+      initializeFiles: (files: Record<string, string>) => {
+        set({ files })
+      },
+
       openFile: (path: string) => {
+        const start = performance.now()
         const { openFiles } = get()
         if (!openFiles.includes(path)) {
           set({ openFiles: [...openFiles, path], activeFile: path })
         } else {
           set({ activeFile: path })
         }
+        const duration = performance.now() - start
+        console.log(`[Store] openFile ${path} in ${duration.toFixed(1)}ms`)
       },
 
       closeFile: (path: string) => {
@@ -48,6 +57,7 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
 
       updateFileContent: (path: string, content: string) => {
         const { files } = get()
+        if (files[path] === content) return
         set({
           files: { ...files, [path]: content },
         })
@@ -55,6 +65,7 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
 
       addFile: (path: string, content: string = '') => {
         const { files } = get()
+        if (files[path] === content) return
         set({ files: { ...files, [path]: content } })
       },
 
@@ -98,13 +109,27 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
       },
     })
 
+const storage = createJSONStorage(() => ({
+  getItem: async (name: string) => {
+    const value = await localforage.getItem<string>(name)
+    return value ?? null
+  },
+  setItem: async (name: string, value: string) => {
+    await localforage.setItem(name, value)
+  },
+  removeItem: async (name: string) => {
+    await localforage.removeItem(name)
+  },
+}))
+
 export const useEditorStore = create<EditorState>()(
   persist(createEditorState, {
     name: 'code-editor-storage',
-    storage: createJSONStorage(() => localStorage),
+    storage,
     partialize: (state) => ({
-      activeFile: state.activeFile,
-      openFiles: state.openFiles,
-    }),
+        activeFile: state.activeFile,
+        openFiles: state.openFiles,
+        // files: state.files, // Removed: handled by Yjs to avoid double storage & performance issues
+      }),
   }),
 )

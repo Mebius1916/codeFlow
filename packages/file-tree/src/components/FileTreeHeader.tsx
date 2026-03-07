@@ -37,4 +37,3 @@ export function FileTreeHeader({ withRightBorder, onNewFile, onNewFolder }: File
     </div>
   )
 }
-

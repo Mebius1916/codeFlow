@@ -1,4 +1,4 @@
-import { useEditorStore, useFeatures } from '@collaborative-editor/shared'
+import { useEditorStore, useFeatures, useShallow } from '@collaborative-editor/shared'
 import { useFileTreeData, useFileTreeResizeCssVars, useFileTreeActions } from '../hooks'
 import { FileTreeNode } from './FileTreeNode'
 import type { TreeNode } from '../utils/file-tree'
@@ -14,11 +14,17 @@ interface FileTreePanelProps {
 }
 
 export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
-  const { files, activeFile, openFile } = useEditorStore()
+  const { files, activeFile, openFile } = useEditorStore(
+    useShallow((state) => ({
+      files: state.files,
+      activeFile: state.activeFile,
+      openFile: state.openFile,
+    }))
+  )
   const { fileTree: isEnabled, toolbar: isToolbarEnabled } = useFeatures()
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = useFileTreeResizeCssVars()
 
-  const { fileTree, handleFolderToggle } = useFileTreeData(files)
+  const { fileTree, handleFolderToggle } = useFileTreeData(Object.keys(files))
 
   const {
     contextMenu,
@@ -85,7 +91,7 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
         onMouseDown={onMouseDown}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        className="w-1 h-full cursor-col-resize z-20 transition-colors absolute right-0 -top-px bottom-0"
+        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-20 -mr-0.5 transition-colors"
         style={handleStyle}
       />
 

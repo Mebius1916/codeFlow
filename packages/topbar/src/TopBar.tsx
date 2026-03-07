@@ -12,7 +12,7 @@ export function TopBar(props: TopBarProps) {
   return (
     <div className="h-10 bg-[#18181b] flex items-center">
       <div
-        className="flex-shrink-0 h-full overflow-hidden relative border-r box-border"
+        className="flex-shrink-0 h-full overflow-hidden relative border-r border-[#2a2f4c] box-border"
         style={{ width: 'var(--file-tree-width, 250px)', borderRightColor: 'var(--file-tree-border-color, #2a2f4c)' }}
       >
         <FileTreeHeader withRightBorder={false} onNewFile={props.onNewFile} onNewFolder={props.onNewFolder} />
@@ -20,10 +20,7 @@ export function TopBar(props: TopBarProps) {
           onMouseDown={onMouseDown}
           onMouseEnter={onMouseEnter}
           onMouseLeave={onMouseLeave}
-          className={`
-            w-1 h-full cursor-col-resize z-20 transition-colors
-            absolute right-0 top-0 -bottom-px
-          `}
+          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-20 -mr-0.5 transition-colors"
           style={handleStyle}
         />
       </div>
@@ -31,4 +28,3 @@ export function TopBar(props: TopBarProps) {
     </div>
   )
 }
-

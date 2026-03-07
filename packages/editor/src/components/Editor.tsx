@@ -11,13 +11,14 @@ import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
 import type { EditorProps } from '../types'
 
 export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
-  const { activeFile } = useEditorStore()
+  const activeFile = useEditorStore((state) => state.activeFile)
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null)
   const editorDomRef = useRef<HTMLElement | null>(null)
   const [isEditorMounted, setIsEditorMounted] = useState(false)
   const [isMonacoReady, setIsMonacoReady] = useState(false)
 
-  const { isReady, providerRef, yDocRef } = useYjsCollaboration({
+  // 实例化 Yjs 线程
+  const { provider, yDocRef, isReady } = useYjsCollaboration({
     roomId,
     user,
     wsUrl,
@@ -46,9 +47,10 @@ export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
   useMonacoBinding({
     editor: isImage ? null : editorRef.current,
     yDoc: yDocRef.current,
-    provider: providerRef.current,
+    provider: provider,
     activeFile,
     onSave,
+    isReady,
   })
 
   useEffect(() => {
@@ -76,16 +78,12 @@ export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
     return <EmptyState />
   }
 
-  if (isImage) {
-    return <ImagePreview />
-  }
-
-  const isLoading = !isReady || !isMonacoReady || !isEditorMounted
+  const isLoading = !isImage && (!isMonacoReady || !isEditorMounted)
 
   return (
     <>
       {isLoading && <Loading text="正在初始化编辑器..." />}
-      <div style={{ display: isLoading ? 'none' : 'block', height: '100%' }}>
+      <div style={{ display: isImage ? 'none' : isLoading ? 'none' : 'block', height: '100%' }}>
         {isMonacoReady && (
           <MonacoEditorWrapper
             activeFile={activeFile}
@@ -97,7 +95,7 @@ export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
           />
         )}
       </div>
+      {isImage && <ImagePreview />}
     </>
   )
 }
-

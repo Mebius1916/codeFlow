@@ -1,11 +1,11 @@
 import { useState, useMemo, useCallback } from 'react'
 import { buildFileTree, type TreeNode } from '../utils/file-tree'
 
-export function useFileTreeData(files: Record<string, string>) {
+export function useFileTreeData(fileKeys: string[]) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({})
 
   const fileTree = useMemo(() => {
-    const rawTree = buildFileTree(Object.keys(files))
+    const rawTree = buildFileTree(fileKeys)
 
     const mergeState = (nodes: TreeNode[]): TreeNode[] => {
       return nodes.map((node) => {
@@ -22,7 +22,7 @@ export function useFileTreeData(files: Record<string, string>) {
     }
 
     return mergeState(rawTree)
-  }, [files, expandedFolders])
+  }, [fileKeys, expandedFolders])
 
   const handleFolderToggle = useCallback((path: string) => {
     setExpandedFolders((prev: Record<string, boolean>) => ({

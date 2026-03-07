@@ -111,6 +111,8 @@ export function useWebContainer(files: Record<string, string>) {
     if (!webcontainerInstance) return
 
     const syncFiles = async () => {
+      const start = performance.now()
+      const fileCount = Object.keys(files).length
       const newServerScript = generateServerScript(files)
       try {
         await webcontainerInstance!.fs.writeFile('server.js', newServerScript)
@@ -123,6 +125,8 @@ export function useWebContainer(files: Record<string, string>) {
           console.error(`Failed to write file ${path}:`, e)
         }
       }
+      const duration = performance.now() - start
+      console.log(`[Preview] Sync done: ${fileCount} files in ${duration.toFixed(1)}ms`)
     }
 
     const timer = setTimeout(syncFiles, 500)

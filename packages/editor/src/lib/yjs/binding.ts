@@ -1,12 +1,15 @@
 import * as Y from 'yjs'
-import type { WebsocketProvider } from 'y-websocket'
 import type * as Monaco from 'monaco-editor'
 import { CursorManager } from './cursor'
+
+interface AwarenessProvider {
+  awareness: any 
+}
 
 export async function createMonacoBinding(
   yText: Y.Text,
   editor: Monaco.editor.IStandaloneCodeEditor,
-  provider: WebsocketProvider,
+  provider: AwarenessProvider,
 ) {
   const { MonacoBinding } = await import('y-monaco')
 
@@ -30,7 +33,7 @@ export async function createMonacoBinding(
 
 export function syncCursorToAwareness(
   editor: Monaco.editor.IStandaloneCodeEditor,
-  provider: WebsocketProvider,
+  provider: AwarenessProvider,
 ) {
   editor.onDidChangeCursorPosition((e: Monaco.editor.ICursorPositionChangedEvent) => {
     provider.awareness.setLocalStateField('cursor', {

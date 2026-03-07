@@ -51,4 +51,3 @@ export function initMonaco() {
 
   return initPromise
 }
-

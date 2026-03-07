@@ -1,9 +1,16 @@
 import { useState, useCallback } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
-import { useEditorStore } from '@collaborative-editor/shared'
+import { useEditorStore, useShallow } from '@collaborative-editor/shared'
 
 export function useFileTreeActions() {
-  const { files, addFile, openFile, deleteFile, renameFile } = useEditorStore()
+  const { addFile, openFile, deleteFile, renameFile } = useEditorStore(
+    useShallow((state) => ({
+      addFile: state.addFile,
+      openFile: state.openFile,
+      deleteFile: state.deleteFile,
+      renameFile: state.renameFile,
+    }))
+  )
 
   const [contextMenu, setContextMenu] = useState<{
     x: number
@@ -98,6 +105,7 @@ export function useFileTreeActions() {
     if (renamingState.type === 'file') {
       renameFile(oldPath, newPath)
     } else {
+      const files = useEditorStore.getState().files
       Object.keys(files).forEach((file) => {
         if (file.startsWith(oldPath + '/')) {
           const fileNewPath = file.replace(oldPath, newPath)
@@ -118,6 +126,7 @@ export function useFileTreeActions() {
       return
     }
 
+    const files = useEditorStore.getState().files
     Object.keys(files).forEach((file) => {
       if (file.startsWith(path + '/')) {
         deleteFile(file)

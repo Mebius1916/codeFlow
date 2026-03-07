@@ -10,7 +10,9 @@
     "moduleResolution": "bundler",
     "paths": {
       "@collaborative-editor/shared": ["../shared/src/index.ts"],
-      "@collaborative-editor/shared/*": ["../shared/src/*"]
+      "@collaborative-editor/shared/*": ["../shared/src/*"],
+      "@collaborative-editor/yjs-local-forage": ["../yjsLocalForage/src/index.ts"],
+      "@collaborative-editor/yjs-local-forage/*": ["../yjsLocalForage/src/*"]
     },
     "resolveJsonModule": true,
     "isolatedModules": true,
