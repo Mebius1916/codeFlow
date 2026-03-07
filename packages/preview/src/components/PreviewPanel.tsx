@@ -1,6 +1,7 @@
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { useEditorStore } from '@collaborative-editor/shared'
 import { useWebContainer } from '../hooks/useWebContainer'
+import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
 import { PreviewToolbar } from './PreviewToolbar'
 
 export function PreviewPanel() {
@@ -10,7 +11,13 @@ export function PreviewPanel() {
       Object.entries(files).filter(([, value]) => typeof value === 'string'),
     ) as Record<string, string>
   }, [files])
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const {
+    iframeRef,
+    handleWheel,
+    handleIframeFocus,
+    handleIframeMouseEnter,
+    handleIframeMouseLeave,
+  } = useIframeScrollFocus()
 
   const { previewUrl, isLoading, error, logs } = useWebContainer(textFiles)
 
@@ -56,7 +63,7 @@ export function PreviewPanel() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white" onWheel={handleWheel}>
       <PreviewToolbar previewUrl={previewUrl} onRefresh={handleRefresh} />
       <iframe
         ref={iframeRef}
@@ -64,6 +71,10 @@ export function PreviewPanel() {
         className="flex-1 w-full border-none bg-white"
         title="Preview"
         sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+        onMouseEnter={handleIframeMouseEnter}
+        onMouseLeave={handleIframeMouseLeave}
+        onMouseDown={handleIframeFocus}
+        onClick={handleIframeFocus}
       />
     </div>
   )

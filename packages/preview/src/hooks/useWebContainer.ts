@@ -10,6 +10,7 @@ export function useWebContainer(files: Record<string, string>) {
   const [error, setError] = useState<string | null>(null)
   const [logs, setLogs] = useState<string[]>([])
   const bootPromise = useRef<Promise<void> | null>(null)
+  const previousFilesRef = useRef<Record<string, string>>({})
 
   const addLog = (msg: string) => {
     console.log(`[Preview] ${msg}`)
@@ -76,6 +77,8 @@ export function useWebContainer(files: Record<string, string>) {
           await webcontainerInstance.fs.writeFile(path, content)
         }
 
+        previousFilesRef.current = { ...currentFiles }
+
         addLog('Starting server process...')
         const process = await webcontainerInstance.spawn('node', ['server.js'])
 
@@ -112,24 +115,34 @@ export function useWebContainer(files: Record<string, string>) {
 
     const syncFiles = async () => {
       const start = performance.now()
-      const fileCount = Object.keys(files).length
-      const newServerScript = generateServerScript(files)
-      try {
-        await webcontainerInstance!.fs.writeFile('server.js', newServerScript)
-      } catch {}
+      const currentFiles = files
+      const previousFiles = previousFilesRef.current
+      const changedEntries: Array<[string, string]> = []
 
-      for (const [path, content] of Object.entries(files)) {
+      for (const [path, content] of Object.entries(currentFiles)) {
+        if (previousFiles[path] !== content) {
+          changedEntries.push([path, content])
+        }
+      }
+
+      if (changedEntries.length === 0) {
+        return
+      }
+
+      for (const [path, content] of changedEntries) {
         try {
           await webcontainerInstance!.fs.writeFile(path, content)
+          previousFiles[path] = content
         } catch (e) {
           console.error(`Failed to write file ${path}:`, e)
         }
       }
+
       const duration = performance.now() - start
-      console.log(`[Preview] Sync done: ${fileCount} files in ${duration.toFixed(1)}ms`)
+      console.log(`[Preview] Sync done: ~${changedEntries.length} in ${duration.toFixed(1)}ms`)
     }
 
-    const timer = setTimeout(syncFiles, 500)
+    const timer = setTimeout(syncFiles, 300)
     return () => clearTimeout(timer)
   }, [files])
 

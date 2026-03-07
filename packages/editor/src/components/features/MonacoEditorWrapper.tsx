@@ -31,11 +31,12 @@ export function MonacoEditorWrapper({ activeFile, onMount }: MonacoEditorWrapper
       }}
       options={{
         minimap: { enabled: false },
-        fontSize: 14,
+        fontSize: 12,
+        lineHeight: 18,
         fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
         fontLigatures: true,
         scrollBeyondLastLine: false,
-        padding: { top: 16, bottom: 16 },
+        padding: { top: 8, bottom: 8 },
         cursorBlinking: 'smooth',
         cursorSmoothCaretAnimation: 'on',
         smoothScrolling: true,

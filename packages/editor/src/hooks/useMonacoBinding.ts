@@ -74,6 +74,10 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
 
       if (model && !model.isDisposed()) {
         editor.setModel(model)
+        model.updateOptions({
+          tabSize: 2,
+          insertSpaces: true,
+        })
         const domNode = editor.getDomNode()
         if (domNode) {
           editor.layout()
