@@ -4,6 +4,8 @@ import { FileTreeHeader, useFileTreeResizeCssVars } from '@collaborative-editor/
 export type TopBarProps = FileTabsBarProps & {
   onNewFile: () => void
   onNewFolder: () => void
+  onShare?: () => void
+  shareEnabled?: boolean
 }
 
 export function TopBar(props: TopBarProps) {
@@ -24,7 +26,17 @@ export function TopBar(props: TopBarProps) {
           style={handleStyle}
         />
       </div>
-      <FileTabsBar {...props} />
+      <div className="flex-1 flex items-center justify-between h-full">
+        <FileTabsBar {...props} />
+        {props.onShare && (
+          <button
+            className="mr-2 px-2 py-1 text-xs rounded bg-[#1f243a] hover:bg-[#2a314d] text-white"
+            onClick={props.onShare}
+          >
+            {props.shareEnabled ? '已分享' : '分享'}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

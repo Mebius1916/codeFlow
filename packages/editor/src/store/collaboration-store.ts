@@ -9,7 +9,7 @@ interface CollaborationState {
   connectionStatus: ConnectionStatus
   currentUser: User | null
 
-  setYDoc: (doc: Y.Doc) => void
+  setYDoc: (doc: Y.Doc | null) => void
   setUsers: (users: User[]) => void
   setConnectionStatus: (status: ConnectionStatus) => void
   setCurrentUser: (user: User) => void
@@ -22,7 +22,7 @@ const createState: StateCreator<CollaborationState> = (set) => ({
   connectionStatus: 'disconnected',
   currentUser: null,
 
-  setYDoc: (doc: Y.Doc) => {
+  setYDoc: (doc: Y.Doc | null) => {
     set({ yDoc: doc })
   },
 

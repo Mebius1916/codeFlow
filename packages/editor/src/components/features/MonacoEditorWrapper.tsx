@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import MonacoEditor from '@monaco-editor/react'
 import type * as Monaco from 'monaco-editor'
 import { getLanguageFromPath } from '../../lib/utils/file'
@@ -11,7 +10,6 @@ interface MonacoEditorWrapperProps {
 type MonacoNamespace = typeof import('monaco-editor')
 
 export function MonacoEditorWrapper({ activeFile, onMount }: MonacoEditorWrapperProps) {
-  const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null)
   const language = getLanguageFromPath(activeFile)
 
   return (
@@ -45,7 +43,6 @@ export function MonacoEditorWrapper({ activeFile, onMount }: MonacoEditorWrapper
         formatOnType: true,
       }}
       onMount={(editor: Monaco.editor.IStandaloneCodeEditor) => {
-        editorRef.current = editor
         onMount(editor)
       }}
     />

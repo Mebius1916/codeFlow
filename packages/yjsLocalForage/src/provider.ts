@@ -7,11 +7,54 @@ interface YjsStorageData {
   updates: Uint8Array
 }
 
-// 直接读取快照
+const fileIndexKey = (room: string) => `${room}::files`
+const fileKey = (room: string, path: string) => `${room}::file::${encodeURIComponent(path)}`
+const updatesKey = (room: string) => `${room}::updates`
+
+const getSnapshotFromStore = async (store: LocalForage, room: string) => {
+  // 拿到文件列表
+  const index = await store.getItem<string[]>(fileIndexKey(room))
+  if (index && index.length > 0) {
+    const entries = await Promise.all(
+      index.map(async (path) => {
+        const content = await store.getItem<string>(fileKey(room, path))
+        return [path, content ?? ''] as const
+      }),
+    )
+    return Object.fromEntries(entries)
+  }
+  const legacy = await store.getItem<YjsStorageData>(room)
+  return legacy ? legacy.snapshot : null
+}
+
+const setSnapshotToStore = async (store: LocalForage, room: string, snapshot: Record<string, string>) => {
+  const existingIndex = (await store.getItem<string[]>(fileIndexKey(room))) ?? []
+  const nextIndex = Object.keys(snapshot)
+
+  const removed = existingIndex.filter((path) => !snapshot[path])
+  await Promise.all(removed.map((path) => store.removeItem(fileKey(room, path))))
+
+  await Promise.all(
+    nextIndex.map((path) => store.setItem(fileKey(room, path), snapshot[path])),
+  )
+  await store.setItem(fileIndexKey(room), nextIndex)
+}
+
 export async function getSnapshot(room: string, storeName = 'yjs-forage'): Promise<Record<string, string> | null> {
   const store = localforage.createInstance({ name: storeName })
-  const data = await store.getItem<YjsStorageData>(room)
-  return data ? data.snapshot : null
+  return getSnapshotFromStore(store, room)
+}
+
+export async function setSnapshot(
+  room: string,
+  snapshot: Record<string, string>,
+  storeName = 'yjs-forage',
+): Promise<void> {
+  const store = localforage.createInstance({ name: storeName })
+  const legacy = await store.getItem<YjsStorageData>(room)
+  const existingUpdates = legacy?.updates ?? (await store.getItem<Uint8Array>(updatesKey(room))) ?? new Uint8Array()
+  await setSnapshotToStore(store, room, snapshot)
+  await store.setItem(updatesKey(room), existingUpdates)
 }
 
 // 协调计算
@@ -33,7 +76,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
       name: storeName
     })
 
-    this._updateHandler = (update: Uint8Array, origin: any) => {
+    this._updateHandler = (_update: Uint8Array, origin: any) => {
       if (origin !== 'local-forage') {
         this.saveDebounced()
       }
@@ -46,17 +89,16 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
 
   private async init() {
     try {
-      const data = await this._store.getItem<YjsStorageData>(this._room)
-      if (data) {
-        // 1. Emit snapshot immediately for fast UI init
-        if (data.snapshot) {
-          this.emit('snapshot', [data.snapshot])
-        }
+      const snapshot = await getSnapshotFromStore(this._store, this._room)
+      if (snapshot) {
+        this.emit('snapshot', [snapshot])
+      }
 
-        // 2. Apply Yjs updates to restore full state
-        if (data.updates) {
-          Y.applyUpdate(this._doc, data.updates, 'local-forage')
-        }
+      const updates = (await this._store.getItem<Uint8Array>(updatesKey(this._room)))
+      const legacy = await this._store.getItem<YjsStorageData>(this._room)
+      const resolvedUpdates = updates ?? legacy?.updates
+      if (resolvedUpdates) {
+        Y.applyUpdate(this._doc, resolvedUpdates, 'local-forage')
       }
     } catch (err) {
       console.error('[YjsLocalForage] Failed to load data:', err)
@@ -76,7 +118,6 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
 
   private async save() {
     try {
-      // 1. Generate Snapshot (Record<string, string>)
       const snapshot: Record<string, string> = {}
 
       this._doc.share.forEach((type, key) => {
@@ -85,16 +126,10 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
         }
       })
 
-      // 2. Generate Yjs Updates {Blob Uint8Array}
       const updates = Y.encodeStateAsUpdate(this._doc)
 
-      // 3. Save to storage
-      const data: YjsStorageData = {
-        snapshot,
-        updates
-      }
-      
-      await this._store.setItem(this._room, data)
+      await setSnapshotToStore(this._store, this._room, snapshot)
+      await this._store.setItem(updatesKey(this._room), updates)
     } catch (err) {
       console.error('[YjsLocalForage] Failed to save data:', err)
     }
@@ -110,6 +145,12 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
 
   // Clear data for this room
   async clear() {
+    const index = await this._store.getItem<string[]>(fileIndexKey(this._room))
+    if (index && index.length > 0) {
+      await Promise.all(index.map((path) => this._store.removeItem(fileKey(this._room, path))))
+    }
+    await this._store.removeItem(fileIndexKey(this._room))
+    await this._store.removeItem(updatesKey(this._room))
     await this._store.removeItem(this._room)
   }
 }

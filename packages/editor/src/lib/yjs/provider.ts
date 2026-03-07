@@ -2,6 +2,10 @@ import * as Y from 'yjs'
 import { ObservableV2 } from 'lib0/observable'
 import * as awarenessProtocol from 'y-protocols/awareness'
 
+export type AwarenessProvider = {
+  awareness: awarenessProtocol.Awareness
+}
+
 export class YjsWorkerProvider extends ObservableV2<any> {
   public awareness: awarenessProtocol.Awareness
   public connected = false

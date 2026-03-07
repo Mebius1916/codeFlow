@@ -4,6 +4,7 @@ export interface EditorProps {
   roomId: string
   user: CodeEditorUser
   wsUrl?: string
+  initialFiles?: Record<string, string>
+  collaborationEnabled?: boolean
   onSave?: (files: Record<string, string>) => void
 }
-

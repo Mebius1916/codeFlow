@@ -1,8 +1,9 @@
 import { FeatureProvider, useEditorStore, useResizable, useUiStore, useShallow } from "@collaborative-editor/shared";
 import { FileTreePanel, useFileTreeActions } from "@collaborative-editor/file-tree";
 import { TopBar } from "@collaborative-editor/topbar";
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { Loading } from "./components/Loading";
+import { useFileInitialization } from "./hooks/useFileInitialization";
 
 const LazyEditor = lazy(async () => {
   const mod = await import("@collaborative-editor/editor");
@@ -18,6 +19,8 @@ type LazyEditorType = React.ComponentType<{
   roomId: string;
   user: { id: string; name?: string; color?: string };
   wsUrl?: string;
+  initialFiles?: Record<string, string>;
+  collaborationEnabled?: boolean;
   onSave?: (files: Record<string, string>) => void;
 }>;
 const Editor = LazyEditor as unknown as LazyEditorType;
@@ -26,13 +29,12 @@ const PreviewPanel = LazyPreviewPanel as unknown as React.ComponentType;
 export default function App() {
   const userId = useMemo(() => `demo_${Math.random().toString(36).slice(2, 9)}`, []);
   const fileTreeActions = useFileTreeActions();
-  const { activeFile, openFiles, openFile, closeFile, addFile } = useEditorStore(
+  const { activeFile, openFiles, openFile, closeFile } = useEditorStore(
     useShallow((state) => ({
       activeFile: state.activeFile,
       openFiles: state.openFiles,
       openFile: state.openFile,
       closeFile: state.closeFile,
-      addFile: state.addFile,
     }))
   );
   const { previewWidth, setPreviewWidth } = useUiStore(
@@ -41,33 +43,12 @@ export default function App() {
       setPreviewWidth: state.setPreviewWidth,
     }))
   );
-  const initializedRef = useRef(false);
   const [previewKey, setPreviewKey] = useState(0);
   const [previewEnabled, setPreviewEnabled] = useState(false);
+  const [collaborationEnabled, setCollaborationEnabled] = useState(false);
 
-  const initialFiles = useMemo(
-    () => ({
-      "src/index.html": ``,
-      "src/style.css": ``,
-      "src/reset.css": ``,
-      "assets/remote-logo.svg": "../assets/Code.svg",
-    }),
-    [],
-  );
-
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
-    Object.entries(initialFiles).forEach(([path, content]) => {
-      addFile(path, content);
-    });
-
-    const firstFile = Object.keys(initialFiles)[0];
-    if (firstFile) {
-      openFile(firstFile);
-    }
-  }, [addFile, openFile, initialFiles]);
+  // Initialize example files
+  const { initialFiles } = useFileInitialization("demo-room");
 
   const { handleMouseDown: handlePreviewResize } = useResizable({
     initialSize: previewWidth,
@@ -91,6 +72,8 @@ export default function App() {
           }}
           onNewFile={() => fileTreeActions.handleStartCreate(null, "file")}
           onNewFolder={() => fileTreeActions.handleStartCreate(null, "folder")}
+          onShare={() => setCollaborationEnabled(true)}
+          shareEnabled={collaborationEnabled}
         />
 
         <div className="flex flex-1 overflow-hidden relative border-t border-[#2a2f4c]">
@@ -115,6 +98,8 @@ export default function App() {
                     name: "演示用户",
                   }}
                   wsUrl="ws://localhost:8848"
+                  initialFiles={initialFiles}
+                  collaborationEnabled={collaborationEnabled}
                 />
               </Suspense>
             </div>

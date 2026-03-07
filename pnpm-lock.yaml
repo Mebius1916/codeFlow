@@ -39,6 +39,9 @@ importers:
       '@collaborative-editor/topbar':
         specifier: workspace:*
         version: link:../packages/topbar
+      '@collaborative-editor/yjs-local-forage':
+        specifier: workspace:*
+        version: link:../packages/yjsLocalForage
       react:
         specifier: ^19.0.0
         version: 19.2.0

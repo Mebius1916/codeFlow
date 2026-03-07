@@ -1,13 +1,18 @@
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { useEditorStore } from '@collaborative-editor/shared'
 import { useWebContainer } from '../hooks/useWebContainer'
 import { PreviewToolbar } from './PreviewToolbar'
 
 export function PreviewPanel() {
   const files = useEditorStore((state) => state.files)
+  const textFiles = useMemo(() => {
+    return Object.fromEntries(
+      Object.entries(files).filter(([, value]) => typeof value === 'string'),
+    ) as Record<string, string>
+  }, [files])
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
-  const { previewUrl, isLoading, error, logs } = useWebContainer(files)
+  const { previewUrl, isLoading, error, logs } = useWebContainer(textFiles)
 
   const handleRefresh = () => {
     if (iframeRef.current && previewUrl) {
@@ -63,4 +68,3 @@ export function PreviewPanel() {
     </div>
   )
 }
-

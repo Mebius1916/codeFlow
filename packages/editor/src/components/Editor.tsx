@@ -8,9 +8,10 @@ import { useYjsCollaboration } from '../hooks/useYjsCollaboration'
 import { useMonacoBinding } from '../hooks/useMonacoBinding'
 import { ImagePreview } from './features/ImagePreview'
 import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
+import { useSnapshotPersistence } from '../hooks/useSnapshotPersistence'
 import type { EditorProps } from '../types'
 
-export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
+export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled, onSave }: EditorProps) {
   const activeFile = useEditorStore((state) => state.activeFile)
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null)
   const editorDomRef = useRef<HTMLElement | null>(null)
@@ -22,6 +23,14 @@ export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
     roomId,
     user,
     wsUrl,
+    initialFiles,
+    collaborationEnabled,
+  })
+
+  // 持久化快照
+  useSnapshotPersistence({
+    roomId,
+    initialFiles,
   })
 
   const isImage = activeFile ? /\.(svg|png|jpg|jpeg|gif|webp)$/i.test(activeFile) : false
@@ -51,6 +60,7 @@ export function Editor({ roomId, user, wsUrl, onSave }: EditorProps) {
     activeFile,
     onSave,
     isReady,
+    domReady: isEditorMounted,
   })
 
   useEffect(() => {

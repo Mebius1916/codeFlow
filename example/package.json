@@ -20,6 +20,7 @@
     "@collaborative-editor/server": "workspace:*",
     "@collaborative-editor/shared": "workspace:*",
     "@collaborative-editor/topbar": "workspace:*",
+    "@collaborative-editor/yjs-local-forage": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

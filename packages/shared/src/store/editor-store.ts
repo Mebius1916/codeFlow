@@ -6,15 +6,15 @@ import localforage from 'localforage'
 interface EditorState {
   activeFile: string | null
   openFiles: string[]
-  files: Record<string, string>
+  files: Record<string, string | Uint8Array>
 
   openFile: (path: string) => void
   closeFile: (path: string) => void
-  updateFileContent: (path: string, content: string) => void
-  addFile: (path: string, content: string) => void
+  updateFileContent: (path: string, content: string | Uint8Array) => void
+  addFile: (path: string, content: string | Uint8Array) => void
   deleteFile: (path: string) => void
   renameFile: (oldPath: string, newPath: string) => void
-  initializeFiles: (files: Record<string, string>) => void
+  initializeFiles: (files: Record<string, string | Uint8Array>) => void
 }
 
 const createEditorState: StateCreator<EditorState> = (set, get) => ({
@@ -22,7 +22,7 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
       openFiles: [],
       files: {},
 
-      initializeFiles: (files: Record<string, string>) => {
+      initializeFiles: (files: Record<string, string | Uint8Array>) => {
         set({ files })
       },
 
@@ -55,7 +55,7 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
         set({ openFiles: newOpenFiles, activeFile: newActiveFile })
       },
 
-      updateFileContent: (path: string, content: string) => {
+      updateFileContent: (path: string, content: string | Uint8Array) => {
         const { files } = get()
         if (files[path] === content) return
         set({
@@ -63,7 +63,7 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
         })
       },
 
-      addFile: (path: string, content: string = '') => {
+      addFile: (path: string, content: string | Uint8Array = '') => {
         const { files } = get()
         if (files[path] === content) return
         set({ files: { ...files, [path]: content } })

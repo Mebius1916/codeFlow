@@ -10,6 +10,7 @@ interface WorkerConfig {
   userId: string
   userName?: string
   userColor?: string
+  initialFiles?: Record<string, string>
 }
 
 // 单例模式，确保在所有线程中使用相同的实例，避免重复创建和销毁
@@ -38,6 +39,18 @@ self.onmessage = async (e: MessageEvent) => {
 
     // Wait Persistence 连接同步完成
     await persistenceProvider.whenSynced
+    
+    // 如果是从零开始（无缓存），且有初始文件，则填充
+    const initialFiles = (config as { initialFiles?: Record<string, string> }).initialFiles
+    if (yDoc.share.size === 0 && initialFiles) {
+      yDoc.transact(() => {
+        for (const [key, content] of Object.entries(initialFiles)) {
+          if (typeof content === 'string') {
+            yDoc!.getText(key).insert(0, content)
+          }
+        }
+      })
+    }
     
     // yjs 文档初始化
     const update = Y.encodeStateAsUpdate(yDoc)
