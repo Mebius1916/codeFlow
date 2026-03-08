@@ -18,7 +18,7 @@ export const FileIcon: React.FC<FileIconProps> = ({ name, isFolder }) => {
   const getIconSrc = () => {
     if (isFolder) {
       if (name === 'src') return srcIcon
-      if (name === 'assets') return assetsIcon
+      if (name === 'assets' || name === 'icons' || name === 'images') return assetsIcon
       return srcIcon
     }
 

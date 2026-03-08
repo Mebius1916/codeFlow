@@ -1,23 +1,52 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { WebContainer } from '@webcontainer/api'
 import { generateServerScript } from '../webcontainer/server-script'
+import { useIdleDebounce } from './useIdleDebounce'
 
 let webcontainerInstance: WebContainer | null = null
 
-export function useWebContainer(files: Record<string, string>) {
+export function useWebContainer(files: Record<string, string | Uint8Array>) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [logs, setLogs] = useState<string[]>([])
   const bootPromise = useRef<Promise<void> | null>(null)
-  const previousFilesRef = useRef<Record<string, string>>({})
+  const previousFilesRef = useRef<Record<string, string | Uint8Array>>({})
 
   const addLog = (msg: string) => {
-    console.log(`[Preview] ${msg}`)
     setLogs((prev: string[]) => [...prev.slice(-4), msg])
   }
 
   const filesRef = useRef(files)
+
+  const runSync = useCallback(async () => {
+    if (!webcontainerInstance) return
+    const currentFiles = filesRef.current
+    const previousFiles = previousFilesRef.current
+    const changedEntries: Array<[string, string | Uint8Array]> = []
+
+    for (const [path, content] of Object.entries(currentFiles)) {
+      if (previousFiles[path] !== content) {
+        changedEntries.push([path, content])
+      }
+    }
+
+    if (changedEntries.length === 0) {
+      return
+    }
+
+    for (const [path, content] of changedEntries) {
+      try {
+        await webcontainerInstance.fs.writeFile(path, content)
+        previousFiles[path] = content
+      } catch (e) {
+        console.error(`Failed to write file ${path}:`, e)
+      }
+    }
+  }, [])
+
+  const { schedule: scheduleSync } = useIdleDebounce(runSync, 200)
+
   useEffect(() => {
     filesRef.current = files
   }, [files])
@@ -33,12 +62,7 @@ export function useWebContainer(files: Record<string, string>) {
       try {
         addLog('Booting WebContainer...')
 
-        if (!window.crossOriginIsolated) {
-          console.warn('Cross-Origin Isolation not enabled. WebContainer might not work properly.')
-        }
-
         webcontainerInstance = await WebContainer.boot()
-        addLog('WebContainer booted!')
 
         webcontainerInstance.on('server-ready', (port: number, url: string) => {
           addLog(`Server ready at ${url}`)
@@ -47,16 +71,14 @@ export function useWebContainer(files: Record<string, string>) {
         })
 
         const currentFiles = filesRef.current
-        console.log('[Preview] Initializing with files:', Object.keys(currentFiles))
-
-        addLog('Writing server script...')
-        const serverScript = generateServerScript(currentFiles)
+        const entries = Object.entries(currentFiles)
+        const serverScript = generateServerScript(
+          Object.fromEntries(entries.filter(([, content]) => typeof content === 'string')) as Record<string, string>,
+        )
         await webcontainerInstance.fs.writeFile('server.js', serverScript)
 
-        addLog('Writing project files...')
-
         const directories = new Set<string>()
-        for (const path of Object.keys(currentFiles)) {
+        for (const [path] of entries) {
           const parts = path.split('/')
           if (parts.length > 1) {
             let currentPath = ''
@@ -73,9 +95,21 @@ export function useWebContainer(files: Record<string, string>) {
           await webcontainerInstance.fs.mkdir(dir, { recursive: true })
         }
 
-        for (const [path, content] of Object.entries(currentFiles)) {
-          await webcontainerInstance.fs.writeFile(path, content)
+        // 并发请求池
+        const writeEntries = async (items: Array<[string, string | Uint8Array]>, limit: number) => {
+          let index = 0
+          const worker = async () => {
+            while (index < items.length) {
+              const [path, content] = items[index]
+              index += 1
+              await webcontainerInstance!.fs.writeFile(path, content)
+            }
+          }
+          const workers = Array.from({ length: Math.min(limit, items.length) }, worker)
+          await Promise.all(workers)
         }
+
+        await writeEntries(entries, 8)
 
         previousFilesRef.current = { ...currentFiles }
 
@@ -111,40 +145,8 @@ export function useWebContainer(files: Record<string, string>) {
   }, [])
 
   useEffect(() => {
-    if (!webcontainerInstance) return
-
-    const syncFiles = async () => {
-      const start = performance.now()
-      const currentFiles = files
-      const previousFiles = previousFilesRef.current
-      const changedEntries: Array<[string, string]> = []
-
-      for (const [path, content] of Object.entries(currentFiles)) {
-        if (previousFiles[path] !== content) {
-          changedEntries.push([path, content])
-        }
-      }
-
-      if (changedEntries.length === 0) {
-        return
-      }
-
-      for (const [path, content] of changedEntries) {
-        try {
-          await webcontainerInstance!.fs.writeFile(path, content)
-          previousFiles[path] = content
-        } catch (e) {
-          console.error(`Failed to write file ${path}:`, e)
-        }
-      }
-
-      const duration = performance.now() - start
-      console.log(`[Preview] Sync done: ~${changedEntries.length} in ${duration.toFixed(1)}ms`)
-    }
-
-    const timer = setTimeout(syncFiles, 300)
-    return () => clearTimeout(timer)
-  }, [files])
+    scheduleSync()
+  }, [files, scheduleSync])
 
   return { previewUrl, isLoading, error, logs }
 }

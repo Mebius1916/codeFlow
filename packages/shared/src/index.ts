@@ -4,4 +4,4 @@ export { useEditorStore } from './store/editor-store'
 export { useUiStore } from './store/ui-store'
 export { useResizable } from './useResizable'
 export { useShallow } from 'zustand/react/shallow'
-
+export { Loading } from './components/Loading'

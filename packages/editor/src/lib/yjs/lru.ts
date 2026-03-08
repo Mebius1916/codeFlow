@@ -21,7 +21,6 @@ async function updateRoomAccessAndCleanup(roomId: string) {
       for (const record of recordsToDelete) {
         await deleteAccessRecord(db, record.roomId)
         await deleteDatabase(record.roomId)
-        console.log(`[LRU] Cleaned up old room data: ${record.roomId}`)
       }
     }
   } catch (err) {
@@ -83,9 +82,8 @@ function deleteDatabase(dbName: string): Promise<void> {
     const request = indexedDB.deleteDatabase(dbName)
     request.onsuccess = () => resolve()
     request.onerror = () => reject(request.error)
-    request.onblocked = () => console.warn(`[LRU] Delete blocked for ${dbName}`)
+    request.onblocked = () => {}
   })
 }
 
 export { updateRoomAccessAndCleanup }
-

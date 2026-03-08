@@ -1,8 +1,7 @@
-import { FeatureProvider, useEditorStore, useResizable, useUiStore, useShallow } from "@collaborative-editor/shared";
+import { FeatureProvider, Loading, useEditorStore, useResizable, useUiStore, useShallow } from "@collaborative-editor/shared";
 import { FileTreePanel, useFileTreeActions } from "@collaborative-editor/file-tree";
 import { TopBar } from "@collaborative-editor/topbar";
 import { lazy, Suspense, useMemo, useState } from "react";
-import { Loading } from "./components/Loading";
 import { useFileInitialization } from "./hooks/useFileInitialization";
 
 const LazyEditor = lazy(async () => {
@@ -24,7 +23,7 @@ type LazyEditorType = React.ComponentType<{
   onSave?: (files: Record<string, string>) => void;
 }>;
 const Editor = LazyEditor as unknown as LazyEditorType;
-const PreviewPanel = LazyPreviewPanel as unknown as React.ComponentType;
+const PreviewPanel = LazyPreviewPanel as unknown as React.ComponentType<{ roomId: string }>;
 
 export default function App() {
   const userId = useMemo(() => `demo_${Math.random().toString(36).slice(2, 9)}`, []);
@@ -106,7 +105,7 @@ export default function App() {
           </div>
 
           <div
-            className="border-l border-[#2a2f4c] flex flex-col bg-[#1e1e1e] relative"
+            className="border-l border-[#2a2f4c] flex flex-col bg-[#252526] relative"
             style={{ width: previewWidth }}
           >
             <div className="h-8 bg-[#111827] border-b border-[#2a2f4c] flex items-center justify-between px-2">
@@ -128,14 +127,15 @@ export default function App() {
               className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500/50 z-10 -ml-0.5 transition-colors"
               onMouseDown={handlePreviewResize}
             />
-            {previewEnabled ? (
-              <Suspense fallback={<Loading text="预览加载中..." />}>
-                <PreviewPanel key={previewKey} />
+            {(
+              <Suspense fallback={
+                <Loading 
+                  text="预览加载中..." 
+                  detail={'Waiting'}
+                />
+              }>
+                <PreviewPanel key={previewKey} roomId="demo-room" />
               </Suspense>
-            ) : (
-              <div className="flex-1 flex items-center justify-center text-xs text-gray-500">
-                点击启动预览
-              </div>
             )}
           </div>
         </div>

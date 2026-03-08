@@ -3,8 +3,8 @@ import { useImageBlob } from '../../hooks/useImageBlob'
 
 export function ImagePreview() {
   const activeFile = useEditorStore((state) => state.activeFile)
-  const content = useEditorStore((state) => (state.activeFile ? state.files[state.activeFile] : null))
-  const blobUrl = useImageBlob(content instanceof Uint8Array ? content : null, activeFile || undefined)
+  const activeContent = useEditorStore((state) => state.activeContent)
+  const blobUrl = useImageBlob(activeContent instanceof Uint8Array ? activeContent : null, activeFile || undefined)
 
   if (!activeFile) return null
 

@@ -1,42 +1,56 @@
-import { useRef } from 'react'
-import type { WheelEvent } from 'react'
+import { useEffect, useRef } from 'react'
 
 export function useIframeScrollFocus() {
   const iframeRef = useRef<HTMLIFrameElement>(null)
-  const isIframeHoveringRef = useRef(false)
+  const isIframeFocusedRef = useRef(false)
 
-  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    if (isIframeHoveringRef.current) return
-    const iframeWindow = iframeRef.current?.contentWindow
-    if (!iframeWindow) return
-    let didScroll = false
+  const focusIframe = () => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    if (isIframeFocusedRef.current) return
     try {
-      iframeWindow.scrollBy({ top: event.deltaY, left: event.deltaX })
-      didScroll = true
+      iframe.focus()
     } catch {}
-    if (didScroll) {
-      event.preventDefault()
-    }
+    try {
+      iframe.contentWindow?.postMessage({ type: 'preview:focus' }, '*')
+    } catch {}
   }
 
   const handleIframeFocus = () => {
-    iframeRef.current?.focus()
+    focusIframe()
+    requestAnimationFrame(() => focusIframe())
   }
 
-  const handleIframeMouseEnter = () => {
-    isIframeHoveringRef.current = true
+  const handleIframePointerDown = () => {
+    focusIframe()
+    requestAnimationFrame(() => focusIframe())
+  }
+
+  const handleIframeClick = () => {
     handleIframeFocus()
   }
 
-  const handleIframeMouseLeave = () => {
-    isIframeHoveringRef.current = false
-  }
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data
+      if (!data || typeof data !== 'object') return
+      if (data.type === 'preview:focus') {
+        isIframeFocusedRef.current = true
+      }
+      if (data.type === 'preview:blur') {
+        isIframeFocusedRef.current = false
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [])
 
   return {
     iframeRef,
-    handleWheel,
     handleIframeFocus,
-    handleIframeMouseEnter,
-    handleIframeMouseLeave,
+    handleIframePointerDown,
+    handleIframeClick,
   }
 }

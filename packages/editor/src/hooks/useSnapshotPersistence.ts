@@ -13,7 +13,7 @@ export function useSnapshotPersistence({
   enabled?: boolean
   debounceMs?: number
 }) {
-  const snapshotRef = useRef<Record<string, string>>({})
+  const snapshotRef = useRef<Record<string, string | Uint8Array>>({})
   const readyRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -36,8 +36,8 @@ export function useSnapshotPersistence({
       if (!readyRef.current) return
       const activeFile = state.activeFile
       if (!activeFile) return
-      const content = state.files[activeFile]
-      if (typeof content !== 'string') return
+      const content = state.activeContent
+      if (content === null) return
       if (snapshotRef.current[activeFile] === content) return
 
       snapshotRef.current = { ...snapshotRef.current, [activeFile]: content }

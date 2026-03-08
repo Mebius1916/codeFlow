@@ -18,7 +18,7 @@ export function FileTabsBar({ activeFile, openFiles, onOpenFile, onCloseFile }: 
             flex items-center gap-2 px-3 h-full cursor-pointer text-sm transition-all  border-t-0 border-b-0 min-w-fit
             ${activeFile === file
               ? 'bg-[#15172A] border-[#2a2f4c] text-white border-t-2 border-t-blue-500'
-              : 'bg-transparent border-[#2a2f4c] text-[#6B7280] hover:bg-[#1e1e1e]/50 hover:text-gray-400 border-t-2 border-t-transparent'
+              : 'bg-transparent border-[#2a2f4c] text-[#6B7280] hover:bg-[#252526]/50 hover:text-gray-400 border-t-2 border-t-transparent'
             }
           `}
         >

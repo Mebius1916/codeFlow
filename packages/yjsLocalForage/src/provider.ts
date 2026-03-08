@@ -2,6 +2,8 @@ import * as Y from 'yjs'
 import localforage from 'localforage'
 import { ObservableV2 } from 'lib0/observable'
 
+type SnapshotContent = string | Uint8Array
+
 interface YjsStorageData {
   snapshot: Record<string, string>
   updates: Uint8Array
@@ -17,7 +19,7 @@ const getSnapshotFromStore = async (store: LocalForage, room: string) => {
   if (index && index.length > 0) {
     const entries = await Promise.all(
       index.map(async (path) => {
-        const content = await store.getItem<string>(fileKey(room, path))
+        const content = await store.getItem<SnapshotContent>(fileKey(room, path))
         return [path, content ?? ''] as const
       }),
     )
@@ -27,11 +29,15 @@ const getSnapshotFromStore = async (store: LocalForage, room: string) => {
   return legacy ? legacy.snapshot : null
 }
 
-const setSnapshotToStore = async (store: LocalForage, room: string, snapshot: Record<string, string>) => {
+const setSnapshotToStore = async (
+  store: LocalForage,
+  room: string,
+  snapshot: Record<string, SnapshotContent>,
+) => {
   const existingIndex = (await store.getItem<string[]>(fileIndexKey(room))) ?? []
   const nextIndex = Object.keys(snapshot)
-
-  const removed = existingIndex.filter((path) => !snapshot[path])
+  // 筛选出不存在的旧文件路径 并删除
+  const removed = existingIndex.filter((path) => !Object.prototype.hasOwnProperty.call(snapshot, path))
   await Promise.all(removed.map((path) => store.removeItem(fileKey(room, path))))
 
   await Promise.all(
@@ -40,14 +46,17 @@ const setSnapshotToStore = async (store: LocalForage, room: string, snapshot: Re
   await store.setItem(fileIndexKey(room), nextIndex)
 }
 
-export async function getSnapshot(room: string, storeName = 'yjs-forage'): Promise<Record<string, string> | null> {
+export async function getSnapshot(
+  room: string,
+  storeName = 'yjs-forage',
+): Promise<Record<string, SnapshotContent> | null> {
   const store = localforage.createInstance({ name: storeName })
   return getSnapshotFromStore(store, room)
 }
 
 export async function setSnapshot(
   room: string,
-  snapshot: Record<string, string>,
+  snapshot: Record<string, SnapshotContent>,
   storeName = 'yjs-forage',
 ): Promise<void> {
   const store = localforage.createInstance({ name: storeName })

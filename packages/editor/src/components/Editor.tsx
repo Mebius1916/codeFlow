@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type * as Monaco from 'monaco-editor'
-import { useEditorStore } from '@collaborative-editor/shared'
+import { Loading, useEditorStore } from '@collaborative-editor/shared'
 import { initMonaco } from '../lib/monaco/initMonaco'
-import { Loading } from './common/Loading'
 import { EmptyState } from './common/EmptyState'
 import { useYjsCollaboration } from '../hooks/useYjsCollaboration'
 import { useMonacoBinding } from '../hooks/useMonacoBinding'
@@ -61,6 +60,7 @@ export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled
     onSave,
     isReady,
     domReady: isEditorMounted,
+    roomId,
   })
 
   useEffect(() => {

@@ -4,6 +4,7 @@ import * as Y from 'yjs'
 import { createMonacoBinding, syncCursorToAwareness } from '../lib/yjs'
 import { useEditorStore, useFeatures } from '@collaborative-editor/shared'
 import { initMonaco } from '../lib/monaco/initMonaco'
+import { getLanguageFromPath } from '../lib/utils/file'
 import type { AwarenessProvider } from '../lib/yjs/provider'
 
 interface UseMonacoBindingProps {
@@ -14,33 +15,19 @@ interface UseMonacoBindingProps {
   onSave?: (files: Record<string, string>) => void
   isReady: boolean
   domReady: boolean
+  roomId?: string
 }
 
-export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, isReady, domReady }: UseMonacoBindingProps) {
+export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, isReady, domReady, roomId }: UseMonacoBindingProps) {
   const bindingRef = useRef<Awaited<ReturnType<typeof createMonacoBinding>> | null>(null)
   const { autoSave } = useFeatures()
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const modelsRef = useRef<Map<string, Monaco.editor.ITextModel>>(new Map())
-  const previousFileRef = useRef<string | null>(null)
+  const modelRef = useRef<Monaco.editor.ITextModel | null>(null)
 
   const onSaveRef = useRef(onSave)
   useEffect(() => {
     onSaveRef.current = onSave
   }, [onSave])
-
-  useEffect(() => {
-    if (!activeFile) return
-    const previousFile = previousFileRef.current
-    if (previousFile && previousFile !== activeFile) {
-      const previousModel = modelsRef.current.get(previousFile)
-      if (previousModel && !previousModel.isDisposed()) {
-        previousModel.dispose()
-      }
-      modelsRef.current.delete(previousFile)
-      useEditorStore.getState().updateFileContent(previousFile, '')
-    }
-    previousFileRef.current = activeFile
-  }, [activeFile])
 
   useEffect(() => {
     if (!editor || !activeFile || !domReady) return
@@ -55,24 +42,18 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
     let isMounted = true
 
     const bindNewFile = async () => {
-      const start = performance.now()
       const monaco = await initMonaco()
 
-      let model = modelsRef.current.get(activeFile)
+      let model = modelRef.current
       if (!model) {
-        const uri = monaco.Uri.parse(`file:///${activeFile}`)
+        const uri = monaco.Uri.parse('file:///__codeflow_single__')
         const existingModel = monaco.editor.getModel(uri)
-        if (!existingModel) {
-          model = monaco.editor.createModel('', undefined, uri)
-        } else {
-          model = existingModel
-        }
-        if (model) {
-          modelsRef.current.set(activeFile, model)
-        }
+        model = existingModel ?? monaco.editor.createModel('', undefined, uri)
+        modelRef.current = model
       }
 
       if (model && !model.isDisposed()) {
+        monaco.editor.setModelLanguage(model, getLanguageFromPath(activeFile))
         editor.setModel(model)
         model.updateOptions({
           tabSize: 2,
@@ -83,12 +64,13 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
           editor.layout()
         }
         try {
-          const snapshotContent = useEditorStore.getState().files[activeFile]
-          if (typeof snapshotContent === 'string' && model.getValue().length === 0 && snapshotContent) {
-            console.log(`[Editor] 📝 Fill snapshot for ${activeFile} (${snapshotContent.length} chars)`)
+          const snapshotContent = useEditorStore.getState().activeContent
+          if (typeof snapshotContent === 'string' && snapshotContent) {
             model.setValue(snapshotContent)
+          } else {
+            model.setValue('')
           }
-        } catch {}
+        } catch { }
 
         if (!isCollaborationReady) {
           const updateStore = () => {
@@ -96,7 +78,7 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
           }
           updateStore();
           const unsubscribeStore = useEditorStore.subscribe((state) => {
-            const storeContent = state.files[activeFile]
+            const storeContent = state.activeContent
             if (typeof storeContent !== 'string') return
             if (!storeContent) return
             if (model && !model.isDisposed() && model.getValue().length === 0) {
@@ -124,7 +106,6 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
 
         const yText = yDoc!.getText(activeFile)
         if (isMounted) {
-          console.log(`[Editor] 🔗 Bind Yjs for ${activeFile}`)
           const binding = await createMonacoBinding(yText, editor, provider!)
 
           if (isMounted) {
@@ -132,7 +113,7 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
             syncCursorToAwareness(editor, provider!)
             const updateStore = () => {
               const content = yText.toString()
-              useEditorStore.getState().addFile(activeFile, content)
+              useEditorStore.getState().updateFileContent(activeFile, content)
             }
             updateStore()
             yText.observe(updateStore)
@@ -168,8 +149,6 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
           }
         }
       }
-      const duration = performance.now() - start
-      console.log(`[Editor] Switch file ${activeFile} in ${duration.toFixed(1)}ms`)
     }
 
     bindNewFile()

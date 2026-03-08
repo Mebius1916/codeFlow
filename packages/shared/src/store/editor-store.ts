@@ -6,7 +6,8 @@ import localforage from 'localforage'
 interface EditorState {
   activeFile: string | null
   openFiles: string[]
-  files: Record<string, string | Uint8Array>
+  fileIndex: string[]
+  activeContent: string | Uint8Array | null
 
   openFile: (path: string) => void
   closeFile: (path: string) => void
@@ -18,28 +19,26 @@ interface EditorState {
 }
 
 const createEditorState: StateCreator<EditorState> = (set, get) => ({
-      activeFile: null,
-      openFiles: [],
-      files: {},
+      activeFile: null, // 激活文件的路径
+      openFiles: [], // 打开的文件路径列表
+      fileIndex: [], // 所有文件路径列表
+      activeContent: null, // 激活文件的内容
 
       initializeFiles: (files: Record<string, string | Uint8Array>) => {
-        set({ files })
+        const { activeFile } = get()
+        const fileIndex = Object.keys(files) // 拿到所有键名
+        const activeContent = activeFile ? files[activeFile] ?? null : null // 拿到激活文件的内容
+        set({ fileIndex, activeContent })
       },
 
       openFile: (path: string) => {
-        const start = performance.now()
         const { openFiles } = get()
-        if (!openFiles.includes(path)) {
-          set({ openFiles: [...openFiles, path], activeFile: path })
-        } else {
-          set({ activeFile: path })
-        }
-        const duration = performance.now() - start
-        console.log(`[Store] openFile ${path} in ${duration.toFixed(1)}ms`)
+        const nextOpenFiles = openFiles.includes(path) ? openFiles : [...openFiles, path]
+        set({ openFiles: nextOpenFiles, activeFile: path, activeContent: null })
       },
 
       closeFile: (path: string) => {
-        const { openFiles, activeFile } = get()
+        const { openFiles, activeFile, activeContent } = get()
         const newOpenFiles = openFiles.filter((filePath) => filePath !== path)
 
         let newActiveFile = activeFile
@@ -52,59 +51,61 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
           }
         }
 
-        set({ openFiles: newOpenFiles, activeFile: newActiveFile })
+        const nextActiveContent = newActiveFile === activeFile ? activeContent : null
+        set({ openFiles: newOpenFiles, activeFile: newActiveFile, activeContent: nextActiveContent })
       },
 
+      // 只跟新改动的文件内容
       updateFileContent: (path: string, content: string | Uint8Array) => {
-        const { files } = get()
-        if (files[path] === content) return
-        set({
-          files: { ...files, [path]: content },
-        })
+        const { activeFile } = get()
+        if (path !== activeFile) {
+          return
+        }
+        set({ activeContent: content })
       },
 
       addFile: (path: string, content: string | Uint8Array = '') => {
-        const { files } = get()
-        if (files[path] === content) return
-        set({ files: { ...files, [path]: content } })
+        const { activeFile, activeContent, fileIndex } = get()
+        const nextIndex = fileIndex.includes(path) ? fileIndex : [...fileIndex, path]
+        if (activeFile === path) {
+          set({ activeContent: content, fileIndex: nextIndex })
+          return
+        }
+        set({ activeContent, fileIndex: nextIndex })
       },
 
       deleteFile: (path: string) => {
-        const { files, openFiles, activeFile } = get()
-        const newFiles = { ...files }
-        delete newFiles[path]
-
+        const { fileIndex, openFiles, activeFile } = get()
+        const nextIndex = fileIndex.filter((filePath) => filePath !== path)
         const newOpenFiles = openFiles.filter((filePath) => filePath !== path)
         let newActiveFile = activeFile
+        const wasActive = activeFile === path
 
-        if (activeFile === path) {
+        if (wasActive) {
           newActiveFile = newOpenFiles.length > 0 ? newOpenFiles[newOpenFiles.length - 1] : null
         }
 
         set({
-          files: newFiles,
+          fileIndex: nextIndex,
           openFiles: newOpenFiles,
           activeFile: newActiveFile,
+          activeContent: wasActive ? null : get().activeContent,
         })
       },
 
       renameFile: (oldPath: string, newPath: string) => {
-        const { files, openFiles, activeFile } = get()
-        const content = files[oldPath]
-
-        if (content === undefined) return
-
-        const newFiles = { ...files }
-        delete newFiles[oldPath]
-        newFiles[newPath] = content
+        const { fileIndex, openFiles, activeFile, activeContent } = get()
+        if (!fileIndex.includes(oldPath)) return
+        const nextIndex = fileIndex.map((filePath) => (filePath === oldPath ? newPath : filePath))
 
         const newOpenFiles = openFiles.map((filePath) => (filePath === oldPath ? newPath : filePath))
         const newActiveFile = activeFile === oldPath ? newPath : activeFile
 
         set({
-          files: newFiles,
+          fileIndex: nextIndex,
           openFiles: newOpenFiles,
           activeFile: newActiveFile,
+          activeContent,
         })
       },
     })

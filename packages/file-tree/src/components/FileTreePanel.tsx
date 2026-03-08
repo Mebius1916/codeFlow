@@ -14,9 +14,9 @@ interface FileTreePanelProps {
 }
 
 export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
-  const { files, activeFile, openFile } = useEditorStore(
+  const { fileIndex, activeFile, openFile } = useEditorStore(
     useShallow((state) => ({
-      files: state.files,
+      fileIndex: state.fileIndex,
       activeFile: state.activeFile,
       openFile: state.openFile,
     }))
@@ -24,7 +24,7 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
   const { fileTree: isEnabled, toolbar: isToolbarEnabled } = useFeatures()
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = useFileTreeResizeCssVars()
 
-  const { fileTree, handleFolderToggle } = useFileTreeData(Object.keys(files))
+  const { fileTree, handleFolderToggle } = useFileTreeData(fileIndex)
 
   const {
     contextMenu,

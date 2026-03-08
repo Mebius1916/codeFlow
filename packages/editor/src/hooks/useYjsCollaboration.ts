@@ -71,7 +71,18 @@ export function useYjsCollaboration({
 
     const start = async () => {
       const snapshot = await getSnapshot(roomId)
-      const seedFiles = snapshot && Object.keys(snapshot).length > 0 ? snapshot : initialFiles
+      const shouldSyncPath = (path: string) => !path.startsWith('assets/images/') && !path.startsWith('assets/icons/')
+
+      const filterSeed = (source: Record<string, string>) =>
+        Object.fromEntries(
+          Object.entries(source).filter(
+            ([path, value]) =>
+              shouldSyncPath(path)
+          ),
+        ) as Record<string, string>
+
+      const seedFiles = snapshot ? filterSeed(snapshot as Record<string, string>) : undefined
+    
       worker.postMessage({
         type: 'init',
         payload: {
@@ -90,7 +101,6 @@ export function useYjsCollaboration({
 
     worker.addEventListener('message', (e: MessageEvent) => {
       if (e.data.type === 'ready') {
-        console.log('[Editor] 🚀 Worker is Ready')
         if (mounted) setIsReady(true)
       }
     })
@@ -109,7 +119,7 @@ export function useYjsCollaboration({
 
     newProvider.awareness.on('change', updateUsers)
     updateUsers()
-    
+
     newProvider.on('status', ({ status }: { status: 'connected' | 'disconnected' | 'connecting' }) => {
       setConnectionStatus(status === 'connected' ? 'connected' : status === 'connecting' ? 'connecting' : 'disconnected')
     })
@@ -119,7 +129,7 @@ export function useYjsCollaboration({
       worker.postMessage({ type: 'destroy' })
       worker.terminate()
       newProvider.destroy()
-      
+
       workerRef.current = null
       setProvider(null)
       yDocRef.current = null
