@@ -29,6 +29,34 @@ export function findOrCreateVar(globalVars: GlobalVars, value: StyleTypes, prefi
   return varId;
 }
 
+export function createNodeStyleId(
+  globalVars: GlobalVars,
+  node: SimplifiedNode,
+  refs: string[],
+): string {
+  const baseName = normalizeNodeBaseName(node);
+  const sortedRefs = refs.slice().sort();
+  const styleValue = { refs: sortedRefs };
+  let id = `s_${baseName}`;
+  const existing = globalVars.styles[id];
+  if (existing && JSON.stringify(existing) === JSON.stringify(styleValue)) {
+    return id;
+  }
+  if (existing) {
+    let index = 2;
+    while (globalVars.styles[`${id}_${index}`]) {
+      const existingStyle = globalVars.styles[`${id}_${index}`];
+      if (JSON.stringify(existingStyle) === JSON.stringify(styleValue)) {
+        return `${id}_${index}`;
+      }
+      index += 1;
+    }
+    id = `${id}_${index}`;
+  }
+  globalVars.styles[id] = styleValue;
+  return id;
+}
+
 // Helper to fetch a Figma style name for specific style keys on a node
 export function getStyleName(
   node: SmartNode,
@@ -59,4 +87,24 @@ export function buildNodeStyle(node: SimplifiedNode): Record<string, string | nu
     ...(node.blendMode ? { blendMode: node.blendMode } : {}),
     ...(node.visible === false ? { visibility: "hidden" } : {}),
   };
+}
+
+function normalizeNodeBaseName(node: SimplifiedNode): string {
+  const rawName = typeof node.name === "string" ? node.name : "";
+  const normalized = rawName
+    .replace(/['"]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase();
+  let base =
+    normalized ||
+    node.semanticTag ||
+    (node.type === "TEXT" ? "text" : "") ||
+    (node.type === "SVG" ? "icon" : "") ||
+    (node.type === "IMAGE" ? "image" : "") ||
+    "box";
+  if (base.length > 24) {
+    base = base.slice(0, 24).replace(/-+$/g, "");
+  }
+  return base || "box";
 }

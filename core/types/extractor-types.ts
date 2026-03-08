@@ -40,6 +40,7 @@ export interface LayoutMeta {
 export interface GlobalVars {
   styles: Record<string, StyleTypes>;
   styleCache?: Map<string, string>;
+  classNameMap?: Record<string, string>;
   imageAssets?: {
     nodeIds: string[];
     imageRefs: string[];

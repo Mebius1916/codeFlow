@@ -13,7 +13,3 @@ export function fnv1a32Update(hash: number, input: string): number {
 export function fnv1a32(input: string): number {
   return fnv1a32Update(FNV_OFFSET_BASIS_32, input);
 }
-
-export function hashClassName(input: string): string {
-  return `h_${fnv1a32(input).toString(16)}`;
-}

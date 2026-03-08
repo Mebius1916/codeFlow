@@ -1,6 +1,6 @@
 import type { LayoutMeta, SimplifiedNode, TraversalContext } from "../../types/extractor-types.js";
 import type { SimplifiedLayout } from "../../types/simplified-types.js";
-import { findOrCreateVar, addStyleRef, buildNodeStyle } from "../../utils/style-helper.js";
+import { findOrCreateVar, addStyleRef, buildNodeStyle, createNodeStyleId } from "../../utils/style-helper.js";
 import { convertFlexAlignSelf } from "../../transformers/utils/flex-adapter.js";
 
 // 递归处理整棵节点树并合并为单一 styles
@@ -24,7 +24,7 @@ export function normalizeNodeStyles(
     const layoutRefs = buildLayoutRefs(node, globalVars);
     const refs = collectStyleRefs(node, globalVars, layoutRefs);
     if (refs.length > 0) {
-      node.styles = refs.length === 1 ? refs[0] : findOrCreateVar(globalVars, { refs }, "style");
+      node.styles = createNodeStyleId(globalVars, node, refs);
     }
     clearStyleFields(node);
     return node;

@@ -2,7 +2,6 @@
 import type { SimplifiedNode, TraversalContext } from "../../../types/extractor-types.js";
 import type { SimplifiedImageFill } from "../../../types/simplified-types.js";
 import type { CodegenContext } from "../../context/index.js";
-import { hashClassName } from "../../../utils/hash.js";
 import { getTextSegmentStyleId } from "../../css/utils/text-style.js";
 import { resolveImageFill } from "../utils/fill.js";
 
@@ -94,9 +93,7 @@ export class HtmlNodeBuilder {
   private processStyles() {
     const { node } = this;
     if (node.styles) {
-      if (!this.globalVars?.styles) return;
-      const ids = expandStyleRefs(node.styles, this.globalVars.styles, new Set());
-      ids.forEach((ref) => this.classes.push(hashClassName(ref)));
+      this.classes.push(this.globalVars?.classNameMap?.[node.styles] ?? node.styles);
     }
   }
 
@@ -136,8 +133,8 @@ export class HtmlNodeBuilder {
         const segmentText = escapeHTML(segment.text).split("\n").join("<br/>"); // 转译 html 标签
         const effectsToUse = segment.effects;
         const segmentStyleId = getTextSegmentStyleId(segment.style, this.node, this.globalVars, effectsToUse); // 获取文本样式 id
-        const segmentClasses = segmentStyleId && this.globalVars?.styles
-          ? expandStyleRefs(segmentStyleId, this.globalVars.styles, new Set()).map(hashClassName).join(" ")
+        const segmentClasses = segmentStyleId
+          ? (this.globalVars?.classNameMap?.[segmentStyleId] ?? segmentStyleId)
           : "";
         const segmentClassAttr = segmentClasses ? ` class="${segmentClasses}"` : "";
         return `<${tagName}${segmentClassAttr}>${segmentText}</${tagName}>`;
@@ -170,14 +167,4 @@ function resolveRichTextTag(style: any): string {
   if (features?.SUBS) return "sub";
   if (features?.SUPS) return "sup";
   return "span";
-}
-
-function expandStyleRefs(id: string, stylesMap: Record<string, any>, seen: Set<string>): string[] {
-  if (seen.has(id)) return [];
-  seen.add(id);
-  const style = stylesMap[id];
-  if (style?.refs && Array.isArray(style.refs)) {
-    return style.refs.flatMap((ref: string) => expandStyleRefs(ref, stylesMap, seen));
-  }
-  return [id];
 }

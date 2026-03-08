@@ -1,7 +1,6 @@
 import { layoutBuilder } from "./layout-builder.js";
 import { typographyBuilder } from "./typography-builder.js";
 import { visualBuilder } from "./visual-builder.js";
-import { hashClassName } from "../../../utils/hash.js";
 
 // 将样式对象解析为可写入 CSS 的 "key: value;" 字符串
 export function formatStyleBody(style: any, stylesMap: Record<string, any> = {}): string {
@@ -13,16 +12,44 @@ export function formatStyleBody(style: any, stylesMap: Record<string, any> = {})
     .join("; ") + (Object.keys(styles).length > 0 ? ";" : "");
 }
 
+export function buildClassNameMap(styles: Record<string, any>): Record<string, string> {
+  const classNameMap: Record<string, string> = {};
+  const bodyToName = new Map<string, string>();
+  const nameCounts = new Map<string, number>();
+
+  Object.entries(styles).forEach(([id, styleObj]) => {
+    const body = formatStyleBody(styleObj, styles);
+    const bodyKey = body || `__empty:${id}`;
+    const existingByBody = bodyToName.get(bodyKey);
+    if (existingByBody) {
+      classNameMap[id] = existingByBody;
+      return;
+    }
+
+    let baseName = baseNameFromId(id) || "style";
+    const count = (nameCounts.get(baseName) ?? 0) + 1;
+    nameCounts.set(baseName, count);
+    const name = count === 1 ? baseName : `${baseName}-${count}`;
+
+    classNameMap[id] = name;
+    bodyToName.set(bodyKey, name);
+  });
+
+  return classNameMap;
+}
+
 // 解析全局样式表，生成所有 class 的 CSS 规则
 export function generateGlobalCSS(globalVars: Record<string, any>): string {
   const styles = globalVars.styles || {};
+  if (!globalVars.classNameMap) {
+    globalVars.classNameMap = buildClassNameMap(styles);
+  }
   let css = "";
   const cached = new Map<string, string[]>();
   const order: string[] = [];
 
   Object.entries(styles).forEach(([id, styleObj]) => {
-    if ((styleObj as any)?.refs && Array.isArray((styleObj as any).refs)) return;
-    const className = hashClassName(id);
+    const className = globalVars.classNameMap?.[id] ?? id;
     const body = formatStyleBody(styleObj, styles);
     if (!body) return;
     const existing = cached.get(body);
@@ -37,7 +64,8 @@ export function generateGlobalCSS(globalVars: Record<string, any>): string {
   order.forEach((body) => {
     const classNames = cached.get(body) || [];
     if (classNames.length === 0) return;
-    css += `.${classNames.join(", .")} { ${body} }\n`;
+    const uniqueNames = Array.from(new Set(classNames));
+    css += `.${uniqueNames.join(", .")} { ${body} }\n`;
   });
 
   return css;
@@ -74,14 +102,20 @@ function effectsStyleBuilder(style: any): Record<string, string> {
   return styles;
 }
 
-/**
-  - Handler 1 (Layout) : 匹配 mode 属性。
-  - Handler 2 (Typography) : 匹配 fontFamily , fontSize 等。
-  - Handler 3 (Fills) : 匹配数组类型的 style 。
-  - Handler 4 (Strokes) : 匹配 colors 且有 strokeWeight 等。
-  - Handler 5 (Node Style) : 匹配 opacity , borderRadius 等。
-  - Handler 6 (Effects) : 匹配 textShadow , boxShadow 等。
- */
+function baseNameFromId(id: string): string {
+  const raw = id.startsWith("s_")
+    ? id.slice(2).replace(/_\d+$/, "").replace(/_/g, "-")
+    : id;
+  let name = raw
+    .replace(/['"]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-+/g, "-")
+    .toLowerCase();
+  if (/^[0-9]/.test(name)) name = `t-${name}`;
+  return name;
+}
+
 const styleHandlers: Array<{
   match: (style: any) => boolean;
   build: (style: any) => Record<string, string>;
