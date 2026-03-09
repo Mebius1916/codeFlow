@@ -14,11 +14,7 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@collaborative-editor/shared": ["../packages/shared/src/index.ts"],
-      "@collaborative-editor/shared/*": ["../packages/shared/src/*"],
-      "@collaborative-editor/yjs-local-forage": ["../packages/yjsLocalForage/src/index.ts"],
-      "@collaborative-editor/yjs-local-forage/*": ["../packages/yjsLocalForage/src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [

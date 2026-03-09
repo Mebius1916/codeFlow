@@ -1,14 +1,12 @@
 import type { SimplifiedDesign } from "../types/extractor-types.js";
-import type { CodegenContext } from "./context/index.js";
 import { createCodegenContext } from "./context/index.js";
 import { generateHTMLParts } from "./html/index.js";
 
 interface CodegenResult {
   html: string;
   css: string;
-  body: string;
-  context: CodegenContext;
   assets: Map<string, string>;
+  size?: { width: number; height: number };
 }
 
 export default function codegen(design: SimplifiedDesign): CodegenResult {
@@ -18,8 +16,7 @@ export default function codegen(design: SimplifiedDesign): CodegenResult {
   return {
     html: parts.html,
     css: parts.css,
-    body: parts.body,
-    context: parts.context,
     assets: parts.context.assets,
+    size: parts.size
   };
 }

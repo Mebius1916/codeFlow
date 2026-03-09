@@ -7,25 +7,14 @@ import { groupNodesByAdjacency } from "../algorithms/adjacency-clustering.js";
 import { inferSemanticTags } from "../algorithms/semantic-inference.js";
 import type { SimplifiedNode, TraversalContext } from "../../types/extractor-types.js";
 
-export type ReconstructionStageName =
-  | "occlusion"
-  | "spatial_merge"
-  | "reparenting"
-  | "layout_grouping"
-  | "list_inference"
-  | "adjacency"
-  | "semantic"
-  | "flattening";
-
-export type ReconstructionStepFlags = Partial<Record<ReconstructionStageName, boolean>>;
-
 /**
  * Structure + Layout Pipeline
+ * 流水线开关功能已移除，默认执行所有核心步骤
  */
 export function runReconstructionPipeline(
   nodes: SimplifiedNode[],
   globalVars?: TraversalContext["globalVars"],
-  options?: { enabled?: ReconstructionStepFlags },
+  _options?: any, // 保留参数签名以减少其他文件的改动量，但不再使用
   parent?: SimplifiedNode
 ): SimplifiedNode[] {
   if (nodes.length === 0) return [];
@@ -34,49 +23,19 @@ export function runReconstructionPipeline(
   const processedNodesInput = [...nodes];
 
   // 1. Occlusion Culling
-  let processedNodes = isStepEnabled(options?.enabled, "occlusion")
-    ? removeOccludedNodes(processedNodesInput, globalVars)
-    : processedNodesInput;
+  let processedNodes = removeOccludedNodes(processedNodesInput, globalVars);
 
-  // 2. Spatial Merging
-  // 小图标合并算法不太稳定可用，所以暂时移除
-  // if (isStepEnabled(options?.enabled, "spatial_merge")) {
-  //   processedNodes = mergeSpatialIcons(processedNodes, parent);
-  // }
+  // 2. Reparenting 
+  processedNodes = reparentNodes(processedNodes, parent);
 
-  // 3. Reparenting 
-  if (isStepEnabled(options?.enabled, "reparenting")) {
-    processedNodes = reparentNodes(processedNodes, parent);
-  }
+  // 3. Layout Grouping 
+  processedNodes = groupNodesByLayout(processedNodes, parent);
 
-  // 4. Layout Grouping 
-  if (isStepEnabled(options?.enabled, "layout_grouping")) {
-    processedNodes = groupNodesByLayout(processedNodes, parent);
-  }
+  // 4. Adjacency Clustering
+  processedNodes = groupNodesByAdjacency(processedNodes, parent);
 
-  // 5. List Inference
-  // 特征分组收益太小且容易扰乱现有结构
-  // if (isStepEnabled(options?.enabled, "list_inference")) {
-  //   processedNodes = inferListPatterns(processedNodes);
-  // }
-
-  // 6. Adjacency Clustering
-  if (isStepEnabled(options?.enabled, "adjacency")) {
-    processedNodes = groupNodesByAdjacency(processedNodes, parent);
-  }
-
-  // 7. Semantic Inference
-  if (isStepEnabled(options?.enabled, "semantic")) {
-    processedNodes = inferSemanticTags(processedNodes);
-  }
+  // 5. Semantic Inference
+  processedNodes = inferSemanticTags(processedNodes);
 
   return processedNodes;
-}
-
-function isStepEnabled(
-  enabled: ReconstructionStepFlags | undefined,
-  step: ReconstructionStageName
-): boolean {
-  if (!enabled) return true;
-  return enabled[step] !== false;
 }

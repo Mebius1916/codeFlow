@@ -3,7 +3,6 @@ import type {
   TraversalContext,
   SimplifiedNode,
 } from "../../types/extractor-types.js";
-import type { ReconstructionStepFlags } from "./reconstruction.js";
 import { processNodes } from "./utils/core-process.js";
 import { flattenRedundantNodes } from "../algorithms/flattening.js";
 import { normalizeNodeStyles } from "../algorithms/style-normalization.js";
@@ -17,7 +16,6 @@ import { normalizeNodeStyles } from "../algorithms/style-normalization.js";
 export function extractFromDesign(
   nodes: any[], // Raw Figma nodes
   globalVars: TraversalContext["globalVars"] = { styles: {} },
-  options?: { reconstruction?: { enabled?: ReconstructionStepFlags } },
 ): { nodes: SimplifiedNode[]; globalVars: TraversalContext["globalVars"] } {
 
   const context: TraversalContext = {
@@ -28,7 +26,7 @@ export function extractFromDesign(
 
   // 1. Extraction Phase (with Injected Structure Pass)
   let rootNodes = processNodes(nodes, context, (children, parent) =>
-    runReconstructionPipeline(children, globalVars, options?.reconstruction, parent),
+    runReconstructionPipeline(children, globalVars, undefined, parent),
   );
 
   // 2. Flattening Phase

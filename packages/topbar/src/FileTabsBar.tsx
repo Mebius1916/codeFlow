@@ -9,7 +9,7 @@ export type FileTabsBarProps = {
 
 export function FileTabsBar({ activeFile, openFiles, onOpenFile, onCloseFile }: FileTabsBarProps) {
   return (
-    <div className="flex-1 flex items-center overflow-x-auto h-full px-0">
+    <div className="flex-1 flex items-center overflow-x-auto h-full px-0 bg-[rgb(19,22,32)]">
       {openFiles.map((file) => (
         <div
           key={file}

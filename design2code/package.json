@@ -1,4 +1,10 @@
 {
+  "name": "@collaborative-editor/design2code",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
   "devDependencies": {
     "@figma/rest-api-spec": "^0.36.0",
     "@types/cors": "^2.8.19",

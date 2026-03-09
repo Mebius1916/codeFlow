@@ -1,7 +1,5 @@
 
-import { requestJsonWithFigmaToken, requestTextWithCache } from "./request-cache.js";
 type ImageMap = Record<string, string>;
-type SvgMap = Record<string, string>;
 type RawImageMap = Record<string, string | null | undefined>;
 type ImageResolveOptions = {
   fileKey: string;
@@ -11,7 +9,7 @@ type ImageResolveOptions = {
 };
 
 const DEFAULT_PNG_FORMAT: NonNullable<ImageResolveOptions["format"]> = "png";
-const MAX_IDS_PER_REQUEST = 100;
+const MAX_IDS_PER_REQUEST = 10;
 
 // 从 Figma API 中获取节点渲染图片/svg
 export async function fetchNodeRenderUrls(nodeIds: string[], options: ImageResolveOptions): Promise<ImageMap> {
@@ -29,7 +27,9 @@ export async function fetchNodeRenderUrls(nodeIds: string[], options: ImageResol
     }
 
     const url = `https://api.figma.com/v1/images/${fileKey}?${params.toString()}`;
-    const data = await requestJsonWithFigmaToken<{ images?: RawImageMap }>(url, token);
+    const resp = await fetch(url, { headers: { "X-Figma-Token": token } });
+    if (!resp.ok) continue;
+    const data = await resp.json() as { images?: RawImageMap };
     if (!data?.images) continue;
     Object.entries(data.images).forEach(([key, value]) => {
       if (value) images[key] = value;
@@ -45,7 +45,9 @@ export async function fetchImageFillUrls(
   imageRefs: string[],
 ): Promise<Record<string, string>> {
   const url = `https://api.figma.com/v1/files/${fileKey}/images`;
-  const data = await requestJsonWithFigmaToken<{ meta?: { images?: RawImageMap } }>(url, token);
+  const resp = await fetch(url, { headers: { "X-Figma-Token": token } });
+  if (!resp.ok) return {};
+  const data = await resp.json() as { meta?: { images?: RawImageMap } };
   const images = data?.meta?.images;
   if (!images || imageRefs.length === 0) return {};
   const result: ImageMap = {};
@@ -56,20 +58,7 @@ export async function fetchImageFillUrls(
   return result;
 }
 
-// 从 Figma API 中获取 SVG 标记
-export async function fetchSvgMarkup(svgUrlMap: ImageMap): Promise<SvgMap> {
-  const entries = Object.entries(svgUrlMap);
-  if (entries.length === 0) return {};
-  const results: SvgMap = {};
-  for (const [nodeId, url] of entries) {
-    if (!url) continue;
-    const svgText = await requestTextWithCache(url);
-    if (svgText) results[nodeId] = svgText;
-  }
-  return results;
-}
-
-// 图片分块，100张为一组
+// 图片分块，10张为一组
 function chunkIds(ids: string[], size: number): string[][] {
   const chunks: string[][] = [];
   for (let i = 0; i < ids.length; i += size) {

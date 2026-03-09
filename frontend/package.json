@@ -1,5 +1,5 @@
 {
-  "name": "example",
+  "name": "@collaborative-editor/frontend",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,6 +14,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@collaborative-editor/design2code": "workspace:*",
     "@collaborative-editor/editor": "workspace:*",
     "@collaborative-editor/file-tree": "workspace:*",
     "@collaborative-editor/preview": "workspace:*",
@@ -21,6 +22,7 @@
     "@collaborative-editor/shared": "workspace:*",
     "@collaborative-editor/topbar": "workspace:*",
     "@collaborative-editor/yjs-local-forage": "workspace:*",
+    "localforage": "^1.10.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

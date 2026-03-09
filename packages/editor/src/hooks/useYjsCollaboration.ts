@@ -4,7 +4,6 @@ import { useShallow } from 'zustand/react/shallow'
 import { useCollaborationStore } from '../store/collaboration-store'
 import { type CodeEditorUser } from '@collaborative-editor/shared'
 import { YjsWorkerProvider } from '../lib/yjs/provider'
-import { getSnapshot } from '@collaborative-editor/yjs-local-forage'
 // @ts-ignore
 import YjsWorker from '../lib/yjs/worker.ts?worker'
 
@@ -69,35 +68,19 @@ export function useYjsCollaboration({
     const newProvider = new YjsWorkerProvider(worker, yDoc)
     setProvider(newProvider)
 
-    const start = async () => {
-      const snapshot = await getSnapshot(roomId)
-      const shouldSyncPath = (path: string) => !path.startsWith('assets/images/') && !path.startsWith('assets/icons/')
-
-      const filterSeed = (source: Record<string, string>) =>
-        Object.fromEntries(
-          Object.entries(source).filter(
-            ([path, value]) =>
-              shouldSyncPath(path)
-          ),
-        ) as Record<string, string>
-
-      const seedFiles = snapshot ? filterSeed(snapshot as Record<string, string>) : undefined
-    
-      worker.postMessage({
-        type: 'init',
-        payload: {
-          roomId,
-          wsUrl,
-          userId: user.id,
-          userName: user.name,
-          userColor: user.color,
-          enablePersistence,
-          initialFiles: seedFiles,
-        }
-      })
-    }
-
-    start()
+    // Worker 负责所有的数据加载和持久化逻辑
+    worker.postMessage({
+      type: 'init',
+      payload: {
+        roomId,
+        wsUrl,
+        userId: user.id,
+        userName: user.name,
+        userColor: user.color,
+        enablePersistence,
+        initialFiles, 
+      }
+    })
 
     worker.addEventListener('message', (e: MessageEvent) => {
       if (e.data.type === 'ready') {

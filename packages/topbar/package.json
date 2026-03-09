@@ -18,7 +18,8 @@
     "react-dom": ">=19.0.0"
   },
   "dependencies": {
-    "@collaborative-editor/file-tree": "workspace:*"
+    "@collaborative-editor/file-tree": "workspace:*",
+    "@collaborative-editor/preview": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^20",

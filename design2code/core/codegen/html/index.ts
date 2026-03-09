@@ -4,7 +4,6 @@ import type { CodegenContext } from "../context/index.js";
 import { createCodegenContext } from "../context/index.js";
 import { generateCSS } from "../css/index.js";
 import { HtmlNodeBuilder } from "./builders/html-builder.js";
-import { calculateDesignSize } from "./utils/calculate-size.js";
 
 /**
  * Enhanced HTML Generator
@@ -19,7 +18,9 @@ export function generateHTMLParts(design: SimplifiedDesign, context?: CodegenCon
   size?: { width: number; height: number };
 } {
   const ctx = context ?? createCodegenContext(design);
-  const size = calculateDesignSize(design.nodes);
+  
+  const size = design.canvasSize;
+  
   const bodyContent = design.nodes.map(node => generateNodeRecursive(node, ctx)).join("\n");
   const css = generateCSS(ctx);
   const html = `<!DOCTYPE html>

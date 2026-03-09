@@ -37,7 +37,7 @@ self.onmessage = async (e: MessageEvent) => {
       connect: true,
     })
 
-    // Wait Persistence 连接同步完成
+    // 初始化
     await persistenceProvider.whenSynced
     
     // 如果是从零开始（无缓存），且有初始文件，则填充

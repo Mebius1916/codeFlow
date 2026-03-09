@@ -2,7 +2,6 @@ import type { SimplifiedDesign } from "../../../types/extractor-types.js";
 import type { SimplifiedFill, SimplifiedImageFill, SimplifiedPatternFill, SimplifiedStroke } from "../../../types/simplified-types.js";
 
 type ImageMap = Record<string, string>;
-type SvgMap = Record<string, string>;
 
 // 回填图片映射表到设计中
 export function applyImageMapToStyles(styles: Record<string, any>, imageMap?: ImageMap) {
@@ -24,19 +23,18 @@ export function applyImageMapToStyles(styles: Record<string, any>, imageMap?: Im
 export function applyImageMapToNodes(
   nodes: SimplifiedDesign["nodes"],
   imageMap?: ImageMap,
-  svgMap?: SvgMap
 ) {
   nodes.forEach((node) => {
     if (node.type === "IMAGE" && !node.src && imageMap) {
       const mapped = imageMap[node.id];
       if (mapped) node.src = mapped;
     }
-    if (node.type === "SVG" && !node.svg && svgMap) {
-      const mapped = svgMap[node.id];
-      if (mapped) node.svg = mapped;
+    if (node.type === "SVG" && !node.src && imageMap) {
+      const mapped = imageMap[node.id];
+      if (mapped) node.src = mapped;
     }
     if (node.children && node.children.length > 0) {
-      applyImageMapToNodes(node.children, imageMap, svgMap);
+      applyImageMapToNodes(node.children, imageMap);
     }
   });
 }

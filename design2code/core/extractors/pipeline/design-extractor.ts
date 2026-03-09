@@ -6,8 +6,11 @@ import { simplifyComponents, simplifyComponentSets } from "../../transformers/co
 import type { SimplifiedDesign, TraversalContext } from "../../types/extractor-types.js";
 import { extractFromDesign } from "./node-processor.js";
 import { resolveImageAssetsFromFigma } from "./image-assets.js";
-import type { ReconstructionStepFlags } from "./reconstruction.js";
 import { parseAPIResponse } from "./utils/parse-api.js";
+
+export interface FetcherAdapter {
+  image?: (url: string, key: string, headers?: Record<string, string>) => Promise<string>;
+}
 
 /**
  * Extract a complete SimplifiedDesign from raw Figma API response using extractors.
@@ -19,9 +22,7 @@ export async function simplifyRawFigmaObjectWithImages(
     token: string;
     format?: "png" | "jpg" | "svg" | "pdf";
     scale?: number;
-    assetsDir?: string;
-    assetsUrlPrefix?: string;
-    reconstruction?: { enabled?: ReconstructionStepFlags };
+    fetcher?: FetcherAdapter;
   },
 ): Promise<SimplifiedDesign> {
   const { metadata, rawNodes, components, componentSets, extraStyles } =
@@ -36,7 +37,6 @@ export async function simplifyRawFigmaObjectWithImages(
   const { nodes: extractedNodes, globalVars: finalGlobalVars } = extractFromDesign(
     rawNodes,
     globalVars,
-    options.reconstruction ? { reconstruction: options.reconstruction } : undefined,
   );
 
   const design: SimplifiedDesign = {

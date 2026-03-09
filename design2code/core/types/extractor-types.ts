@@ -75,6 +75,10 @@ export type ExtractorFn = (
 
 export interface SimplifiedDesign {
   name: string;
+  canvasSize?: {
+    width: number;
+    height: number;
+  };
   nodes: SimplifiedNode[];
   components: Record<string, SimplifiedComponentDefinition>;
   componentSets: Record<string, SimplifiedComponentSetDefinition>;
@@ -86,7 +90,6 @@ export interface SimplifiedNode {
   name: string;
   type: "SVG" | "TEXT" | "CONTAINER" | "IMAGE";
   src?: string; // For IMAGE nodes
-  svg?: string;
   visible?: boolean;
   // Geometry for occlusion detection
   absRect?: {

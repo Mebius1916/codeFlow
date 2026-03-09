@@ -1,50 +1,8 @@
 import * as Y from 'yjs'
 import localforage from 'localforage'
 import { ObservableV2 } from 'lib0/observable'
-
-type SnapshotContent = string | Uint8Array
-
-interface YjsStorageData {
-  snapshot: Record<string, string>
-  updates: Uint8Array
-}
-
-const fileIndexKey = (room: string) => `${room}::files`
-const fileKey = (room: string, path: string) => `${room}::file::${encodeURIComponent(path)}`
-const updatesKey = (room: string) => `${room}::updates`
-
-const getSnapshotFromStore = async (store: LocalForage, room: string) => {
-  // 拿到文件列表
-  const index = await store.getItem<string[]>(fileIndexKey(room))
-  if (index && index.length > 0) {
-    const entries = await Promise.all(
-      index.map(async (path) => {
-        const content = await store.getItem<SnapshotContent>(fileKey(room, path))
-        return [path, content ?? ''] as const
-      }),
-    )
-    return Object.fromEntries(entries)
-  }
-  const legacy = await store.getItem<YjsStorageData>(room)
-  return legacy ? legacy.snapshot : null
-}
-
-const setSnapshotToStore = async (
-  store: LocalForage,
-  room: string,
-  snapshot: Record<string, SnapshotContent>,
-) => {
-  const existingIndex = (await store.getItem<string[]>(fileIndexKey(room))) ?? []
-  const nextIndex = Object.keys(snapshot)
-  // 筛选出不存在的旧文件路径 并删除
-  const removed = existingIndex.filter((path) => !Object.prototype.hasOwnProperty.call(snapshot, path))
-  await Promise.all(removed.map((path) => store.removeItem(fileKey(room, path))))
-
-  await Promise.all(
-    nextIndex.map((path) => store.setItem(fileKey(room, path), snapshot[path])),
-  )
-  await store.setItem(fileIndexKey(room), nextIndex)
-}
+import { getSnapshotFromStore, setSnapshotToStore, getUpdatesFromStore, setUpdatesToStore } from './store'
+import type { SnapshotContent, LocalForage } from './types'
 
 export async function getSnapshot(
   room: string,
@@ -60,10 +18,7 @@ export async function setSnapshot(
   storeName = 'yjs-forage',
 ): Promise<void> {
   const store = localforage.createInstance({ name: storeName })
-  const legacy = await store.getItem<YjsStorageData>(room)
-  const existingUpdates = legacy?.updates ?? (await store.getItem<Uint8Array>(updatesKey(room))) ?? new Uint8Array()
   await setSnapshotToStore(store, room, snapshot)
-  await store.setItem(updatesKey(room), existingUpdates)
 }
 
 // 协调计算
@@ -98,16 +53,30 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
 
   private async init() {
     try {
-      const snapshot = await getSnapshotFromStore(this._store, this._room)
-      if (snapshot) {
-        this.emit('snapshot', [snapshot])
-      }
-
-      const updates = (await this._store.getItem<Uint8Array>(updatesKey(this._room)))
-      const legacy = await this._store.getItem<YjsStorageData>(this._room)
-      const resolvedUpdates = updates ?? legacy?.updates
+      // 1. 尝试读取 Updates (协同历史)
+      const resolvedUpdates = await getUpdatesFromStore(this._store, this._room)
+      
       if (resolvedUpdates) {
         Y.applyUpdate(this._doc, resolvedUpdates, 'local-forage')
+      } else {
+        // 2. 如果没有 Updates，尝试读取 Snapshot (单机历史)
+        const snapshot = await getSnapshotFromStore(this._store, this._room)
+        
+        if (snapshot && Object.keys(snapshot).length > 0) {
+          // 将 Snapshot 转换为 Yjs 初始状态
+          this._doc.transact(() => {
+            for (const [key, content] of Object.entries(snapshot)) {
+              if (typeof content === 'string' && !/\.(svg|png|jpg|jpeg|gif|webp)$/i.test(key)) {
+                const yText = this._doc.getText(key)
+                if (yText.length === 0) {
+                  yText.insert(0, content)
+                }
+              }
+            }
+          }, 'local-forage') 
+          
+          this.save()
+        }
       }
     } catch (err) {
       console.error('[YjsLocalForage] Failed to load data:', err)
@@ -138,7 +107,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
       const updates = Y.encodeStateAsUpdate(this._doc)
 
       await setSnapshotToStore(this._store, this._room, snapshot)
-      await this._store.setItem(updatesKey(this._room), updates)
+      await setUpdatesToStore(this._store, this._room, updates)
     } catch (err) {
       console.error('[YjsLocalForage] Failed to save data:', err)
     }
@@ -149,17 +118,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
       clearTimeout(this._debounceTimer)
     }
     this._doc.off('update', this._updateHandler)
-    return this.whenSynced
-  }
-
-  // Clear data for this room
-  async clear() {
-    const index = await this._store.getItem<string[]>(fileIndexKey(this._room))
-    if (index && index.length > 0) {
-      await Promise.all(index.map((path) => this._store.removeItem(fileKey(this._room, path))))
-    }
-    await this._store.removeItem(fileIndexKey(this._room))
-    await this._store.removeItem(updatesKey(this._room))
-    await this._store.removeItem(this._room)
+    this.save()
+    super.destroy()
   }
 }

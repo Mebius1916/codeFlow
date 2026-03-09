@@ -10,7 +10,9 @@ export function useFileTreeData(fileKeys: string[]) {
     const mergeState = (nodes: TreeNode[]): TreeNode[] => {
       return nodes.map((node) => {
         if (node.type === 'folder') {
-          const isOpen = expandedFolders[node.path] ?? node.isOpen ?? true
+          const isAssetsOrChild = node.path === 'assets' || node.path.startsWith('assets/')
+          const defaultOpen = !isAssetsOrChild
+          const isOpen = expandedFolders[node.path] ?? node.isOpen ?? defaultOpen
           return {
             ...node,
             isOpen,

@@ -36,7 +36,7 @@ export const FileTreeNode = ({
 }: FileTreeNodeProps) => {
   const isFolder = node.type === 'folder'
   const isActive = node.path === activeFile
-  const paddingLeft = depth * 12 + (isFolder ? 8 : 22)
+  const paddingLeft = depth * 12 + (isFolder ? 10 : 20)
 
   const isCreatingHere = creatingState?.parentPath === node.path
   const isRenaming = renamingState?.path === node.path
@@ -53,7 +53,7 @@ export const FileTreeNode = ({
   const handleContextMenu = (e: ReactMouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    onContextMenu(e, node.path, node.type)
+    // onContextMenu(e, node.path, node.type)
   }
 
   if (isRenaming) {

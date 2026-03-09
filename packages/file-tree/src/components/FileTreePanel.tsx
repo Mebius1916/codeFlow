@@ -3,7 +3,6 @@ import { useFileTreeData, useFileTreeResizeCssVars, useFileTreeActions } from '.
 import { FileTreeNode } from './FileTreeNode'
 import type { TreeNode } from '../utils/file-tree'
 import { NewFileItem } from './NewFileItem'
-import { ContextMenu } from './ContextMenu'
 import { FileTreeHeader } from './FileTreeHeader'
 
 type FileTreeActions = ReturnType<typeof useFileTreeActions>
@@ -48,13 +47,10 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
   const shouldShowHeader = showHeader ?? (isToolbarEnabled === false)
 
   return (
-    <div className="flex h-full relative group" onContextMenu={(e) => handleContextMenu(e, null)}>
+    <div className="flex h-full relative group">
       <div className="h-full flex flex-col" style={{ width: '100%', backgroundColor: 'rgb(15, 17, 25)' }}>
         {shouldShowHeader && (
-          <FileTreeHeader
-            onNewFile={() => handleStartCreate(null, 'file')}
-            onNewFolder={() => handleStartCreate(null, 'folder')}
-          />
+          <FileTreeHeader/>
         )}
 
         <div className="flex-1 overflow-y-auto py-2">
@@ -77,7 +73,11 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
               renamingState={renamingState}
               onFileClick={openFile}
               onFolderToggle={handleFolderToggle}
-              onContextMenu={handleContextMenu}
+              // onContextMenu={handleContextMenu}
+              onContextMenu={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+              }}
               onConfirmCreate={handleConfirmCreate}
               onCancelCreate={handleCancelCreate}
               onConfirmRename={handleConfirmRename}
@@ -91,23 +91,9 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
         onMouseDown={onMouseDown}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
-        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-20 -mr-0.5 transition-colors"
+        className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-20 transition-colors"
         style={handleStyle}
       />
-
-      {contextMenu && (
-        <ContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          path={contextMenu.path}
-          type={contextMenu.type}
-          onClose={closeContextMenu}
-          onNewFile={() => handleStartCreate(contextMenu.path, 'file')}
-          onNewFolder={() => handleStartCreate(contextMenu.path, 'folder')}
-          onRename={handleStartRename}
-          onDelete={handleDelete}
-        />
-      )}
     </div>
   )
 }

@@ -41,9 +41,40 @@ export function parseAPIResponse(data: GetFileResponse | GetFileNodesResponse) {
 
   const { name } = data;
 
+  // 计算所有选中节点的联合包围盒
+  let canvasSize: { width: number; height: number } | undefined;
+  
+  if (nodesToParse.length > 0) {
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    let hasValidBounds = false;
+
+    for (const node of nodesToParse) {
+      // 检查节点是否有 absoluteBoundingBox
+      const bbox = (node as any).absoluteBoundingBox;
+      if (bbox) {
+        hasValidBounds = true;
+        minX = Math.min(minX, bbox.x);
+        minY = Math.min(minY, bbox.y);
+        maxX = Math.max(maxX, bbox.x + bbox.width);
+        maxY = Math.max(maxY, bbox.y + bbox.height);
+      }
+    }
+
+    if (hasValidBounds) {
+      canvasSize = {
+        width: maxX - minX,
+        height: maxY - minY,
+      };
+    }
+  }
+
   return {
     metadata: {
       name,
+      canvasSize,
     },
     rawNodes: nodesToParse,
     extraStyles,
