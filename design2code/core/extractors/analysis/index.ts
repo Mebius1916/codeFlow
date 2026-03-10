@@ -43,6 +43,11 @@ export class SmartNode {
   /**
    * Layout Helpers
    */
+  getRawLayoutMode(): "NONE" | "HORIZONTAL" | "VERTICAL" | undefined {
+    if (!this.isContainer()) return "NONE";
+    return this.features.rawLayoutMode;
+  }
+
   getLayoutMode(): "row" | "column" | "none" {
     if (this.isContainer()) {
       return this.features.layoutMode;

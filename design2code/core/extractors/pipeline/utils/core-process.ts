@@ -32,17 +32,14 @@ export function processNodes(
     const smartNode = new SmartNode(node, features, context.smartNode);
 
     // 3. Classify (Normalize)
-    const { type: normalizedType, isLeaf } = normalizeNodeType(features);
+    const { type: normalizedType, isLeaf } = normalizeNodeType(smartNode);
 
     if (!context.globalVars.layoutMetaById) context.globalVars.layoutMetaById = {};
     context.globalVars.layoutMetaById[node.id] = {
-      layoutAlignSelf: (node as any).layoutAlign,
-      layoutSizing: {
-        horizontal: (node as any).layoutSizingHorizontal,
-        vertical: (node as any).layoutSizingVertical,
-      },
-      layoutGrow: (node as any).layoutGrow,
-      layoutMode: (node as any).layoutMode,
+      layoutAlignSelf: smartNode.getLayoutAlignSelf(),
+      layoutSizing: smartNode.getLayoutSizing(),
+      layoutGrow: smartNode.getLayoutGrow(),
+      layoutMode: smartNode.getRawLayoutMode() as any,
       layoutPositioning: (node as any).layoutPositioning,
     };
 

@@ -1,5 +1,5 @@
 
-import type { NodeFeatures } from "../analysis/types.js";
+import { SmartNode } from "../analysis/index.js";
 
 export type NormalizedNodeType = 
   | "SVG"         // Vector/Icon
@@ -17,10 +17,10 @@ export interface NormalizedNodeResult {
  * Determines the semantic role of a node based on its analyzed features.
  */
 export function normalizeNodeType(
-  features: NodeFeatures
+  node: SmartNode
 ): NormalizedNodeResult {
   // 1. Check for Icon (SVG)
-  if (features.looksLikeIcon) {
+  if (node.isIcon()) {
     return {
       type: "SVG",
       isLeaf: true,
@@ -28,7 +28,7 @@ export function normalizeNodeType(
   }
 
   // 2. Check for Image
-  if (features.looksLikeImage) {
+  if (node.isImage()) {
     return {
       type: "IMAGE",
       isLeaf: true,
@@ -36,7 +36,7 @@ export function normalizeNodeType(
   }
 
   // 3. Check for Text
-  if (features.looksLikeText) {
+  if (node.isText()) {
     return {
       type: "TEXT",
       isLeaf: true,

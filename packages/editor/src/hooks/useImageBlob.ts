@@ -16,11 +16,11 @@ const getMime = (fileName?: string) => {
   return mimeByExt[ext]
 }
 
-export function useImageBlob(content: Uint8Array | null, fileName?: string) {
+export function useImageBlob(content: Uint8Array | string | null, fileName?: string) {
   const [blobUrl, setBlobUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!content) {
+    if (content === null) {
       setBlobUrl(null)
       return
     }

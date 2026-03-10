@@ -4,6 +4,7 @@ import { FileTreeNode } from './FileTreeNode'
 import type { TreeNode } from '../utils/file-tree'
 import { NewFileItem } from './NewFileItem'
 import { FileTreeHeader } from './FileTreeHeader'
+import { useMemo } from 'react'
 
 type FileTreeActions = ReturnType<typeof useFileTreeActions>
 
@@ -13,9 +14,9 @@ interface FileTreePanelProps {
 }
 
 export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
-  const { fileIndex, activeFile, openFile } = useEditorStore(
+  const { files, activeFile, openFile } = useEditorStore(
     useShallow((state) => ({
-      fileIndex: state.fileIndex,
+      files: state.files,
       activeFile: state.activeFile,
       openFile: state.openFile,
     }))
@@ -23,7 +24,8 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
   const { fileTree: isEnabled, toolbar: isToolbarEnabled } = useFeatures()
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = useFileTreeResizeCssVars()
 
-  const { fileTree, handleFolderToggle } = useFileTreeData(fileIndex)
+  const fileKeys = useMemo(() => Object.keys(files), [files])
+  const { fileTree, handleFolderToggle } = useFileTreeData(fileKeys)
 
   const {
     contextMenu,

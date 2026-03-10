@@ -55,7 +55,7 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
       if (model && !model.isDisposed()) {
         attachModelToEditor(monaco, editor, model, activeFile)
         try {
-          setModelFromStore(model)
+          setModelFromStore(model, activeFile)
         } catch { }
 
         if (!isCollaborationReady) {

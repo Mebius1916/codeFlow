@@ -20,12 +20,15 @@ export function analyzeNode(node: FigmaNode, parent?: FigmaNode): NodeFeatures {
   
   // Robust layout mode inference
   let layoutMode: "row" | "column" | "none" = "none";
+  let rawLayoutMode: "NONE" | "HORIZONTAL" | "VERTICAL" | undefined;
   let hasLayoutProps = false;
   let primaryAlign: string | undefined;
   let counterAlign: string | undefined;
 
   if (isContainer) {
     const rawMode = (node as any).layoutMode;
+    rawLayoutMode = rawMode;
+    
     if (rawMode === "HORIZONTAL") layoutMode = "row";
     else if (rawMode === "VERTICAL") layoutMode = "column";
     
@@ -156,6 +159,7 @@ export function analyzeNode(node: FigmaNode, parent?: FigmaNode): NodeFeatures {
     isVisible: visible,
     isContainer,
     layoutMode,
+    rawLayoutMode,
     hasLayoutProps,
     layoutAlign: (primaryAlign || counterAlign) ? {
       primary: primaryAlign ?? "MIN",

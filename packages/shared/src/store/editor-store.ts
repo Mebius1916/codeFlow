@@ -6,8 +6,6 @@ import localforage from 'localforage'
 interface EditorState {
   activeFile: string | null
   openFiles: string[]
-  fileIndex: string[]
-  activeContent: string | Uint8Array | null
   files: Record<string, string | Uint8Array>
 
   openFile: (path: string) => void
@@ -22,22 +20,16 @@ interface EditorState {
 const createEditorState: StateCreator<EditorState> = (set, get) => ({
       activeFile: null, // 激活文件的路径
       openFiles: [], // 打开的文件路径列表
-      fileIndex: [], // 所有文件路径列表
-      activeContent: null, // 激活文件的内容
       files: {}, // 所有文件的内容
 
       initializeFiles: (files: Record<string, string | Uint8Array>) => {
-        const { activeFile } = get()
-        const fileIndex = Object.keys(files) // 拿到所有键名
-        const activeContent = activeFile ? files[activeFile] ?? null : null // 拿到激活文件的内容
-        set({ fileIndex, activeContent, files })
+        set({ files })
       },
 
       openFile: (path: string) => {
-        const { openFiles, files } = get()
+        const { openFiles } = get()
         const nextOpenFiles = openFiles.includes(path) ? openFiles : [...openFiles, path]
-        const activeContent = files[path] ?? null
-        set({ openFiles: nextOpenFiles, activeFile: path, activeContent })
+        set({ openFiles: nextOpenFiles, activeFile: path })
       },
 
       closeFile: (path: string) => {
@@ -54,37 +46,24 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
           }
         }
 
-        const nextActiveContent = newActiveFile ? get().files[newActiveFile] ?? null : null
-        set({ openFiles: newOpenFiles, activeFile: newActiveFile, activeContent: nextActiveContent })
+        set({ openFiles: newOpenFiles, activeFile: newActiveFile })
       },
 
       // 更新文件内容
       updateFileContent: (path: string, content: string | Uint8Array) => {
-        const { activeFile, files } = get()
+        const { files } = get()
         const newFiles = { ...files, [path]: content }
-        
-        if (path === activeFile) {
-           set({ activeContent: content, files: newFiles })
-        } else {
-           set({ files: newFiles })
-        }
+        set({ files: newFiles })
       },
 
       addFile: (path: string, content: string | Uint8Array = '') => {
-        const { activeFile, fileIndex, files } = get()
-        const nextIndex = fileIndex.includes(path) ? fileIndex : [...fileIndex, path]
+        const { files } = get()
         const newFiles = { ...files, [path]: content }
-        
-        if (activeFile === path) {
-          set({ activeContent: content, fileIndex: nextIndex, files: newFiles })
-          return
-        }
-        set({ fileIndex: nextIndex, files: newFiles })
+        set({ files: newFiles })
       },
 
       deleteFile: (path: string) => {
-        const { fileIndex, openFiles, activeFile, files } = get()
-        const nextIndex = fileIndex.filter((filePath) => filePath !== path)
+        const { openFiles, activeFile, files } = get()
         const newOpenFiles = openFiles.filter((filePath) => filePath !== path)
         const { [path]: deleted, ...newFiles } = files
         
@@ -95,22 +74,17 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
           newActiveFile = newOpenFiles.length > 0 ? newOpenFiles[newOpenFiles.length - 1] : null
         }
 
-        const nextActiveContent = newActiveFile ? newFiles[newActiveFile] ?? null : null
-
         set({
-          fileIndex: nextIndex,
           openFiles: newOpenFiles,
           activeFile: newActiveFile,
-          activeContent: nextActiveContent,
           files: newFiles
         })
       },
 
       renameFile: (oldPath: string, newPath: string) => {
-        const { fileIndex, openFiles, activeFile, files } = get()
-        if (!fileIndex.includes(oldPath)) return
-        
-        const nextIndex = fileIndex.map((filePath) => (filePath === oldPath ? newPath : filePath))
+        const { openFiles, activeFile, files } = get()
+        if (!files[oldPath]) return
+
         const newOpenFiles = openFiles.map((filePath) => (filePath === oldPath ? newPath : filePath))
         const newActiveFile = activeFile === oldPath ? newPath : activeFile
         
@@ -119,7 +93,6 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
         const newFiles = { ...restFiles, [newPath]: content }
 
         set({
-          fileIndex: nextIndex,
           openFiles: newOpenFiles,
           activeFile: newActiveFile,
           files: newFiles,

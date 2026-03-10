@@ -105,8 +105,8 @@ export function useFileTreeActions() {
     if (renamingState.type === 'file') {
       renameFile(oldPath, newPath)
     } else {
-      const fileIndex = useEditorStore.getState().fileIndex
-      fileIndex.forEach((file) => {
+      const fileKeys = Object.keys(useEditorStore.getState().files)
+      fileKeys.forEach((file) => {
         if (file.startsWith(oldPath + '/')) {
           const fileNewPath = file.replace(oldPath, newPath)
           renameFile(file, fileNewPath)
@@ -126,8 +126,8 @@ export function useFileTreeActions() {
       return
     }
 
-    const fileIndex = useEditorStore.getState().fileIndex
-    fileIndex.forEach((file) => {
+    const fileKeys = Object.keys(useEditorStore.getState().files)
+    fileKeys.forEach((file) => {
       if (file.startsWith(path + '/')) {
         deleteFile(file)
       }

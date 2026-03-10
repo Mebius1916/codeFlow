@@ -37,7 +37,7 @@ export const bindSingleMode = (args: {
   updateStore()
 
   const unsubscribeStore = useEditorStore.subscribe((state) => {
-    const storeContent = state.activeContent
+    const storeContent = state.files[args.activeFile]
     if (typeof storeContent !== 'string') return
     if (!storeContent) return
     if (!args.model.isDisposed() && args.model.getValue().length === 0) {
@@ -112,4 +112,3 @@ export const bindCollabMode = async (args: {
     }
   }
 }
-

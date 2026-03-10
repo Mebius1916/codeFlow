@@ -4,10 +4,6 @@ export const DEFAULT_FILES = {
   "src/reset.css": ``,
 }
 
-export const DEFAULT_ASSETS: Record<string, string> = {
-  "assets/": "",
-}
-
 export const DEFAULT_RESET_CSS = `* { 
   box-sizing: border-box; 
 } 

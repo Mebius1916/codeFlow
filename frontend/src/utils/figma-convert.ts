@@ -1,5 +1,6 @@
 import type { FigmaParseResult } from "../hooks/useFigmaUrlParser";
 import { DEFAULT_RESET_CSS } from './default'
+import { formatCss, formatHtml } from './code-format'
 
 type FileContent = string | Uint8Array;
 
@@ -14,13 +15,13 @@ export async function handleFigmaConvertSuccess(
 ) {
   if (!result.codegen_result) return;
 
-  const { html, css } = result.codegen_result;
+  const { html, body, css } = result.codegen_result;
   const assetsPathMap = result.assets_path_map;
 
   const newFiles: Record<string, FileContent> = {
-    "src/index.html": html,
+    "src/index.html": formatHtml(body ?? html),
     "src/reset.css": DEFAULT_RESET_CSS,
-    "src/style.css": css,
+    "src/style.css": formatCss(css),
   };
 
   const assetEntries = Array.from(assetsPathMap.entries());

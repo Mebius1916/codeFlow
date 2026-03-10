@@ -1,29 +1,27 @@
 import { FeatureProvider, useEditorStore, useShallow } from "@collaborative-editor/shared";
 import { useFileTreeActions } from "@collaborative-editor/file-tree";
 import { TopBar as FileTreeBar } from "@collaborative-editor/topbar";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSnapshotPersistence } from "./hooks/useSnapshotPersistence";
 import { Sidebar } from "./components/Sidebar";
 import { EditorContainer } from "./components/EditorContainer";
 import { PreviewContainer } from "./components/PreviewContainer";
 import { Topbar } from "./components/Topbar/index";
-import type { FigmaParseResult } from "./hooks/useFigmaUrlParser";
-import { getCachedContentByUrl } from "./utils/url-cache";
-import { handleFigmaConvertSuccess } from "./utils/figma-convert";
+import { useFigmaConvertSuccess } from "./hooks/useFigmaConvertSuccess";
 
 export default function App() {
   const userId = useMemo(() => `demo_${Math.random().toString(36).slice(2, 9)}`, []);
   const fileTreeActions = useFileTreeActions();
-  const { activeFile, openFiles, openFile, closeFile, initializeFiles } = useEditorStore(
+  const { activeFile, openFiles, openFile, closeFile } = useEditorStore(
     useShallow((state) => ({
       activeFile: state.activeFile,
       openFiles: state.openFiles,
       openFile: state.openFile,
       closeFile: state.closeFile,
-      initializeFiles: state.initializeFiles,
     }))
   );
   const [collaborationEnabled, setCollaborationEnabled] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
 
   // 持久化管理 & 单机模式下的内容缓存 & 资源加载
   const { initialFiles } = useSnapshotPersistence({
@@ -31,13 +29,14 @@ export default function App() {
     collaborationEnabled,
   });
 
-  const handleConvertSuccess = async (result: FigmaParseResult) => {
-    await handleFigmaConvertSuccess(result, {
-      getCachedContentByUrl,
-      initializeFiles,
-      openFile,
-    });
-  };
+  const handleConvertSuccessImpl = useFigmaConvertSuccess("demo-room");
+  const handleConvertSuccess = useCallback(
+    async (result: Parameters<typeof handleConvertSuccessImpl>[0]) => {
+      await handleConvertSuccessImpl(result);
+      setPreviewKey((k) => k + 1);
+    },
+    [handleConvertSuccessImpl]
+  );
 
   return (
     <FeatureProvider features={{ fileTree: true, fileTreeHeader: false, toolbar: false, preview: true }}>
@@ -72,6 +71,7 @@ export default function App() {
 
           <PreviewContainer
             roomId="demo-room"
+            refreshKey={previewKey}
           />
         </div>
       </div>

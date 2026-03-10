@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo } from 'react'
 import { useEditorStore } from '@collaborative-editor/shared'
 import { getSnapshot, setSnapshot } from '@collaborative-editor/yjs-local-forage'
-import { DEFAULT_FILES, DEFAULT_ASSETS } from '../utils/default'
+import { DEFAULT_FILES } from '../utils/default'
 
 export function useSnapshotPersistence({
   roomId,
@@ -20,7 +20,7 @@ export function useSnapshotPersistence({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const initialFiles = useMemo(() => customInitialFiles ?? DEFAULT_FILES, [customInitialFiles])
-  const initialAssets = useMemo(() => customInitialAssets ?? DEFAULT_ASSETS, [customInitialAssets])
+  const initialAssets = useMemo(() => customInitialAssets ?? {}, [customInitialAssets])
 
   // 合并所有初始文件路径
   const allInitialFiles = useMemo(() => ({
@@ -73,7 +73,7 @@ export function useSnapshotPersistence({
     }
   }, [roomId, collaborationEnabled, debounceMs])
 
-  // 3. 资源懒加载逻辑
+  // 先读缓存，缓存没有就重新获取资源
   useEffect(() => {
     let previousFile = useEditorStore.getState().activeFile
 

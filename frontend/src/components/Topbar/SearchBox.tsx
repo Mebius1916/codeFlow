@@ -6,7 +6,9 @@ interface SearchBoxProps {
 }
 
 export function SearchBox({ onSuccess }: SearchBoxProps) {
-  const { url, setUrl, error, parse, isLoading } = useFigmaUrlParser();
+  const { url, setUrl, state, parse, clearError } = useFigmaUrlParser();
+  const isLoading = state.status === 'loading';
+  const error = state.status === 'error' ? state.error : null;
 
   const handleConvert = async () => {
     const result = await parse(url);
@@ -29,7 +31,10 @@ export function SearchBox({ onSuccess }: SearchBoxProps) {
           type="text"
           value={url}
           disabled={isLoading}
-          onChange={(e) => setUrl(e.target.value)}
+          onChange={(e) => {
+            if (error) clearError();
+            setUrl(e.target.value);
+          }}
           onKeyDown={(e) => e.key === 'Enter' && handleConvert()}
           className={`block w-full h-full pl-10 pr-[80px] bg-[#252526] border rounded-md leading-5 text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all ${
             error ? 'border-red-500 text-red-400' : 'border-[#2a2f4c]'

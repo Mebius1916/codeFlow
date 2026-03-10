@@ -5,7 +5,7 @@ import { generateHTMLParts } from "./html/index.js";
 interface CodegenResult {
   html: string;
   css: string;
-  assets: Map<string, string>;
+  body: string;
   size?: { width: number; height: number };
 }
 
@@ -16,7 +16,7 @@ export default function codegen(design: SimplifiedDesign): CodegenResult {
   return {
     html: parts.html,
     css: parts.css,
-    assets: parts.context.assets,
+    body: parts.body,
     size: parts.size
   };
 }

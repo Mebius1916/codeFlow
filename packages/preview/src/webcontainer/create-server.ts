@@ -4,37 +4,91 @@ const fs = require('fs');
 const path = require('path');
 
 const ENTRY_POINT = ${entryPoint ? `'${entryPoint}'` : 'null'};
-const BRIDGE_SCRIPT = '<script id="__preview_bridge__">(function(){var send=function(type){try{window.parent&&window.parent.postMessage({type:type}, "*")}catch(e){}};window.addEventListener("focus",function(){send("preview:focus")});window.addEventListener("blur",function(){send("preview:blur")});window.addEventListener("message",function(event){var data=event.data||{};if(data.type==="preview:focus"){try{window.focus()}catch(e){}}});send("preview:ready")})();</script>';
 
-const injectBridge = (html) => {
-  if (html.includes('__preview_bridge__')) return html;
-  if (html.includes('</body>')) {
-    return html.replace('</body>', BRIDGE_SCRIPT + '</body>');
-  }
-  return html + BRIDGE_SCRIPT;
+const buildShell = (innerHtml) => {
+  return \`<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./reset.css">
+    <link rel="stylesheet" href="./style.css">
+    <title>Preview</title>
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #preview-container {
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+      }
+      #preview-scale-root {
+        width: var(--preview-width, 0px);
+        height: var(--preview-height, 0px);
+        position: absolute;
+        left: 0;
+        top: 0;
+        transform: translate(var(--preview-offset-x, 0px), var(--preview-offset-y, 0px)) scale(var(--preview-scale, 1));
+        transform-origin: top left;
+      }
+    </style>
+    <script>
+      (function () {
+        var s = document.documentElement.style;
+        var n = function (v) { return typeof v === 'number' && isFinite(v) && v > 0; };
+        var state = { scale: 1, width: 0, height: 0 };
+        function layout() {
+          var scale = state.scale;
+          var width = state.width;
+          var height = state.height;
+          if (!n(scale) || !n(width) || !n(height)) return;
+          var scaledW = width * scale;
+          var scaledH = height * scale;
+          var offsetX = (window.innerWidth - scaledW) / 2;
+          var offsetY = (window.innerHeight - scaledH) / 2;
+          s.setProperty('--preview-scale', String(scale));
+          s.setProperty('--preview-width', width + 'px');
+          s.setProperty('--preview-height', height + 'px');
+          s.setProperty('--preview-offset-x', offsetX + 'px');
+          s.setProperty('--preview-offset-y', offsetY + 'px');
+        }
+        window.addEventListener('message', function (e) {
+          var d = e && e.data;
+          if (!d || typeof d !== 'object' || d.type !== 'preview:layout') return;
+          var p = d.payload || d;
+          var scale = p.scale, width = p.width, height = p.height;
+          if (n(scale)) state.scale = scale;
+          if (n(width)) state.width = width;
+          if (n(height)) state.height = height;
+          layout();
+        });
+        window.addEventListener('resize', layout);
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="preview-container">
+      <div id="preview-scale-root">\${innerHtml}</div>
+    </div>
+  </body>
+</html>\`;
 };
 
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   let filePath = '.' + url.pathname;
   
-  console.log('[Server] Request:', req.method, url.pathname, '->', filePath);
-  console.log('[Server] Exists:', filePath, fs.existsSync(filePath));
-
   if (filePath === './') {
     if (ENTRY_POINT) {
       filePath = ENTRY_POINT;
     } else {
-      fs.readdir('.', (err, files) => {
-        if (err) {
-          res.writeHead(500);
-          res.end('Server Error: Cannot read directory');
-        } else {
-          res.writeHead(200, { 'Content-Type': 'text/html' });
-          const fileList = files.map(f => '<li><a href="/' + f + '">' + f + '</a></li>').join('');
-          res.end('<h1>No index.html found</h1><p>File Browser:</p><ul>' + fileList + '</ul>');
-        }
-      });
+      res.writeHead(404);
+      res.end('Entry point not found');
       return;
     }
   }
@@ -42,14 +96,8 @@ const server = http.createServer((req, res) => {
   if (!fs.existsSync(filePath) && ENTRY_POINT) {
     const entryDir = path.dirname(ENTRY_POINT);
     const relativePath = path.join(entryDir, url.pathname);
-    console.log('[Server] Trying relative fallback:', relativePath);
-    console.log('[Server] Entry dir:', entryDir, 'Request path:', url.pathname);
-    console.log('[Server] Fallback exists:', relativePath, fs.existsSync(relativePath));
     if (fs.existsSync(relativePath)) {
-      console.log('[Server] Found relative fallback:', relativePath);
       filePath = relativePath;
-    } else {
-      console.log('[Server] Relative fallback not found:', relativePath);
     }
   }
 
@@ -80,8 +128,8 @@ const server = http.createServer((req, res) => {
         'Access-Control-Allow-Origin': '*'
       });
       if (contentType === 'text/html') {
-        const html = injectBridge(content.toString());
-        res.end(html, 'utf-8');
+        const shell = buildShell(content.toString());
+        res.end(shell, 'utf-8');
         return;
       }
       res.end(content, 'utf-8');

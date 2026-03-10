@@ -32,12 +32,11 @@ export const attachModelToEditor = (
   }
 }
 
-export const setModelFromStore = (model: Monaco.editor.ITextModel) => {
-  const snapshotContent = useEditorStore.getState().activeContent
+export const setModelFromStore = (model: Monaco.editor.ITextModel, filePath: string) => {
+  const snapshotContent = useEditorStore.getState().files[filePath]
   if (typeof snapshotContent === 'string' && snapshotContent) {
     model.setValue(snapshotContent)
   } else {
     model.setValue('')
   }
 }
-

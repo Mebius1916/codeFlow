@@ -14,7 +14,6 @@ export function generateHTMLParts(design: SimplifiedDesign, context?: CodegenCon
   html: string;
   css: string;
   body: string;
-  context: CodegenContext;
   size?: { width: number; height: number };
 } {
   const ctx = context ?? createCodegenContext(design);
@@ -28,7 +27,7 @@ export function generateHTMLParts(design: SimplifiedDesign, context?: CodegenCon
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <link rel="stylesheet" href="./output.css">
+     <link rel="stylesheet" href="./style.css">
      <link rel="stylesheet" href="./reset.css">
     <title>${design.name}</title>
     <style>
@@ -38,7 +37,7 @@ export function generateHTMLParts(design: SimplifiedDesign, context?: CodegenCon
     ${bodyContent}
 </body>
 </html>`;
-  return { html, css, body: bodyContent, context: ctx, size };
+  return { html, css, body: bodyContent, size };
 }
 
 function generateNodeRecursive(

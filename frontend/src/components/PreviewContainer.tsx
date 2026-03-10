@@ -1,6 +1,7 @@
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Loading } from "@collaborative-editor/shared";
 import { usePreviewResizeCssVars } from "@collaborative-editor/preview";
+import { getCachedPreviewSize, type PreviewContentSize } from "../utils/url-cache";
 
 const LazyPreviewPanel = lazy(async () => {
   const mod = await import("@collaborative-editor/preview");
@@ -9,12 +10,23 @@ const LazyPreviewPanel = lazy(async () => {
 
 interface PreviewContainerProps {
   roomId: string;
+  refreshKey: number;
 }
 
-export function PreviewContainer({ roomId }: PreviewContainerProps) {
-  const [previewKey] = useState(0);
-  const [previewEnabled] = useState(false);
+export function PreviewContainer({ roomId, refreshKey }: PreviewContainerProps) {
+  const [previewEnabled] = useState(true);
+  const [previewContentSize, setPreviewContentSize] = useState<PreviewContentSize | null>(null);
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = usePreviewResizeCssVars();
+
+  useEffect(() => {
+    let cancelled = false;
+    getCachedPreviewSize(roomId).then((size) => {
+      if (!cancelled) setPreviewContentSize(size ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [roomId, refreshKey]);
 
   return (
     <div
@@ -39,7 +51,7 @@ export function PreviewContainer({ roomId }: PreviewContainerProps) {
             detail={'Waiting'}
           />
         }>
-          <LazyPreviewPanel key={previewKey} roomId={roomId} />
+          <LazyPreviewPanel key={refreshKey} roomId={roomId} previewContentSize={previewContentSize} />
         </Suspense>
       )}
     </div>

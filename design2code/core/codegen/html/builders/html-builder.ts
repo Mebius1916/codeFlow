@@ -12,7 +12,6 @@ import { resolveImageFill } from "../utils/fill.js";
 export class HtmlNodeBuilder {
   private node: SimplifiedNode;
   private globalVars?: TraversalContext["globalVars"];
-  private context?: CodegenContext;
   private tagName: string = "div";
   private attributes: Record<string, string> = {};
   private classes: string[] = [];
@@ -26,7 +25,6 @@ export class HtmlNodeBuilder {
   ) {
     this.node = node;
     this.globalVars = globalVars;
-    this.context = context;
     this.imageFill = resolveImageFill(node, globalVars);
     this.inferSemanticTag();
     this.processAttributes();
@@ -48,10 +46,8 @@ export class HtmlNodeBuilder {
     }
 
     if (type === "SVG") {
-      if (this.context && this.node.svg) {
-        this.tagName = "img";
-        this.isSelfClosing = true;
-      }
+      this.tagName = this.node.src ? "img" : "div";
+      this.isSelfClosing = this.tagName === "img";
     }
   }
 
@@ -73,14 +69,6 @@ export class HtmlNodeBuilder {
       this.isSelfClosing = true;
       const src = this.imageFill?.imageRef || this.node.src;
       if (src) this.attributes["src"] = src;
-
-      // Handle SVG extraction
-      if (this.node.type === "SVG" && this.context && this.node.svg) {
-        const filename = `icon-${this.node.id.replace(/[:;]/g, "-")}.svg`;
-        this.context.assets.set(filename, this.node.svg);
-        this.attributes["src"] = `./assets/${filename}`;
-        this.attributes["alt"] = this.node.name || "icon";
-      }
     }
 
     if (this.node.semanticTag === "list" || 
@@ -115,14 +103,6 @@ export class HtmlNodeBuilder {
     // 是否自闭合
     if (this.isSelfClosing) {
       return `${openTag} />`;
-    }
-
-    // 直接返回内联 SVG
-    if (this.node.type === "SVG") {
-      if (this.node.svg) {
-        return `${openTag}>${this.node.svg}</${this.tagName}>`;
-      }
-      return `${openTag}></${this.tagName}>`;
     }
 
     // 富文本拼接

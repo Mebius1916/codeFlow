@@ -15,6 +15,7 @@ export interface NodeFeatures {
   // Layout Features
   isContainer: boolean; // Has frame-like properties (clipsContent, or frame type)
   layoutMode: "row" | "column" | "none";
+  rawLayoutMode?: "NONE" | "HORIZONTAL" | "VERTICAL"; // Original Figma layout mode
   layoutAlign?: {
     primary: string; // "MIN" | "MAX" | "CENTER" | "SPACE_BETWEEN"
     counter: string; // "MIN" | "MAX" | "CENTER" | "BASELINE"

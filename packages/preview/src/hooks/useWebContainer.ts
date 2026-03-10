@@ -4,6 +4,8 @@ import { generateServerScript } from '../webcontainer/server-script'
 import { useIdleDebounce } from './useIdleDebounce'
 
 let webcontainerInstance: WebContainer | null = null
+let lastPreviewUrl: string | null = null
+const serverReadySubscribers = new Set<(url: string) => void>()
 
 export function useWebContainer(files: Record<string, string | Uint8Array>) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -66,8 +68,11 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
 
         webcontainerInstance.on('server-ready', (port: number, url: string) => {
           addLog(`Server ready at ${url}`)
+          lastPreviewUrl = url
           setPreviewUrl(url)
           setIsLoading(false)
+          serverReadySubscribers.forEach((cb) => cb(url))
+          serverReadySubscribers.clear()
         })
 
         const currentFiles = filesRef.current
@@ -142,6 +147,19 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
     }
 
     bootPromise.current = initWebContainer()
+    if (lastPreviewUrl) {
+      setPreviewUrl(lastPreviewUrl)
+      return
+    }
+    if (!webcontainerInstance) return
+
+    const subscriber = (url: string) => {
+      setPreviewUrl(url)
+    }
+    serverReadySubscribers.add(subscriber)
+    return () => {
+      serverReadySubscribers.delete(subscriber)
+    }
   }, [])
 
   useEffect(() => {
