@@ -19,3 +19,14 @@ export function createRoomId() {
   return `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`
 }
 
+export function getRoomIdFromUrl() {
+  if (typeof window === 'undefined') return null
+  const match = window.location.pathname.match(/^\/room\/([^/]+)\/?$/)
+  if (!match) return null
+  return decodeURIComponent(match[1])
+}
+
+export function setRoomIdInUrl(roomId: string) {
+  if (typeof window === 'undefined') return
+  window.history.replaceState(null, '', `/room/${encodeURIComponent(roomId)}`)
+}

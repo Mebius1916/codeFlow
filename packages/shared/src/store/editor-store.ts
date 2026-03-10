@@ -128,7 +128,6 @@ export const useEditorStore = create<EditorState>()(
     partialize: (state) => ({
         activeFile: state.activeFile,
         openFiles: state.openFiles,
-        // files: state.files, // Removed: handled by Yjs to avoid double storage & performance issues
       }),
   }),
 )

@@ -7,7 +7,7 @@ export const Loading = ({
   detail?: string
   className?: string
 }) => (
-  <div className={`flex flex-col items-center justify-center h-full ${className} gap-3`}>
+  <div className={`flex flex-col items-center justify-center h-full w-full ${className} gap-3`}>
     <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
     <span className="text-xs font-medium animate-pulse">{text}</span>
     {detail ? (

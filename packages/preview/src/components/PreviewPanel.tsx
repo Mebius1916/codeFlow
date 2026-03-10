@@ -1,5 +1,5 @@
 import { Loading } from '@collaborative-editor/shared'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
 import { usePreviewSnapshot } from '../hooks/usePreviewSnapshot'
 import { useWebContainer } from '../hooks/useWebContainer'
@@ -18,6 +18,7 @@ export function PreviewPanel({
   const { iframeRef, handleIframePointerDown, handleIframeClick } = useIframeScrollFocus()
   const { containerRef, containerSize } = useContainerSize<HTMLDivElement>()
   const { previewUrl, isLoading, error, logs } = useWebContainer(previewFiles)
+  const [isIframeLoaded, setIsIframeLoaded] = useState(false)
 
   const scale = useMemo(() => {
     if (!previewContentSize?.width || !previewContentSize?.height) return 1
@@ -50,6 +51,35 @@ export function PreviewPanel({
     postLayout()
   }, [postLayout, previewUrl])
 
+  useEffect(() => {
+    setIsIframeLoaded(false)
+  }, [previewUrl])
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data
+      if (!data || typeof data !== 'object' || data.type !== 'preview:ready') return
+      const iframe = iframeRef.current
+      if (!iframe || event.source !== iframe.contentWindow) return
+      setIsIframeLoaded(true)
+      postLayout()
+    }
+    window.addEventListener('message', handleMessage)
+    return () => {
+      window.removeEventListener('message', handleMessage)
+    }
+  }, [iframeRef, postLayout])
+
+  useEffect(() => {
+    if (!previewUrl) return
+    const timeout = window.setTimeout(() => {
+      setIsIframeLoaded(true)
+    }, 8000)
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [previewUrl])
+
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-full bg-[#252526] text-red-400 p-4 text-center">
@@ -61,16 +91,12 @@ export function PreviewPanel({
     )
   }
 
-  if (isLoading || isSnapshotLoading || !previewUrl) {
-    return <Loading text="启动预览环境..." detail={logs[logs.length - 1]} />
-  }
-
   return (
-    <div className="flex flex-col h-full rgb(12, 14, 23)">
-      <div ref={containerRef} className="relative flex-1 w-full h-full overflow-hidden">
+    <div className="flex flex-col h-full bg-[rgb(12,14,23)]">
+      <div ref={containerRef} className="relative flex-1 w-full h-full overflow-hidden bg-[rgb(12,14,23)]">
         <iframe
           ref={iframeRef}
-          src={previewUrl}
+          src={previewUrl ?? undefined}
           style={{
             position: 'absolute',
             left: 0,
@@ -87,6 +113,11 @@ export function PreviewPanel({
           onLoad={postLayout}
           tabIndex={0}
         />
+        {(isLoading || isSnapshotLoading || !previewUrl || !isIframeLoaded) && (
+          <div className="absolute inset-0">
+            <Loading className="bg-[rgb(12,14,23)] text-gray-400" text="启动预览环境..." detail={logs[logs.length - 1]} />
+          </div>
+        )}
       </div>
     </div>
   )

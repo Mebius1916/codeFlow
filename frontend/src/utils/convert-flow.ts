@@ -4,7 +4,7 @@ import type { FigmaParseResult } from '../hooks/useFigmaUrlParser'
 import { handleFigmaConvertSuccess as handleFigmaConvertSuccessImpl } from './figma/convert-success'
 import { getCachedContentByUrl } from './cache/image'
 import { setCachedPreviewSize } from './cache/preview-size'
-import { createRoomId } from './room-id'
+import { createRoomId, setRoomIdInUrl } from './room-id'
 
 export async function runConvertFlow(result: FigmaParseResult) {
   const nextRoomId = createRoomId()
@@ -12,7 +12,7 @@ export async function runConvertFlow(result: FigmaParseResult) {
   const nextSize = size?.width && size?.height ? size : undefined
   useUiStore.getState().setPreviewContentSize(nextSize ?? null)
 
-  const { initializeFiles, openFile, setRoomId } = useEditorStore.getState()
+  const { initializeFiles, openFile } = useEditorStore.getState()
   await handleFigmaConvertSuccessImpl(result, {
     getCachedContentByUrl,
     initializeFiles,
@@ -22,7 +22,7 @@ export async function runConvertFlow(result: FigmaParseResult) {
   const files = useEditorStore.getState().files
   await setSnapshot(nextRoomId, files)
   if (nextSize) setCachedPreviewSize(nextRoomId, nextSize)
-  setRoomId(nextRoomId)
+  setRoomIdInUrl(nextRoomId)
 
   return nextRoomId
 }

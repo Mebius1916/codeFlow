@@ -1,8 +1,10 @@
 import figmaIconUrl from '../../../assets/Figma.svg';
+import { useNavigate } from 'react-router-dom';
 import { useFigmaUrlParser } from '../../hooks/useFigmaUrlParser';
 import { runConvertFlow } from '../../utils/convert-flow';
 
 export function SearchBox() {
+  const navigate = useNavigate();
   const { url, setUrl, state, parse, clearError } = useFigmaUrlParser();
   const isLoading = state.status === 'loading';
   const error = state.status === 'error' ? state.error : null;
@@ -10,7 +12,8 @@ export function SearchBox() {
   const handleConvert = async () => {
     const result = await parse(url);
     if (result) {
-      await runConvertFlow(result);
+      const roomId = await runConvertFlow(result);
+      navigate(`/room/${encodeURIComponent(roomId)}`);
     }
   };
 

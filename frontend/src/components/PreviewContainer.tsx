@@ -10,29 +10,32 @@ const LazyPreviewPanel = lazy(async () => {
 
 interface PreviewContainerProps {
   roomId: string;
+  isFullscreen?: boolean;
 }
 
-export function PreviewContainer({ roomId }: PreviewContainerProps) {
+export function PreviewContainer({ roomId, isFullscreen }: PreviewContainerProps) {
   const [previewEnabled] = useState(true);
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = usePreviewResizeCssVars();
   const previewContentSize = usePreviewContentSize(roomId);
 
   return (
     <div
-      className="border-l flex flex-col relative transition-colors box-border"
+      className={`flex flex-col relative transition-colors box-border ${isFullscreen ? 'flex-1' : 'border-l'}`}
       style={{ 
-        width: 'var(--preview-panel-width, 300px)',
-        borderLeftColor: 'var(--preview-panel-border-color, #2a2f4c)',
+        width: isFullscreen ? '100%' : 'var(--preview-panel-width, 300px)',
+        borderLeftColor: isFullscreen ? 'transparent' : 'var(--preview-panel-border-color, #2a2f4c)',
         backgroundColor: 'rgb(15, 17, 24)'
       }}
     >
-      <div
-        className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize z-10 transition-colors"
-        onMouseDown={onMouseDown}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        style={handleStyle}
-      />
+      {!isFullscreen && (
+        <div
+          className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize z-10 transition-colors"
+          onMouseDown={onMouseDown}
+          onMouseEnter={onMouseEnter}
+          onMouseLeave={onMouseLeave}
+          style={handleStyle}
+        />
+      )}
       {previewEnabled && (
         <Suspense fallback={
           <Loading 

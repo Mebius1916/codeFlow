@@ -12,7 +12,7 @@ async function run() {
   const data = JSON.parse(fs.readFileSync(inputFile, "utf8"));
   const design = await simplifyRawFigmaObjectWithImages(data, {
     fileKey: "xi5TJ73jny5zfNQC8dRtT4",
-    token: "figd_-gzx6nRm4nOR4RhK8bDNbhNPVHcaEilP8dXHiLup",
+    token: "",
   });
 
   const snapshot = createSnapshotWriter(outputDir, "test.json");

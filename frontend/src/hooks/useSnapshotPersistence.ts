@@ -31,6 +31,7 @@ export function useSnapshotPersistence({
 
   // 1. 初始化加载数据 (Snapshot)
   useEffect(() => {
+    if (!roomId) return
     const init = async () => {
       const snapshot = await getSnapshot(roomId)
       const filesToLoad = snapshot && Object.keys(snapshot).length > 0 ? snapshot : (allInitialFiles ?? {})
@@ -45,6 +46,7 @@ export function useSnapshotPersistence({
 
   // 2. 监听变化并保存（仅在非协同模式下）
   useEffect(() => {
+    if (!roomId) return
     if (collaborationEnabled) return
 
     const unsubscribe = useEditorStore.subscribe((state) => {
@@ -75,6 +77,7 @@ export function useSnapshotPersistence({
 
   // 先读缓存，缓存没有就重新获取资源
   useEffect(() => {
+    if (!roomId) return
     let previousFile = useEditorStore.getState().activeFile
 
     const loadAssetContent = (activeFile: string, assetUrl: string) => {

@@ -6,6 +6,9 @@ import { usePreviewResizeCssVars } from '@collaborative-editor/preview'
 export type TopBarProps = FileTabsBarProps & {
   onNewFile: () => void
   onNewFolder: () => void
+  onPreviewRefresh?: () => void
+  onPreviewFullscreenToggle?: () => void
+  isPreviewFullscreen?: boolean
 }
 
 export function TopBar(props: TopBarProps) {
@@ -60,7 +63,11 @@ export function TopBar(props: TopBarProps) {
               backgroundColor: 'var(--preview-panel-handle-bg, transparent)'
             }}
           />
-          <TopBarActions />
+          <TopBarActions
+            onPreviewRefresh={props.onPreviewRefresh}
+            onPreviewFullscreenToggle={props.onPreviewFullscreenToggle}
+            isPreviewFullscreen={props.isPreviewFullscreen}
+          />
         </div>
       </div>
     </div>
