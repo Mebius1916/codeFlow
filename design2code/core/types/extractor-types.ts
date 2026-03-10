@@ -53,8 +53,6 @@ export interface TraversalContext {
   globalVars: GlobalVars & { extraStyles?: Record<string, Style> };
   currentDepth: number;
   parent?: FigmaDocumentNode;
-  // Analysis Context
-  features?: NodeFeatures;
   // Smart Node
   smartNode?: SmartNode;
 }

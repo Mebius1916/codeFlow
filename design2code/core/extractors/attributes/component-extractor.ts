@@ -6,7 +6,7 @@ import type { ExtractorFn, SimplifiedNode } from "../../types/extractor-types.js
 export const componentExtractor: ExtractorFn = (_node, context) => {
   const result: Partial<SimplifiedNode> = {};
   
-  const rawType = context.features?.rawType;
+  const rawType = context.smartNode?.type;
 
   if (rawType === "INSTANCE") {
     const compId = context.smartNode?.getComponentId();

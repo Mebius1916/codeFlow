@@ -12,8 +12,8 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
   const result: Partial<SimplifiedNode> = {};
 
   // Check if node has children to determine CSS properties
-  const hasChildren = context.features 
-    ? context.features.hasChildren 
+  const hasChildren = context.smartNode 
+    ? context.smartNode.hasChildren 
     : (hasValue("children", node) && Array.isArray(node.children) && node.children.length > 0);
 
   // fills
@@ -70,8 +70,8 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
     result.opacity = node.opacity;
   }
 
-  // Use features for visibility check
-  const isVisible = context.features?.isVisible ?? (hasValue("visible", node) ? node.visible !== false : true);
+  // Use smartNode for visibility check
+  const isVisible = context.smartNode?.isVisible() ?? (hasValue("visible", node) ? node.visible !== false : true);
   if (!isVisible) {
     result.visible = false;
   }
@@ -90,7 +90,7 @@ export const visualsExtractor: ExtractorFn = (node, context) => {
     if (node.type === "ELLIPSE") {
       result.borderRadius = "50%";
     } else {
-      const r = context.features?.visuals?.cornerRadius;
+      const r = context.smartNode?.getVisuals()?.cornerRadius;
       const hasRadius = Array.isArray(r) ? r.some((value) => value !== 0) : r !== 0;
       if (r !== undefined && hasRadius) {
         result.borderRadius = Array.isArray(r)

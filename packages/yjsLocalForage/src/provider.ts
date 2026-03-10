@@ -1,7 +1,9 @@
 import * as Y from 'yjs'
 import localforage from 'localforage'
 import { ObservableV2 } from 'lib0/observable'
-import { getSnapshotFromStore, setSnapshotToStore, getUpdatesFromStore, setUpdatesToStore } from './store'
+import { maintainRooms } from './eviction/maintain'
+import { getSnapshotFromStore, setSnapshotToStore } from './storage/snapshot'
+import { getUpdatesFromStore, setUpdatesToStore } from './storage/updates'
 import type { SnapshotContent, LocalForage } from './types'
 
 export async function getSnapshot(
@@ -9,6 +11,7 @@ export async function getSnapshot(
   storeName = 'yjs-forage',
 ): Promise<Record<string, SnapshotContent> | null> {
   const store = localforage.createInstance({ name: storeName })
+  await maintainRooms(store, room, storeName)
   return getSnapshotFromStore(store, room)
 }
 
@@ -19,6 +22,7 @@ export async function setSnapshot(
 ): Promise<void> {
   const store = localforage.createInstance({ name: storeName })
   await setSnapshotToStore(store, room, snapshot)
+  await maintainRooms(store, room, storeName)
 }
 
 // 协调计算
@@ -26,6 +30,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
   private _room: string
   private _doc: Y.Doc
   private _store: LocalForage
+  private _storeName: string
   public whenSynced: Promise<void>
   private _updateHandler: (update: Uint8Array, origin: any) => void
   private _debounceTimer: any = null
@@ -36,6 +41,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
     this._room = room
     this._doc = doc
     this._debounceWait = debounceWait
+    this._storeName = storeName
     this._store = localforage.createInstance({
       name: storeName
     })
@@ -53,6 +59,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
 
   private async init() {
     try {
+      await maintainRooms(this._store, this._room, this._storeName)
       // 1. 尝试读取 Updates (协同历史)
       const resolvedUpdates = await getUpdatesFromStore(this._store, this._room)
       
@@ -108,6 +115,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
 
       await setSnapshotToStore(this._store, this._room, snapshot)
       await setUpdatesToStore(this._store, this._room, updates)
+      await maintainRooms(this._store, this._room, this._storeName)
     } catch (err) {
       console.error('[YjsLocalForage] Failed to save data:', err)
     }

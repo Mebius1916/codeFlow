@@ -10,7 +10,7 @@ import { buildSimplifiedEffects } from "../../transformers/effects.js";
  */
 export const textExtractor: ExtractorFn = (node, context) => {
   const result: Partial<SimplifiedNode> = {};
-  const isText = context.features?.looksLikeText;
+  const isText = context.smartNode?.isText();
 
   // Extract text content
   if (isText) {

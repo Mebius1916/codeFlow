@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { setOptions } from '@collaborative-editor/design2code';
 import type { AlgorithmOptions } from '@collaborative-editor/design2code';
-import { clearSessionPathMap, getSessionPathMap } from '../utils/path-map';
-import { fetchFigmaData, parseFigmaUrl, safeCodegen, safeExtractDesign } from '../utils/url-parser';
+import { clearSessionAssetUrlMap, getSessionAssetUrlMap } from '../utils/figma/assets-map';
+import { fetchFigmaData, parseFigmaUrl, safeCodegen, safeExtractDesign } from '../utils/figma/url';
 
 export interface FigmaParseResult {
   assets_path_map: Map<string, string>;
@@ -31,7 +31,7 @@ export function useFigmaUrlParser() {
     }
 
     setState({ status: 'loading' });
-    clearSessionPathMap();
+    clearSessionAssetUrlMap();
 
     try {
       // 如果传入了算法配置，则更新引擎
@@ -56,7 +56,7 @@ export function useFigmaUrlParser() {
         throw new Error('Codegen 失败');
       }
 
-      const assetsPathMap = getSessionPathMap();
+      const assetsPathMap = getSessionAssetUrlMap();
 
       const result: FigmaParseResult = {
         assets_path_map: assetsPathMap,

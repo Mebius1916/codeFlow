@@ -1,7 +1,7 @@
 export const DEFAULT_FILES = {
-  "src/index.html": ``,
-  "src/style.css": ``,
-  "src/reset.css": ``,
+  'src/index.html': ``,
+  'src/style.css': ``,
+  'src/reset.css': ``,
 }
 
 export const DEFAULT_RESET_CSS = `* { 
@@ -24,3 +24,4 @@ button {
   padding: 0; 
 }
 `;
+

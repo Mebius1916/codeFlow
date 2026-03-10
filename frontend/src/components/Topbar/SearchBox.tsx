@@ -1,19 +1,16 @@
 import figmaIconUrl from '../../../assets/Figma.svg';
-import { useFigmaUrlParser, FigmaParseResult } from '../../hooks/useFigmaUrlParser';
+import { useFigmaUrlParser } from '../../hooks/useFigmaUrlParser';
+import { runConvertFlow } from '../../utils/convert-flow';
 
-interface SearchBoxProps {
-  onSuccess?: (result: FigmaParseResult) => void | Promise<void>;
-}
-
-export function SearchBox({ onSuccess }: SearchBoxProps) {
+export function SearchBox() {
   const { url, setUrl, state, parse, clearError } = useFigmaUrlParser();
   const isLoading = state.status === 'loading';
   const error = state.status === 'error' ? state.error : null;
 
   const handleConvert = async () => {
     const result = await parse(url);
-    if (result && onSuccess) {
-      await onSuccess(result);
+    if (result) {
+      await runConvertFlow(result);
     }
   };
 

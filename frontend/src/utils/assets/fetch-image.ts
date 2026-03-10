@@ -1,7 +1,6 @@
-import { buildAssetPathFromContentType } from './asset-path'
-import { setSessionPathUrl } from './path-map'
-import { getCachedContentByUrl, getCachedContentTypeByUrl, setCachedContentByUrl } from './url-cache'
-import type { ResourceContent } from './lru-cache'
+import { buildAssetPathFromContentType } from './path'
+import { setSessionAssetUrl } from '../figma/assets-map'
+import { getCachedContentByUrl, getCachedContentTypeByUrl, setCachedContentByUrl, type ResourceContent } from '../cache/image'
 
 export interface ImageFetchResult {
   path: string
@@ -24,7 +23,7 @@ async function requestImageWithCache(
   if (cached !== undefined) {
     const cachedType = (await getCachedContentTypeByUrl(url)) || 'image/png'
     const { relativePath } = buildAssetPathFromContentType(key, cachedType)
-    setSessionPathUrl(relativePath, url)
+    setSessionAssetUrl(relativePath, url)
     return { path: relativePath, content: cached }
   }
 
@@ -36,10 +35,10 @@ async function requestImageWithCache(
   const contentType = resp.headers.get('content-type') || ''
   const content = await readResponseContent(resp)
 
-  setCachedContentByUrl(url, content, contentType)
+  await setCachedContentByUrl(url, content, contentType)
 
   const { relativePath } = buildAssetPathFromContentType(key, contentType)
-  setSessionPathUrl(relativePath, url)
+  setSessionAssetUrl(relativePath, url)
 
   return { path: relativePath, content }
 }
@@ -53,3 +52,4 @@ async function readResponseContent(resp: Response): Promise<ResourceContent> {
   const buffer = await blob.arrayBuffer()
   return new Uint8Array(buffer)
 }
+

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useMemo } from 'react'
 import { useEditorStore } from '@collaborative-editor/shared'
 import { getSnapshot, setSnapshot } from '@collaborative-editor/yjs-local-forage'
-import { DEFAULT_FILES } from '../utils/default'
+import { DEFAULT_FILES } from '../utils/templates/defaults'
 
 export function useSnapshotPersistence({
   roomId,

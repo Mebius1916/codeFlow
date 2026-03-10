@@ -17,6 +17,10 @@ export class SmartNode {
   get name() { return this.raw.name; }
   get type() { return this.raw.type; }
 
+  get hasChildren(): boolean {
+    return this.features.hasChildren;
+  }
+
   /**
    * Type Guards
    */

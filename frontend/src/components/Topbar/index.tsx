@@ -1,12 +1,10 @@
 import { Brand } from './Brand';
 import { SearchBox } from './SearchBox';
 import { TopbarActions } from './TopbarActions';
-import type { FigmaParseResult } from '../../hooks/useFigmaUrlParser';
 
 export interface TopbarProps {
   onShare?: () => void;
   shareEnabled?: boolean;
-  onConvertSuccess?: (result: FigmaParseResult) => void | Promise<void>;
 }
 
 export function Topbar(props: TopbarProps) {
@@ -16,7 +14,7 @@ export function Topbar(props: TopbarProps) {
       style={{ backgroundColor: 'rgb(25, 30, 50)' }}
     >
       <Brand />
-      <SearchBox onSuccess={props.onConvertSuccess} />
+      <SearchBox />
       <TopbarActions onShare={props.onShare} shareEnabled={props.shareEnabled} />
     </div>
   );

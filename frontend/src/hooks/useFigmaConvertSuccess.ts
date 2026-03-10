@@ -2,10 +2,10 @@ import { useCallback } from "react";
 import { useEditorStore, useShallow } from "@collaborative-editor/shared";
 import { setSnapshot } from "@collaborative-editor/yjs-local-forage";
 import type { FigmaParseResult } from "./useFigmaUrlParser";
-import { getCachedContentByUrl, setCachedPreviewSize } from "../utils/url-cache";
-import { handleFigmaConvertSuccess as handleFigmaConvertSuccessImpl } from "../utils/figma-convert";
+import { getCachedContentByUrl } from "../utils/cache/image";
+import { handleFigmaConvertSuccess as handleFigmaConvertSuccessImpl } from "../utils/figma/convert-success";
 
-export function useFigmaConvertSuccess(roomId: string) {
+export function useFigmaConvertSuccess() {
   const { initializeFiles, openFile } = useEditorStore(
     useShallow((state) => ({
       initializeFiles: state.initializeFiles,
@@ -14,7 +14,7 @@ export function useFigmaConvertSuccess(roomId: string) {
   );
 
   return useCallback(
-    async (result: FigmaParseResult) => {
+    async (roomId: string, result: FigmaParseResult) => {
       await handleFigmaConvertSuccessImpl(result, {
         getCachedContentByUrl,
         initializeFiles,
@@ -23,12 +23,7 @@ export function useFigmaConvertSuccess(roomId: string) {
 
       const files = useEditorStore.getState().files;
       await setSnapshot(roomId, files);
-
-      const size = result.codegen_result?.size;
-      if (size?.width && size?.height) {
-        setCachedPreviewSize(roomId, size);
-      }
     },
-    [initializeFiles, openFile, roomId]
+    [initializeFiles, openFile]
   );
 }

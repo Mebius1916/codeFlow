@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 
+type PreviewContentSize = { width: number; height: number }
+
 interface UiState {
   theme: 'light' | 'dark'
   terminalHeight: number
@@ -7,6 +9,7 @@ interface UiState {
   previewWidth: number
   fileTreeResizing: boolean
   fileTreeResizeHover: boolean
+  previewContentSize: PreviewContentSize | null
 
   setTheme: (theme: 'light' | 'dark') => void
   setTerminalHeight: (height: number) => void
@@ -14,6 +17,7 @@ interface UiState {
   setPreviewWidth: (width: number) => void
   setFileTreeResizing: (isResizing: boolean) => void
   setFileTreeResizeHover: (isHover: boolean) => void
+  setPreviewContentSize: (size: PreviewContentSize | null) => void
 }
 
 type SetState<T> = (
@@ -28,6 +32,7 @@ export const useUiStore = create<UiState>((set: SetState<UiState>) => ({
   previewWidth: 520,
   fileTreeResizing: false,
   fileTreeResizeHover: false,
+  previewContentSize: null,
 
   setTheme: (theme: 'light' | 'dark') => {
     set({ theme })
@@ -51,5 +56,9 @@ export const useUiStore = create<UiState>((set: SetState<UiState>) => ({
 
   setFileTreeResizeHover: (isHover: boolean) => {
     set({ fileTreeResizeHover: isHover })
+  },
+
+  setPreviewContentSize: (size: PreviewContentSize | null) => {
+    set({ previewContentSize: size })
   },
 }))

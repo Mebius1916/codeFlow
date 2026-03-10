@@ -46,7 +46,6 @@ export function processNodes(
     // 4. Update Context with Smart Node
     const nodeContext: TraversalContext = {
       ...context,
-      features,
       smartNode,
     };
 

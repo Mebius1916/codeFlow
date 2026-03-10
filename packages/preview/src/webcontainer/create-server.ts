@@ -7,7 +7,7 @@ const ENTRY_POINT = ${entryPoint ? `'${entryPoint}'` : 'null'};
 
 const buildShell = (innerHtml) => {
   return \`<!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="background: rgb(12, 14, 23); color-scheme: dark;">
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,12 +20,14 @@ const buildShell = (innerHtml) => {
         height: 100%;
         margin: 0;
         padding: 0;
+        background: rgb(12, 14, 23) !important;
       }
       #preview-container {
         position: relative;
         overflow: hidden;
         width: 100%;
         height: 100%;
+        background: rgb(12, 14, 23) !important;
       }
       #preview-scale-root {
         width: var(--preview-width, 0px);
@@ -33,6 +35,14 @@ const buildShell = (innerHtml) => {
         position: absolute;
         left: 0;
         top: 0;
+        background-color: rgba(255, 255, 255, 0.04);
+        background-image:
+          linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05)),
+          linear-gradient(45deg, rgba(255, 255, 255, 0.05) 25%, transparent 25%, transparent 75%, rgba(255, 255, 255, 0.05) 75%, rgba(255, 255, 255, 0.05));
+        background-size: 24px 24px;
+        background-position: 0 0, 12px 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        outline: 1px solid rgba(255, 255, 255, 0.08);
         transform: translate(var(--preview-offset-x, 0px), var(--preview-offset-y, 0px)) scale(var(--preview-scale, 1));
         transform-origin: top left;
       }
@@ -71,7 +81,7 @@ const buildShell = (innerHtml) => {
       })();
     </script>
   </head>
-  <body>
+  <body style="background: rgb(12, 14, 23);">
     <div id="preview-container">
       <div id="preview-scale-root">\${innerHtml}</div>
     </div>

@@ -8,9 +8,9 @@ export const imageExtractor: ExtractorFn = (node, context) => {
   const svgNodeIds = imageAssets.svgNodeIds || [];
   imageAssets.svgNodeIds = svgNodeIds;
 
-  // Use features from analysis if available
-  const isImage = context.features?.looksLikeImage;
-  const isSvg = context.features?.looksLikeIcon;
+  // Use smartNode for identification if available
+  const isImage = context.smartNode?.isImage();
+  const isSvg = context.smartNode?.isIcon();
 
   if (isImage) {
     pushUnique(ids, node.id);

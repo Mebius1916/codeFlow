@@ -66,7 +66,7 @@ export function PreviewPanel({
   }
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full rgb(12, 14, 23)">
       <div ref={containerRef} className="relative flex-1 w-full h-full overflow-hidden">
         <iframe
           ref={iframeRef}
@@ -78,7 +78,7 @@ export function PreviewPanel({
             width: '100%',
             height: '100%',
             border: 'none',
-            background: '',
+            background: 'rgb(12, 14, 23)',
           }}
           title="Preview"
           sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
