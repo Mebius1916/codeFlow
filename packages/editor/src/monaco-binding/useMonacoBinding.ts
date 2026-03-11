@@ -2,16 +2,16 @@ import { useEffect, useRef } from 'react'
 import type * as Monaco from 'monaco-editor'
 import * as Y from 'yjs'
 import { useFeatures } from '@collaborative-editor/shared'
-import { initMonaco } from '../lib/monaco/initMonaco'
-import type { AwarenessProvider } from '../lib/yjs/provider'
+import { initMonaco } from '../utils/initMonaco'
+import type { AwarenessProvider } from '../collaboration/provider'
 import {
   clearSaveTimeout,
   destroyBindingRef,
   disposeUnbindRef,
   type MonacoBinding,
-} from './monacoBindingCleanup'
-import { getOrCreateModel, attachModelToEditor, setModelFromStore } from './monacoBindingModel'
-import { bindCollabMode, bindSingleMode } from './monacoBindingModes'
+} from './cleanup'
+import { getOrCreateModel, attachModelToEditor, setModelFromStore } from './monacoModel'
+import { bindCollabMode, bindSingleMode } from './modelState'
 
 interface UseMonacoBindingProps {
   editor: Monaco.editor.IStandaloneCodeEditor | null
@@ -21,10 +21,9 @@ interface UseMonacoBindingProps {
   onSave?: (files: Record<string, string>) => void
   isReady: boolean
   domReady: boolean
-  roomId?: string
 }
 
-export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, isReady, domReady, roomId: _roomId }: UseMonacoBindingProps) {
+export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, isReady, domReady }: UseMonacoBindingProps) {
   const bindingRef = useRef<MonacoBinding | null>(null)
   const unbindRef = useRef<null | (() => void)>(null)
   const { autoSave } = useFeatures()

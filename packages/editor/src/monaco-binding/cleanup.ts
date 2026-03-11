@@ -1,4 +1,4 @@
-import { createMonacoBinding } from '../lib/yjs'
+import { createMonacoBinding } from './yjsBinding'
 
 export type Ref<T> = { current: T }
 export type Unbind = () => void
@@ -25,4 +25,3 @@ export const destroyBindingRef = (bindingRef: Ref<MonacoBinding | null>) => {
     bindingRef.current = null
   }
 }
-

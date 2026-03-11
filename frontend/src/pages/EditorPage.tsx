@@ -1,8 +1,8 @@
 import { FeatureProvider, useEditorStore, useShallow } from "@collaborative-editor/shared";
 import { useFileTreeActions } from "@collaborative-editor/file-tree";
 import { TopBar as FileTreeBar } from "@collaborative-editor/topbar";
-import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSnapshotPersistence } from "../hooks/useSnapshotPersistence";
 import { Sidebar } from "../components/Sidebar";
 import { EditorContainer } from "../components/EditorContainer";
@@ -11,6 +11,8 @@ import { Topbar } from "../components/Topbar/index";
 
 export function EditorPage() {
   const { roomId } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const resolvedRoomId = roomId ?? "";
   const userId = useMemo(() => `demo_${Math.random().toString(36).slice(2, 9)}`, []);
   const fileTreeActions = useFileTreeActions();
@@ -31,6 +33,13 @@ export function EditorPage() {
     collaborationEnabled,
   });
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("collab") === "1") {
+      setCollaborationEnabled(true);
+    }
+  }, [location.search]);
+
   if (!resolvedRoomId) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-gray-900 text-gray-300">
@@ -43,7 +52,14 @@ export function EditorPage() {
     <FeatureProvider features={{ fileTree: true, fileTreeHeader: false, toolbar: false, preview: true }}>
       <div className="h-screen w-screen flex flex-col bg-gray-900">
         <Topbar
-          onShare={() => setCollaborationEnabled(true)}
+          onShare={() => {
+            setCollaborationEnabled(true);
+            const params = new URLSearchParams(location.search);
+            if (params.get("collab") !== "1") {
+              params.set("collab", "1");
+              navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+            }
+          }}
           shareEnabled={collaborationEnabled}
         />
         <FileTreeBar

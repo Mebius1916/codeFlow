@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import type * as Monaco from 'monaco-editor'
 import { Loading, useEditorStore } from '@collaborative-editor/shared'
-import { initMonaco } from '../lib/monaco/initMonaco'
+import { initMonaco } from '../utils/initMonaco'
 import { EmptyState } from './common/EmptyState'
-import { useYjsCollaboration } from '../hooks/useYjsCollaboration'
-import { useMonacoBinding } from '../hooks/useMonacoBinding'
+import { useCollaboration } from '../collaboration/useCollaboration'
+import { useMonacoBinding } from '../monaco-binding/useMonacoBinding'
 import { ImagePreview } from './features/ImagePreview'
 import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
 import type { EditorProps } from '../types'
@@ -17,7 +17,7 @@ export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled
   const [isMonacoReady, setIsMonacoReady] = useState(false)
 
   // 实例化 Yjs 线程
-  const { provider, yDocRef, isReady } = useYjsCollaboration({
+  const { provider, yDocRef, isReady } = useCollaboration({
     roomId,
     user,
     wsUrl,
@@ -53,7 +53,6 @@ export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled
     onSave,
     isReady,
     domReady: isEditorMounted,
-    roomId,
   })
 
   useEffect(() => {

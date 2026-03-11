@@ -1,7 +1,7 @@
 import type * as Monaco from 'monaco-editor'
 import { useEditorStore } from '@collaborative-editor/shared'
-import { getLanguageFromPath } from '../lib/utils/file'
-import type { Ref } from './monacoBindingCleanup'
+import { getLanguageFromPath } from '../utils/file'
+import type { Ref } from './cleanup'
 
 export const getOrCreateModel = (monaco: typeof import('monaco-editor'), modelRef: Ref<Monaco.editor.ITextModel | null>) => {
   let model = modelRef.current

@@ -9,7 +9,10 @@ export type FileTabsBarProps = {
 
 export function FileTabsBar({ activeFile, openFiles, onOpenFile, onCloseFile }: FileTabsBarProps) {
   return (
-    <div className="flex-1 flex items-center overflow-x-auto h-full px-0 bg-[rgb(19,22,32)]">
+    <div
+      className="flex-1 flex items-center overflow-x-auto overflow-y-hidden h-full px-0 bg-[rgb(19,22,32)] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#2a2f4c]/30 hover:[&::-webkit-scrollbar-thumb]:bg-[#2a2f4c]/70 [&::-webkit-scrollbar-thumb]:border [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-clip-padding [&::-webkit-scrollbar-thumb]:transition-colors"
+      style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(42, 47, 76, 0.7) transparent' }}
+    >
       {openFiles.map((file) => (
         <div
           key={file}
@@ -38,4 +41,3 @@ export function FileTabsBar({ activeFile, openFiles, onOpenFile, onCloseFile }: 
     </div>
   )
 }
-

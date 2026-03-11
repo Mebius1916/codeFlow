@@ -1,10 +1,10 @@
 import type * as Monaco from 'monaco-editor'
 import * as Y from 'yjs'
 import { useEditorStore } from '@collaborative-editor/shared'
-import { createMonacoBinding, syncCursorToAwareness } from '../lib/yjs'
-import type { AwarenessProvider } from '../lib/yjs/provider'
-import type { OnSave, Ref, Unbind, MonacoBinding } from './monacoBindingCleanup'
-import { clearSaveTimeout } from './monacoBindingCleanup'
+import { createMonacoBinding, syncCursorToAwareness } from './yjsBinding'
+import type { AwarenessProvider } from '../collaboration/provider'
+import type { OnSave, Ref, Unbind, MonacoBinding } from './cleanup'
+import { clearSaveTimeout } from './cleanup'
 
 export const setupAutosave = (
   model: Monaco.editor.ITextModel,
@@ -23,6 +23,7 @@ export const setupAutosave = (
   })
 }
 
+// 单机模式，只与zustand 绑定
 export const bindSingleMode = (args: {
   activeFile: string
   model: Monaco.editor.ITextModel
@@ -47,13 +48,14 @@ export const bindSingleMode = (args: {
 
   const disposable = args.model.onDidChangeContent(() => {
     updateStore()
+    // 0.5s 自动保存
     if (args.autoSave) {
       clearSaveTimeout(args.saveTimeoutRef)
       args.saveTimeoutRef.current = setTimeout(() => {
         if (!args.model.isDisposed()) {
           args.onSaveRef.current?.({ [args.activeFile]: args.model.getValue() })
         }
-      }, 1000)
+      }, 500)
     }
   })
 
@@ -64,6 +66,7 @@ export const bindSingleMode = (args: {
   }
 }
 
+// 协作模式，与 yjs 和 zustand 绑定
 export const bindCollabMode = async (args: {
   activeFile: string
   model: Monaco.editor.ITextModel
@@ -88,17 +91,8 @@ export const bindCollabMode = async (args: {
   args.bindingRef.current = binding as MonacoBinding
   syncCursorToAwareness(args.editor, args.provider)
 
-  const updateStore = () => {
-    const content = yText.toString()
-    useEditorStore.getState().updateFileContent(args.activeFile, content)
-  }
-
-  updateStore()
-  yText.observe(updateStore)
-
   const originalDestroy = binding.destroy.bind(binding)
   binding.destroy = () => {
-    yText.unobserve(updateStore)
     clearSaveTimeout(args.saveTimeoutRef)
     originalDestroy()
   }

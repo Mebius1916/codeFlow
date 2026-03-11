@@ -30,3 +30,11 @@ export async function setSnapshotToStore(
   await Promise.all(nextIndex.map((path) => store.setItem(roomFileKey(room, path), snapshot[path])))
   await store.setItem(roomFilesIndexKey(room), nextIndex)
 }
+
+export async function clearSnapshotFromStore(store: LocalForage, room: string) {
+  const index = await store.getItem<string[]>(roomFilesIndexKey(room))
+  if (index && index.length > 0) {
+    await Promise.all(index.map((path) => store.removeItem(roomFileKey(room, path))))
+  }
+  await store.removeItem(roomFilesIndexKey(room))
+}

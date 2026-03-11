@@ -3,11 +3,12 @@ import * as Y from 'yjs'
 import { useShallow } from 'zustand/react/shallow'
 import { useCollaborationStore } from '../store/collaboration-store'
 import { type CodeEditorUser } from '@collaborative-editor/shared'
-import { YjsWorkerProvider } from '../lib/yjs/provider'
+import { YjsWorkerProvider } from './provider'
+import { bindAnyStoreSync } from './anyStoreSync'
 // @ts-ignore
-import YjsWorker from '../lib/yjs/worker.ts?worker'
+import YjsWorker from './worker.ts?worker'
 
-export function useYjsCollaboration({
+export function useCollaboration({
   roomId,
   user,
   wsUrl,
@@ -19,7 +20,7 @@ export function useYjsCollaboration({
   user: CodeEditorUser
   wsUrl?: string
   enablePersistence?: boolean
-  initialFiles?: Record<string, string>
+  initialFiles?: Record<string, string | Uint8Array>
   collaborationEnabled?: boolean
 }) {
   const [isReady, setIsReady] = useState(false)
@@ -68,7 +69,6 @@ export function useYjsCollaboration({
     const newProvider = new YjsWorkerProvider(worker, yDoc)
     setProvider(newProvider)
 
-    // Worker 负责所有的数据加载和持久化逻辑
     worker.postMessage({
       type: 'init',
       payload: {
@@ -103,12 +103,15 @@ export function useYjsCollaboration({
     newProvider.awareness.on('change', updateUsers)
     updateUsers()
 
+    const unsubscribeDocSync = bindAnyStoreSync(yDoc)
+
     newProvider.on('status', ({ status }: { status: 'connected' | 'disconnected' | 'connecting' }) => {
       setConnectionStatus(status === 'connected' ? 'connected' : status === 'connecting' ? 'connecting' : 'disconnected')
     })
 
     return () => {
       mounted = false
+      unsubscribeDocSync()
       worker.postMessage({ type: 'destroy' })
       worker.terminate()
       newProvider.destroy()

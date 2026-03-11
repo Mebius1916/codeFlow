@@ -16,10 +16,8 @@ export class YjsWorkerProvider extends ObservableV2<any> {
     this.worker = worker
     this.awareness = new awarenessProtocol.Awareness(doc)
     
-    // 监听 Worker 消息
     this.worker.addEventListener('message', (e) => {
       const { type, payload } = e.data
-      // 光标更新
       if (type === 'awareness-update') {
         awarenessProtocol.applyAwarenessUpdate(
           this.awareness,
@@ -27,18 +25,15 @@ export class YjsWorkerProvider extends ObservableV2<any> {
           'worker'
         )
       }
-      // websocket 连接状态更新
       if (type === 'status') {
         this.connected = payload === 'connected'
         this.emit('status', [{ status: payload }])
       }
-      // 文档更新
       if (type === 'update') {
         Y.applyUpdate(doc, payload as Uint8Array, 'worker')
       }
     })
 
-    // 将主线程（本地用户）产生的更新转发给 Worker
     doc.on('update', (update: Uint8Array, origin: any) => {
       if (origin !== 'worker') {
         this.worker.postMessage({

@@ -13,7 +13,7 @@ export function ImagePreview() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full bg-[#15172A] p-8 overflow-hidden">
-      <div className="relative max-w-full max-h-full flex items-center justify-center p-4 shadow-lg">
+      <div className="relative max-w-full max-h-full flex items-center justify-center p-4 shadow-lg bg-white">
         {svgText ? (
           <div
             className="max-w-full max-h-[80vh] object-contain"

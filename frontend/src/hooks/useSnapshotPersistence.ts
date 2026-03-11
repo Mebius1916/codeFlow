@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo } from 'react'
 import { useEditorStore } from '@collaborative-editor/shared'
-import { getSnapshot, setSnapshot } from '@collaborative-editor/yjs-local-forage'
+import { clearSnapshot, getSnapshot, setSnapshot } from '@collaborative-editor/yjs-local-forage'
 import { DEFAULT_FILES } from '../utils/templates/defaults'
 
 export function useSnapshotPersistence({
@@ -39,10 +39,14 @@ export function useSnapshotPersistence({
       // 填充 store
       useEditorStore.getState().initializeFiles(filesToLoad)
       readyRef.current = true
+
+      if (collaborationEnabled && snapshot && Object.keys(snapshot).length > 0) {
+        await clearSnapshot(roomId)
+      }
     }
 
     init()
-  }, [roomId, allInitialFiles])
+  }, [roomId, allInitialFiles, collaborationEnabled])
 
   // 2. 监听变化并保存（仅在非协同模式下）
   useEffect(() => {

@@ -1,6 +1,6 @@
 import MonacoEditor from '@monaco-editor/react'
 import type * as Monaco from 'monaco-editor'
-import { getLanguageFromPath } from '../../lib/utils/file'
+import { getLanguageFromPath } from '../../utils/file'
 
 interface MonacoEditorWrapperProps {
   activeFile: string

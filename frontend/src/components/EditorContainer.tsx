@@ -9,7 +9,7 @@ const LazyEditor = lazy(async () => {
 type EditorProps = {
   roomId: string;
   userId: string;
-  initialFiles?: Record<string, string>;
+  initialFiles?: Record<string, string | Uint8Array>;
   collaborationEnabled?: boolean;
 };
 

@@ -2,9 +2,10 @@ import * as Y from 'yjs'
 import localforage from 'localforage'
 import { ObservableV2 } from 'lib0/observable'
 import { maintainRooms } from './eviction/maintain'
-import { getSnapshotFromStore, setSnapshotToStore } from './storage/snapshot'
+import { clearSnapshotFromStore, getSnapshotFromStore, setSnapshotToStore } from './storage/snapshot'
 import { getUpdatesFromStore, setUpdatesToStore } from './storage/updates'
 import type { SnapshotContent, LocalForage } from './types'
+import { applySnapshotToDoc, extractSnapshotFromDoc } from './yjs/files'
 
 export async function getSnapshot(
   room: string,
@@ -23,6 +24,14 @@ export async function setSnapshot(
   const store = localforage.createInstance({ name: storeName })
   await setSnapshotToStore(store, room, snapshot)
   await maintainRooms(store, room, storeName)
+}
+
+export async function clearSnapshot(
+  room: string,
+  storeName = 'yjs-forage',
+): Promise<void> {
+  const store = localforage.createInstance({ name: storeName })
+  await clearSnapshotFromStore(store, room)
 }
 
 // 协调计算
@@ -70,18 +79,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
         const snapshot = await getSnapshotFromStore(this._store, this._room)
         
         if (snapshot && Object.keys(snapshot).length > 0) {
-          // 将 Snapshot 转换为 Yjs 初始状态
-          this._doc.transact(() => {
-            for (const [key, content] of Object.entries(snapshot)) {
-              if (typeof content === 'string' && !/\.(svg|png|jpg|jpeg|gif|webp)$/i.test(key)) {
-                const yText = this._doc.getText(key)
-                if (yText.length === 0) {
-                  yText.insert(0, content)
-                }
-              }
-            }
-          }, 'local-forage') 
-          
+          applySnapshotToDoc(this._doc, snapshot)
           this.save()
         }
       }
@@ -103,13 +101,7 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
 
   private async save() {
     try {
-      const snapshot: Record<string, string> = {}
-
-      this._doc.share.forEach((type, key) => {
-        if (type instanceof Y.Text) {
-          snapshot[key] = type.toString()
-        }
-      })
+      const snapshot = extractSnapshotFromDoc(this._doc)
 
       const updates = Y.encodeStateAsUpdate(this._doc)
 
