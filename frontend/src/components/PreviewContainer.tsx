@@ -15,9 +15,7 @@ interface PreviewContainerProps {
 export function PreviewContainer({ roomId, isFullscreen }: PreviewContainerProps) {
   const [previewEnabled] = useState(true);
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = usePreviewResizeCssVars();
-  // 直接从 Zustand Store 读取，因为 anyStoreSync 已经保证了 Store 和 Yjs 的同步
   const previewContentSize = useUiStore(useShallow((state) => state.previewContentSize));
-
   return (
     <div
       className={`flex flex-col relative transition-colors box-border ${isFullscreen ? 'flex-1' : 'border-l'}`}

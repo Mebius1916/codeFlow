@@ -13,7 +13,7 @@ export function useFigmaConvertSuccess() {
   );
 
   return useCallback(
-    async (roomId: string, result: FigmaParseResult) => {
+    async (result: FigmaParseResult) => {
       await handleFigmaConvertSuccessImpl(result, {
         getCachedContentByUrl,
         initializeFiles,

@@ -1,6 +1,6 @@
 import * as Y from 'yjs'
 import { useEditorStore } from '@collaborative-editor/shared'
-import { observeAny } from './yjsAny'
+import { observeAny, setAny } from './yjsAny'
 import { anyEqual } from './anyEqual'
 
 export const bindAnyStoreSync = (doc: Y.Doc) => {
@@ -40,9 +40,22 @@ export const bindAnyStoreSync = (doc: Y.Doc) => {
   // 初始化调用，确保所有路径都被监听
   ensureDocPaths()
 
+  const unsubscribeStore = useEditorStore.subscribe((state, prevState) => {
+    const nextFiles = state.files
+    const prevFiles = prevState.files
+    if (nextFiles === prevFiles) return
+
+    Object.entries(nextFiles).forEach(([path, content]) => {
+      if (prevFiles[path] === content) return
+      if (typeof content !== 'string' && !(content instanceof Uint8Array)) return
+      setAny(doc, path, content)
+    })
+  })
+
   return () => {
     doc.off('update', ensureDocPaths)
     disposers.forEach((dispose) => dispose())
     disposers.clear()
+    unsubscribeStore()
   }
 }
