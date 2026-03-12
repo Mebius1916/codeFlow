@@ -1,10 +1,8 @@
 import { useEffect, useRef } from 'react'
 import type * as Monaco from 'monaco-editor'
 import * as Y from 'yjs'
-import { useFeatures } from '@collaborative-editor/shared'
 import { initMonaco } from '../utils/initMonaco'
 import {
-  clearSaveTimeout,
   destroyBindingRef,
   disposeUnbindRef,
   type MonacoBinding,
@@ -20,23 +18,14 @@ interface UseMonacoBindingProps {
   yDoc: Y.Doc | null
   provider: AwarenessProvider | null
   activeFile: string | null
-  onSave?: (files: Record<string, string>) => void
   isReady: boolean
   domReady: boolean
 }
 
-export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, isReady, domReady }: UseMonacoBindingProps) {
+export function useMonacoBinding({ editor, yDoc, provider, activeFile, isReady, domReady }: UseMonacoBindingProps) {
   const bindingRef = useRef<MonacoBinding | null>(null)
   const unbindRef = useRef<null | (() => void)>(null)
-  const { autoSave } = useFeatures()
-  const autoSaveEnabled = Boolean(autoSave)
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const modelRef = useRef<Monaco.editor.ITextModel | null>(null)
-
-  const onSaveRef = useRef(onSave)
-  useEffect(() => {
-    onSaveRef.current = onSave
-  }, [onSave])
 
   useEffect(() => {
     if (!editor || !activeFile || !domReady) return
@@ -49,13 +38,16 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
     let isMounted = true
 
     const bindNewFile = async (): Promise<void | (() => void)> => {
+      // 初始化monaco
       const monaco = await initMonaco()
-
+      // 创建或获取模型
       const model = getOrCreateModel(monaco, modelRef)
 
       if (model && !model.isDisposed()) {
+        // 给 monaco 绑定模型
         attachModelToEditor(monaco, editor, model, activeFile)
         try {
+          // 从store中设置模型内容
           setModelFromStore(model, activeFile)
         } catch { }
 
@@ -63,9 +55,6 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
           return bindSingleMode({
             activeFile,
             model,
-            autoSave: autoSaveEnabled,
-            saveTimeoutRef,
-            onSaveRef,
           })
         }
 
@@ -75,9 +64,6 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
           editor,
           yDoc: yDoc!,
           provider: provider!,
-          autoSave: autoSaveEnabled,
-          saveTimeoutRef,
-          onSaveRef,
           bindingRef,
           isMounted: () => isMounted,
         })
@@ -98,7 +84,6 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, onSave, i
       isMounted = false
       disposeUnbindRef(unbindRef)
       destroyBindingRef(bindingRef)
-      clearSaveTimeout(saveTimeoutRef)
     }
-  }, [editor, yDoc, provider, activeFile, autoSave, isReady, domReady])
+  }, [editor, yDoc, provider, activeFile, isReady, domReady])
 }

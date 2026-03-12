@@ -7,7 +7,6 @@ import { useContainerSize } from '../hooks/useContainerSize'
 type PreviewContentSize = { width: number; height: number }
 
 export function PreviewPanel({
-  roomId,
   previewContentSize,
 }: {
   roomId: string

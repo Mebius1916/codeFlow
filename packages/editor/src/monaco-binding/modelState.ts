@@ -2,43 +2,18 @@ import type * as Monaco from 'monaco-editor'
 import * as Y from 'yjs'
 import { useEditorStore } from '@collaborative-editor/shared'
 import { createMonacoBinding, syncCursorToAwareness } from './yjsBinding'
-import type { OnSave, Ref, Unbind, MonacoBinding } from './cleanup'
-import { clearSaveTimeout } from './cleanup'
+import type { Ref, Unbind, MonacoBinding } from './cleanup'
 import type { Awareness } from 'y-protocols/awareness'
 type AwarenessProvider = {
   awareness: Awareness
-}
-
-export const setupAutosave = (
-  model: Monaco.editor.ITextModel,
-  filePath: string,
-  delayMs: number,
-  saveTimeoutRef: Ref<NodeJS.Timeout | null>,
-  onSaveRef: Ref<OnSave>,
-) => {
-  return model.onDidChangeContent(() => {
-    clearSaveTimeout(saveTimeoutRef)
-    saveTimeoutRef.current = setTimeout(() => {
-      if (!model.isDisposed()) {
-        onSaveRef.current?.({ [filePath]: model.getValue() })
-      }
-    }, delayMs)
-  })
 }
 
 // 单机模式，只与zustand 绑定
 export const bindSingleMode = (args: {
   activeFile: string
   model: Monaco.editor.ITextModel
-  autoSave: boolean
-  saveTimeoutRef: Ref<NodeJS.Timeout | null>
-  onSaveRef: Ref<OnSave>
 }): Unbind => {
-  const updateStore = () => {
-    useEditorStore.getState().updateFileContent(args.activeFile, args.model.getValue())
-  }
-
-  updateStore()
+  let storeUpdateTimer: ReturnType<typeof setTimeout> | null = null
 
   const unsubscribeStore = useEditorStore.subscribe((state) => {
     const storeContent = state.files[args.activeFile]
@@ -50,20 +25,20 @@ export const bindSingleMode = (args: {
   })
 
   const disposable = args.model.onDidChangeContent(() => {
-    updateStore()
-    // 0.5s 自动保存
-    if (args.autoSave) {
-      clearSaveTimeout(args.saveTimeoutRef)
-      args.saveTimeoutRef.current = setTimeout(() => {
-        if (!args.model.isDisposed()) {
-          args.onSaveRef.current?.({ [args.activeFile]: args.model.getValue() })
-        }
-      }, 500)
+    if (storeUpdateTimer) {
+      clearTimeout(storeUpdateTimer)
     }
+    storeUpdateTimer = setTimeout(() => {
+      if (args.model.isDisposed()) return
+      useEditorStore.getState().updateFileContent(args.activeFile, args.model.getValue())
+    }, 200)
   })
 
   return () => {
-    clearSaveTimeout(args.saveTimeoutRef)
+    if (storeUpdateTimer) {
+      clearTimeout(storeUpdateTimer)
+      storeUpdateTimer = null
+    }
     disposable.dispose()
     unsubscribeStore()
   }
@@ -76,9 +51,6 @@ export const bindCollabMode = async (args: {
   editor: Monaco.editor.IStandaloneCodeEditor
   yDoc: Y.Doc
   provider: AwarenessProvider
-  autoSave: boolean
-  saveTimeoutRef: Ref<NodeJS.Timeout | null>
-  onSaveRef: Ref<OnSave>
   bindingRef: Ref<MonacoBinding | null>
   isMounted: () => boolean
 }) => {
@@ -93,19 +65,4 @@ export const bindCollabMode = async (args: {
 
   args.bindingRef.current = binding as MonacoBinding
   syncCursorToAwareness(args.editor, args.provider)
-
-  const originalDestroy = binding.destroy.bind(binding)
-  binding.destroy = () => {
-    clearSaveTimeout(args.saveTimeoutRef)
-    originalDestroy()
-  }
-
-  if (args.autoSave) {
-    const disposable = setupAutosave(args.model, args.activeFile, 500, args.saveTimeoutRef, args.onSaveRef)
-    const prevDestroy = binding.destroy.bind(binding)
-    binding.destroy = () => {
-      disposable.dispose()
-      prevDestroy()
-    }
-  }
 }

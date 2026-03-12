@@ -9,7 +9,7 @@ import { ImagePreview } from './features/ImagePreview'
 import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
 import type { EditorProps } from '../types'
 
-export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled, onSave }: EditorProps) {
+export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled }: EditorProps) {
   const activeFile = useEditorStore((state) => state.activeFile)
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null)
   const editorDomRef = useRef<HTMLElement | null>(null)

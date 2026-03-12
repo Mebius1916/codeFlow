@@ -6,5 +6,4 @@ export interface EditorProps {
   wsUrl?: string
   initialFiles?: Record<string, string | Uint8Array>
   collaborationEnabled?: boolean
-  onSave?: (files: Record<string, string>) => void
 }
