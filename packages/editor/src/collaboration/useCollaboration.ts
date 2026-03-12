@@ -4,12 +4,12 @@ import * as awarenessProtocol from 'y-protocols/awareness'
 import { type CodeEditorUser } from '@collaborative-editor/shared'
 import { bindAnyStoreSync } from './anyStoreSync'
 import type { Awareness } from 'y-protocols/awareness'
+import YjsWorker from './worker.ts?worker'
+import { getUserColor } from './userColor'
+
 type AwarenessProvider = {
   awareness: Awareness
 }
-
-// @ts-ignore
-import YjsWorker from './worker.ts?worker'
 
 export function useCollaboration({
   roomId,
@@ -81,7 +81,7 @@ export function useCollaboration({
     awareness.setLocalStateField('user', {
       id: user.id,
       name: user.name || 'Anonymous',
-      color: user.color || '',
+      color: user.color || getUserColor(user.id),
     })
 
     worker.postMessage({

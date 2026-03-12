@@ -3,7 +3,6 @@ import type * as Monaco from 'monaco-editor'
 import * as Y from 'yjs'
 import { useFeatures } from '@collaborative-editor/shared'
 import { initMonaco } from '../utils/initMonaco'
-import type { AwarenessProvider } from '../collaboration/provider'
 import {
   clearSaveTimeout,
   destroyBindingRef,
@@ -12,7 +11,10 @@ import {
 } from './cleanup'
 import { getOrCreateModel, attachModelToEditor, setModelFromStore } from './monacoModel'
 import { bindCollabMode, bindSingleMode } from './modelState'
-
+import type { Awareness } from 'y-protocols/awareness'
+type AwarenessProvider = {
+  awareness: Awareness
+}
 interface UseMonacoBindingProps {
   editor: Monaco.editor.IStandaloneCodeEditor | null
   yDoc: Y.Doc | null
