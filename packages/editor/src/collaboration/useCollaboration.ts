@@ -3,6 +3,7 @@ import * as Y from 'yjs'
 import * as awarenessProtocol from 'y-protocols/awareness'
 import { type CodeEditorUser, useEditorStore } from '@collaborative-editor/shared'
 import { bindAnyStoreSync } from './anyStoreSync'
+import { setAny } from './yjsAny'
 import type { Awareness } from 'y-protocols/awareness'
 import YjsWorker from './worker.ts?worker'
 import { getUserColor } from './userColor'
@@ -50,27 +51,9 @@ export function useCollaboration({
       const { type, payload } = e.data
       if (type === 'ready') {
         const files = useEditorStore.getState().files
-        const binaryMap = yDoc.getMap<Uint8Array>('binary')
         Object.entries(files).forEach(([path, content]) => {
-          if (content instanceof Uint8Array) {
-            if (binaryMap.has(path)) return
-            binaryMap.set(path, content)
-            return
-          }
-          if (typeof content !== 'string') return
-          if (binaryMap.has(path)) return
-
-          const existing = yDoc.share.get(path)
-          const existingText = existing?.toString?.() ?? ''
-          if (existingText.length > 0) return
-
-          const yText = yDoc.getText(path)
-          if (yText.length > 0) return
-          if (content.length === 0) return
-
-          yDoc.transact(() => {
-            yText.insert(0, content)
-          })
+          if (typeof content !== 'string' && !(content instanceof Uint8Array)) return
+          setAny(yDoc, path, content)
         })
         setIsReady(true)
         return

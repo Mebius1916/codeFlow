@@ -29,6 +29,15 @@ ctx.addEventListener('message', async (e: MessageEvent) => {
     
     await persistenceProvider.init();
 
+    await new Promise<void>((resolve) => {
+      const handler = (isSynced: boolean) => {
+        if (!isSynced) return
+        provider?.off('sync', handler)
+        resolve()
+      }
+      provider?.on('sync', handler)
+    })
+
     const update = Y.encodeStateAsUpdate(yDoc)
     ctx.postMessage({ type: 'update', payload: update })
 
