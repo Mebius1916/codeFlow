@@ -21,7 +21,6 @@
     "@collaborative-editor/shared": "workspace:*",
     "@collaborative-editor/yjs-local-forage": "workspace:*",
     "@monaco-editor/react": "^4.6.0",
-    "lib0": "^0.2.117",
     "monaco-editor": "^0.50.0",
     "y-monaco": "^0.1.6",
     "y-protocols": "^1.0.7",

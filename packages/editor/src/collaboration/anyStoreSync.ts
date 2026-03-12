@@ -1,69 +1,63 @@
 import * as Y from 'yjs'
 import { useEditorStore } from '@collaborative-editor/shared'
-import { getAny, observeAny, setAny } from './yjsAny'
+import { observeAny, setAny } from './yjsAny'
 import { anyEqual } from './anyEqual'
 
 export const bindAnyStoreSync = (doc: Y.Doc) => {
   const binaryMap = doc.getMap<Uint8Array>('binary')
-  const textDisposers = new Map<string, () => void>()
+  const disposers = new Map<string, () => void>()
 
-  const ensureTextObserver = (path: string) => {
-    if (textDisposers.has(path)) return
+  const isText = (value: unknown): value is string => typeof value === 'string'
+  const isBinary = (value: unknown): value is Uint8Array => value instanceof Uint8Array
+
+  const ensureObserver = (path: string) => {
+    if (disposers.has(path)) return
     const dispose = observeAny(doc, path, (value) => {
-      if (typeof value !== 'string') return
+      console.log(path);
+      if (!isText(value) && !(value instanceof Uint8Array)) return
       const current = useEditorStore.getState().files[path]
-      if (typeof current === 'string' && current === value) return
-      useEditorStore.getState().updateFileContent(path, value)
+      if (isText(current) && isText(value) && anyEqual(current, value)) return
+      if (current instanceof Uint8Array && value instanceof Uint8Array && anyEqual(current, value)) return
+      useEditorStore.getState().updateFileContent(path, value as string | Uint8Array)
     })
-    textDisposers.set(path, dispose)
+    disposers.set(path, dispose)
   }
 
-  const stopTextObserver = (path: string) => {
-    const dispose = textDisposers.get(path)
-    if (!dispose) return
-    dispose()
-    textDisposers.delete(path)
-  }
-
-  const applyBinaryFromMap = (event?: Y.YMapEvent<Uint8Array>) => {
-    const keys = event ? Array.from(event.keysChanged) : Array.from(binaryMap.keys())
-    keys.forEach((key) => {
-      const value = getAny(doc, key)
-      if (!(value instanceof Uint8Array)) return
-      const current = useEditorStore.getState().files[key]
-      if (typeof current === 'string' || current instanceof Uint8Array) {
-        if (anyEqual(current, value)) return
+  const ensureDocPaths = () => {
+    doc.share.forEach((type, key) => {
+      const isAbstractType = type && type.constructor.name === 'AbstractType'
+      if (type instanceof Y.Text || isAbstractType) {
+        ensureObserver(key)
       }
-      useEditorStore.getState().updateFileContent(key, value)
+    })
+    binaryMap.forEach((_value, key) => {
+      ensureObserver(key)
     })
   }
 
-  binaryMap.observe(applyBinaryFromMap)
-  applyBinaryFromMap()
-
-  const syncAnyFromStore = (files: Record<string, unknown>) => {
-    Object.entries(files).forEach(([key, content]) => {
-      if (typeof content === 'string' || content instanceof Uint8Array) {
-        setAny(doc, key, content)
+  const syncStoreToDoc = (files: Record<string, unknown>) => {
+    const entries = Object.entries(files)
+    entries.forEach(([path, content]) => {
+      if (isText(content)) {
+        ensureObserver(path)
+        setAny(doc, path, content)
+        return
       }
-      if (typeof content === 'string') {
-        ensureTextObserver(key)
-      } else if (content instanceof Uint8Array) {
-        stopTextObserver(key)
+      if (isBinary(content) && !binaryMap.has(path)) {
+        ensureObserver(path)
+        setAny(doc, path, content)
       }
     })
   }
-
-  syncAnyFromStore(useEditorStore.getState().files)
-
-  const unsubscribe = useEditorStore.subscribe((storeState) => {
-    syncAnyFromStore(storeState.files)
-  })
+  
+  // 更新的时候确保所有路径都被监听，包括新添加的路径
+  doc.on('update', ensureDocPaths)
+  // 初始化调用，确保所有路径都被监听
+  ensureDocPaths()
 
   return () => {
-    binaryMap.unobserve(applyBinaryFromMap)
-    unsubscribe()
-    Array.from(textDisposers.values()).forEach((dispose) => dispose())
-    textDisposers.clear()
+    doc.off('update', ensureDocPaths)
+    disposers.forEach((dispose) => dispose())
+    disposers.clear()
   }
 }

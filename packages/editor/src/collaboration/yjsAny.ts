@@ -12,9 +12,7 @@ export const getAny = (doc: Y.Doc, path: string): YjsAnyContent | undefined => {
   if (binary instanceof Uint8Array) return binary
 
   const type = doc.share.get(path)
-  if (type instanceof Y.Text) return type.toString()
-
-  return undefined
+  return type?.toString() || undefined
 }
 
 export const observeAny = (

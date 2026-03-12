@@ -27,7 +27,6 @@ export function HomePage() {
     <div className="relative h-screen w-screen overflow-hidden bg-[#101322] text-white">
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute left-1/2 top-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#1337EC]/10 blur-[48px]" />
-        <div className="absolute right-[10%] top-[10%] h-[360px] w-[360px] rounded-full bg-[#1337EC]/10 blur-[64px]" />
       </div>
 
       <div className="relative z-10 flex h-[64px] w-full items-center justify-between px-12">

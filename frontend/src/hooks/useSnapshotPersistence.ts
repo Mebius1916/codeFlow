@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo } from 'react'
 import { useEditorStore } from '@collaborative-editor/shared'
-import { clearSnapshot, getSnapshot, setSnapshot } from '@collaborative-editor/yjs-local-forage'
+import { getSnapshot, setSnapshot } from '@collaborative-editor/yjs-local-forage'
 import { DEFAULT_FILES } from '../utils/templates/defaults'
 
 export function useSnapshotPersistence({
@@ -18,6 +18,7 @@ export function useSnapshotPersistence({
 }) {
   const readyRef = useRef(false)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const loadingAssetsRef = useRef<Set<string>>(new Set())
 
   const initialFiles = useMemo(() => customInitialFiles ?? DEFAULT_FILES, [customInitialFiles])
   const initialAssets = useMemo(() => customInitialAssets ?? {}, [customInitialAssets])
@@ -39,10 +40,6 @@ export function useSnapshotPersistence({
       // 填充 store
       useEditorStore.getState().initializeFiles(filesToLoad)
       readyRef.current = true
-
-      if (collaborationEnabled && snapshot && Object.keys(snapshot).length > 0) {
-        await clearSnapshot(roomId)
-      }
     }
 
     init()
@@ -55,9 +52,7 @@ export function useSnapshotPersistence({
 
     const unsubscribe = useEditorStore.subscribe((state) => {
       if (!readyRef.current) return
-      
-      // 当 files 发生变化时，保存快照
-      // 由于 store 更新是不可变的，我们可以直接保存 state.files
+    
       // 添加防抖
       if (timerRef.current) {
         clearTimeout(timerRef.current)
@@ -82,43 +77,35 @@ export function useSnapshotPersistence({
   // 先读缓存，缓存没有就重新获取资源
   useEffect(() => {
     if (!roomId) return
-    let previousFile = useEditorStore.getState().activeFile
+    const entries = Object.entries(initialAssets)
+    if (entries.length === 0) return
+    let cancelled = false
 
-    const loadAssetContent = (activeFile: string, assetUrl: string) => {
+    const loadAssetContent = async (activeFile: string, assetUrl: string) => {
       const files = useEditorStore.getState().files
       const currentContent = files[activeFile]
-      
-      // 如果已经有二进制内容，跳过 (或者内容不为空)
       if (currentContent instanceof Uint8Array || (typeof currentContent === 'string' && currentContent.length > 0)) return
-      
-      fetch(assetUrl)
-        .then((res) => res.arrayBuffer())
-        .then((buffer) => {
-          const uint8Array = new Uint8Array(buffer)
-          // 更新 Store，这会触发上面的 subscribe 保存快照
-          useEditorStore.getState().updateFileContent(activeFile, uint8Array)
-        })
-        .catch((err) => {
-          console.error('[Assets] 加载失败', { path: activeFile, url: assetUrl, error: err })
-        })
-    }
-
-    const handleActiveFileChange = (activeFile: string | null) => {
-      if (!activeFile || activeFile === previousFile) return
-      previousFile = activeFile
-      
-      const assetUrl = initialAssets[activeFile]
-      if (assetUrl) {
-        loadAssetContent(activeFile, assetUrl)
+      if (loadingAssetsRef.current.has(activeFile)) return
+      loadingAssetsRef.current.add(activeFile)
+      try {
+        const res = await fetch(assetUrl)
+        const buffer = await res.arrayBuffer()
+        if (cancelled) return
+        useEditorStore.getState().updateFileContent(activeFile, new Uint8Array(buffer))
+      } catch (err) {
+        console.error('[Assets] 加载失败', { path: activeFile, url: assetUrl, error: err })
+      } finally {
+        loadingAssetsRef.current.delete(activeFile)
       }
     }
 
-    const unsubscribe = useEditorStore.subscribe((state) => {
-      handleActiveFileChange(state.activeFile)
+    entries.forEach(([path, assetUrl]) => {
+      if (!assetUrl) return
+      void loadAssetContent(path, assetUrl)
     })
 
     return () => {
-      unsubscribe()
+      cancelled = true
     }
   }, [initialAssets, roomId]) // collaborationEnabled 不影响资源加载
 

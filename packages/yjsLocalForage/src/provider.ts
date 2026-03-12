@@ -5,7 +5,7 @@ import { maintainRooms } from './eviction/maintain'
 import { clearSnapshotFromStore, getSnapshotFromStore, setSnapshotToStore } from './storage/snapshot'
 import { getUpdatesFromStore, setUpdatesToStore } from './storage/updates'
 import type { SnapshotContent, LocalForage } from './types'
-import { applySnapshotToDoc, extractSnapshotFromDoc } from './yjs/files'
+import { applySnapshotToDoc } from './yjs/files'
 
 export async function getSnapshot(
   room: string,
@@ -40,12 +40,18 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
   private _doc: Y.Doc
   private _store: LocalForage
   private _storeName: string
-  public whenSynced: Promise<void>
   private _updateHandler: (update: Uint8Array, origin: any) => void
   private _debounceTimer: any = null
   private _debounceWait: number
 
-  constructor(room: string, doc: Y.Doc, { storeName = 'yjs-forage', debounceWait = 2000 } = {}) {
+  constructor(
+    room: string,
+    doc: Y.Doc,
+    {
+      storeName = 'yjs-forage',
+      debounceWait = 1000,
+    }: { storeName?: string; debounceWait?: number; } = {},
+  ) {
     super()
     this._room = room
     this._doc = doc
@@ -62,26 +68,23 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
     }
 
     this._doc.on('update', this._updateHandler)
-    
-    this.whenSynced = this.init()
   }
 
-  private async init() {
+  async init() {
     try {
+      // lru 淘汰策略 
       await maintainRooms(this._store, this._room, this._storeName)
-      // 1. 尝试读取 Updates (协同历史)
-      const resolvedUpdates = await getUpdatesFromStore(this._store, this._room)
-      
-      if (resolvedUpdates) {
-        Y.applyUpdate(this._doc, resolvedUpdates, 'local-forage')
-      } else {
-        // 2. 如果没有 Updates，尝试读取 Snapshot (单机历史)
-        const snapshot = await getSnapshotFromStore(this._store, this._room)
-        
-        if (snapshot && Object.keys(snapshot).length > 0) {
-          applySnapshotToDoc(this._doc, snapshot)
-          this.save()
-        }
+      // 获取 updates 缓存
+      // const resolvedUpdates = (await getUpdatesFromStore(this._store, this._room)) as Uint8Array | null
+      // if (resolvedUpdates && resolvedUpdates.byteLength > 2) {
+      //   Y.applyUpdate(this._doc, resolvedUpdates, 'local-forage')
+      //   return
+      // }
+      const snapshot = await getSnapshotFromStore(this._store, this._room)
+      console.log('[YjsLocalForage] snapshot', snapshot)
+      if (snapshot && Object.keys(snapshot).length > 0) {
+        applySnapshotToDoc(this._doc, snapshot)
+        this.save()
       }
     } catch (err) {
       console.error('[YjsLocalForage] Failed to load data:', err)
@@ -101,11 +104,8 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
 
   private async save() {
     try {
-      const snapshot = extractSnapshotFromDoc(this._doc)
-
       const updates = Y.encodeStateAsUpdate(this._doc)
 
-      await setSnapshotToStore(this._store, this._room, snapshot)
       await setUpdatesToStore(this._store, this._room, updates)
       await maintainRooms(this._store, this._room, this._storeName)
     } catch (err) {

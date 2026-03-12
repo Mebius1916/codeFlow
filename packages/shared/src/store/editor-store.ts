@@ -4,12 +4,10 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import localforage from 'localforage'
 
 interface EditorState {
-  roomId: string
   activeFile: string | null
   openFiles: string[]
   files: Record<string, string | Uint8Array>
 
-  setRoomId: (roomId: string) => void
   openFile: (path: string) => void
   closeFile: (path: string) => void
   updateFileContent: (path: string, content: string | Uint8Array) => void
@@ -20,14 +18,9 @@ interface EditorState {
 }
 
 const createEditorState: StateCreator<EditorState> = (set, get) => ({
-      roomId: '',
       activeFile: null, // 激活文件的路径
       openFiles: [], // 打开的文件路径列表
       files: {}, // 所有文件的内容
-
-      setRoomId: (roomId: string) => {
-        set({ roomId })
-      },
 
       initializeFiles: (files: Record<string, string | Uint8Array>) => {
         set({ files })

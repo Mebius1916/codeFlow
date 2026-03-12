@@ -28,6 +28,7 @@ export function EditorPage() {
   const [previewRevision, setPreviewRevision] = useState(0);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
 
+  // 从缓存中获取初始文件状态
   const { initialFiles } = useSnapshotPersistence({
     roomId: resolvedRoomId,
     collaborationEnabled,

@@ -2,9 +2,12 @@ import type * as Monaco from 'monaco-editor'
 import * as Y from 'yjs'
 import { useEditorStore } from '@collaborative-editor/shared'
 import { createMonacoBinding, syncCursorToAwareness } from './yjsBinding'
-import type { AwarenessProvider } from '../collaboration/provider'
 import type { OnSave, Ref, Unbind, MonacoBinding } from './cleanup'
 import { clearSaveTimeout } from './cleanup'
+import type { Awareness } from 'y-protocols/awareness'
+type AwarenessProvider = {
+  awareness: Awareness
+}
 
 export const setupAutosave = (
   model: Monaco.editor.ITextModel,

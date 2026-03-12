@@ -22,7 +22,7 @@ export function EditorContainer({ roomId, userId, initialFiles, collaborationEna
             roomId={roomId}
             user={{
               id: userId,
-              name: "演示用户",
+              name: "协作者",
             }}
             wsUrl="ws://localhost:8848"
             initialFiles={initialFiles}
