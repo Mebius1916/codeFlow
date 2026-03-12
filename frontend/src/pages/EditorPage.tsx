@@ -1,4 +1,4 @@
-import { FeatureProvider, useEditorStore, useShallow } from "@collaborative-editor/shared";
+import { FeatureProvider, useEditorStore, useShallow, useUiStore } from "@collaborative-editor/shared";
 import { useFileTreeActions } from "@collaborative-editor/file-tree";
 import { TopBar as FileTreeBar } from "@collaborative-editor/topbar";
 import { useEffect, useMemo, useState } from "react";
@@ -27,12 +27,22 @@ export function EditorPage() {
   const [previewRevision, setPreviewRevision] = useState(0);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
 
-
-
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     if (params.get("collab") === "1") {
       setCollaborationEnabled(true);
+    }
+
+    const ps = params.get("ps");
+    if (ps) {
+      const match = ps.match(/^(\d+)x(\d+)$/);
+      if (match) {
+        const width = Number(match[1]);
+        const height = Number(match[2]);
+        if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+          useUiStore.getState().setPreviewContentSize({ width, height });
+        }
+      }
     }
   }, [location.search]);
 
@@ -53,7 +63,20 @@ export function EditorPage() {
             const params = new URLSearchParams(location.search);
             if (params.get("collab") !== "1") {
               params.set("collab", "1");
-              navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+            }
+
+            const size = useUiStore.getState().previewContentSize;
+            if (size?.width && size?.height) {
+              params.set("ps", `${size.width}x${size.height}`);
+            } else {
+              params.delete("ps");
+            }
+
+            navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+
+            const shareUrl = `${window.location.origin}${location.pathname}?${params.toString()}`;
+            if (navigator.clipboard?.writeText) {
+              navigator.clipboard.writeText(shareUrl);
             }
           }}
           shareEnabled={collaborationEnabled}
