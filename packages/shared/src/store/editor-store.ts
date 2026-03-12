@@ -7,6 +7,7 @@ import { ensureUint8Array } from '../utils/buffer'
 interface EditorState {
   activeFile: string | null
   openFiles: string[]
+  fileKeys: string[]
   files: Record<string, string | Uint8Array>
 
   openFile: (path: string) => void
@@ -22,9 +23,10 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
       activeFile: null, // 激活文件的路径
       openFiles: [], // 打开的文件路径列表
       files: {}, // 所有文件的内容
+      fileKeys: [], // 所有文件的路径列表
 
       initializeFiles: (files: Record<string, string | Uint8Array>) => {
-        set({ files })
+        set({ files, fileKeys: Object.keys(files) })
       },
 
       openFile: (path: string) => {
@@ -52,21 +54,30 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
 
       // 更新文件内容
       updateFileContent: (path: string, content: string | Uint8Array) => {
-        const { files } = get()
+        const { files, fileKeys } = get()
         const newFiles = { ...files, [path]: content }
-        set({ files: newFiles })
+        if (files[path] !== undefined || fileKeys.includes(path)) {
+          set({ files: newFiles })
+          return
+        }
+        set({ files: newFiles, fileKeys: [...fileKeys, path] })
       },
 
       addFile: (path: string, content: string | Uint8Array = '') => {
-        const { files } = get()
+        const { files, fileKeys } = get()
         const newFiles = { ...files, [path]: content }
-        set({ files: newFiles })
+        if (fileKeys.includes(path)) {
+          set({ files: newFiles })
+          return
+        }
+        set({ files: newFiles, fileKeys: [...fileKeys, path] })
       },
 
       deleteFile: (path: string) => {
-        const { openFiles, activeFile, files } = get()
+        const { openFiles, activeFile, files, fileKeys } = get()
         const newOpenFiles = openFiles.filter((filePath) => filePath !== path)
         const { [path]: deleted, ...newFiles } = files
+        const newFileKeys = fileKeys.filter((fileKey) => fileKey !== path)
         
         let newActiveFile = activeFile
         const wasActive = activeFile === path
@@ -78,12 +89,13 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
         set({
           openFiles: newOpenFiles,
           activeFile: newActiveFile,
-          files: newFiles
+          files: newFiles,
+          fileKeys: newFileKeys,
         })
       },
 
       renameFile: (oldPath: string, newPath: string) => {
-        const { openFiles, activeFile, files } = get()
+        const { openFiles, activeFile, files, fileKeys } = get()
         if (!files[oldPath]) return
 
         const newOpenFiles = openFiles.map((filePath) => (filePath === oldPath ? newPath : filePath))
@@ -92,12 +104,13 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
         const content = files[oldPath]
         const { [oldPath]: deleted, ...restFiles } = files
         const newFiles = { ...restFiles, [newPath]: content }
+        const newFileKeys = fileKeys.map((fileKey) => (fileKey === oldPath ? newPath : fileKey))
 
         set({
           openFiles: newOpenFiles,
           activeFile: newActiveFile,
           files: newFiles,
-          // activeContent stays same as content didn't change, just name
+          fileKeys: newFileKeys,
         })
       },
     })
@@ -141,25 +154,31 @@ export const useEditorStore = create<EditorState>()(
   persist(createEditorState, {
     name: 'code-editor-storage',
     storage,
+    // 部分持久化
     partialize: (state) => ({
-        activeFile: state.activeFile,
-        openFiles: state.openFiles,
-        files: state.files
-      }),
-    onRehydrateStorage: () => (state) => {
-      if (state && state.files) {
-        const files = state.files;
-        const newFiles: Record<string, string | Uint8Array> = {};
-        
-        Object.entries(files).forEach(([path, content]) => {
-          // 使用 ensureUint8Array 统一处理
-          const safeContent = ensureUint8Array(content);
-          if (safeContent !== null) {
-            newFiles[path] = safeContent;
-          }
-        });
-        
-        state.files = newFiles;
+      activeFile: state.activeFile,
+      openFiles: state.openFiles,
+      files: state.files,
+      fileKeys: state.fileKeys,
+    }),
+    // 合并持久化状态和当前状态
+    merge: (persistedState, currentState) => {
+      const restored = persistedState as Partial<EditorState> | undefined
+      const restoredFiles = restored?.files ?? {}
+      const nextFiles: Record<string, string | Uint8Array> = {}
+
+      Object.entries(restoredFiles).forEach(([path, content]) => {
+        const safeContent = ensureUint8Array(content)
+        if (safeContent !== null) {
+          nextFiles[path] = safeContent
+        }
+      })
+
+      return {
+        ...currentState,
+        ...restored,
+        files: nextFiles,
+        fileKeys: Object.keys(nextFiles),
       }
     },
   }),

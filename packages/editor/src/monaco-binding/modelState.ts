@@ -31,7 +31,7 @@ export const bindSingleMode = (args: {
     storeUpdateTimer = setTimeout(() => {
       if (args.model.isDisposed()) return
       useEditorStore.getState().updateFileContent(args.activeFile, args.model.getValue())
-    }, 200)
+    }, 500)
   })
 
   return () => {

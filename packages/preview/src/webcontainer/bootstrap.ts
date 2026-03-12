@@ -6,16 +6,12 @@ type FileContent = string | Uint8Array
 
 let serverStartPromise: Promise<void> | null = null
 
-export async function ensurePreviewServer(getFiles: () => Record<string, FileContent>) {
+export async function ensurePreviewServer(files: Record<string, FileContent>) {
   if (serverStartPromise) return serverStartPromise
 
   serverStartPromise = (async () => {
     const instance = await ensureWebContainer()
-    const files = getFiles()
     const entries = Object.entries(files)
-
-    const entryPoint = resolveEntryPointFromFiles(files)
-
     const serverScript = buildServerScript(files)
     await instance.fs.writeFile('server.js', serverScript)
     await ensureDirectories(instance, entries.map(([path]) => path))
@@ -33,16 +29,13 @@ export async function ensurePreviewServer(getFiles: () => Record<string, FileCon
   return serverStartPromise
 }
 
-export async function ensureServerScriptUpdated(getFiles: () => Record<string, FileContent>) {
+export async function ensureServerScriptUpdated(files: Record<string, FileContent>) {
   const instance = await ensureWebContainer()
-  const serverScript = buildServerScript(getFiles())
+  const serverScript = buildServerScript(files)
   await instance.fs.writeFile('server.js', serverScript)
 }
 
 function buildServerScript(files: Record<string, FileContent>) {
-  return createServerScript(resolveEntryPointFromFiles(files))
-}
-
-function resolveEntryPointFromFiles(files: Record<string, FileContent>) {
-  return files['src/index.html'] != null ? './src/index.html' : null
+  const newFile = files['src/index.html'] != null ? './src/index.html' : null
+  return createServerScript(newFile);
 }
