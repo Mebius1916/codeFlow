@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { StateCreator } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import localforage from 'localforage'
+import { ensureUint8Array } from '../utils/buffer'
 
 interface EditorState {
   activeFile: string | null
@@ -121,6 +122,23 @@ export const useEditorStore = create<EditorState>()(
     partialize: (state) => ({
         activeFile: state.activeFile,
         openFiles: state.openFiles,
+        files: state.files
       }),
+    onRehydrateStorage: () => (state) => {
+      if (state && state.files) {
+        const files = state.files;
+        const newFiles: Record<string, string | Uint8Array> = {};
+        
+        Object.entries(files).forEach(([path, content]) => {
+          // 使用 ensureUint8Array 统一处理
+          const safeContent = ensureUint8Array(content);
+          if (safeContent !== null) {
+            newFiles[path] = safeContent;
+          }
+        });
+        
+        state.files = newFiles;
+      }
+    },
   }),
 )

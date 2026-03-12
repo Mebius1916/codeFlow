@@ -1,7 +1,6 @@
-import { Loading } from '@collaborative-editor/shared'
+import { Loading, useEditorStore } from '@collaborative-editor/shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
-import { usePreviewSnapshot } from '../hooks/usePreviewSnapshot'
 import { useWebContainer } from '../hooks/useWebContainer'
 import { useContainerSize } from '../hooks/useContainerSize'
 
@@ -14,7 +13,7 @@ export function PreviewPanel({
   roomId: string
   previewContentSize?: PreviewContentSize | null
 }) {
-  const { previewFiles, isSnapshotLoading } = usePreviewSnapshot(roomId)
+  const previewFiles = useEditorStore((state) => state.files)
   const { iframeRef, handleIframePointerDown, handleIframeClick } = useIframeScrollFocus()
   const { containerRef, containerSize } = useContainerSize<HTMLDivElement>()
   const { previewUrl, isLoading, error, logs } = useWebContainer(previewFiles)
@@ -113,7 +112,7 @@ export function PreviewPanel({
           onLoad={postLayout}
           tabIndex={0}
         />
-        {(isLoading || isSnapshotLoading || !previewUrl || !isIframeLoaded) && (
+        {(isLoading || !previewUrl || !isIframeLoaded) && (
           <div className="absolute inset-0">
             <Loading className="bg-[rgb(12,14,23)] text-gray-400" text="启动预览环境..." detail={logs[logs.length - 1]} />
           </div>

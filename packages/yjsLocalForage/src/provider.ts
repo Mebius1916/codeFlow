@@ -2,37 +2,8 @@ import * as Y from 'yjs'
 import localforage from 'localforage'
 import { ObservableV2 } from 'lib0/observable'
 import { maintainRooms } from './eviction/maintain'
-import { clearSnapshotFromStore, getSnapshotFromStore, setSnapshotToStore } from './storage/snapshot'
 import { getUpdatesFromStore, setUpdatesToStore } from './storage/updates'
-import type { SnapshotContent, LocalForage } from './types'
-import { applySnapshotToDoc } from './yjs/files'
-
-export async function getSnapshot(
-  room: string,
-  storeName = 'yjs-forage',
-): Promise<Record<string, SnapshotContent> | null> {
-  const store = localforage.createInstance({ name: storeName })
-  await maintainRooms(store, room, storeName)
-  return getSnapshotFromStore(store, room)
-}
-
-export async function setSnapshot(
-  room: string,
-  snapshot: Record<string, SnapshotContent>,
-  storeName = 'yjs-forage',
-): Promise<void> {
-  const store = localforage.createInstance({ name: storeName })
-  await setSnapshotToStore(store, room, snapshot)
-  await maintainRooms(store, room, storeName)
-}
-
-export async function clearSnapshot(
-  room: string,
-  storeName = 'yjs-forage',
-): Promise<void> {
-  const store = localforage.createInstance({ name: storeName })
-  await clearSnapshotFromStore(store, room)
-}
+import type { LocalForage } from './types'
 
 // 协调计算
 export class YjsLocalForageProvider extends ObservableV2<any> {
@@ -75,16 +46,9 @@ export class YjsLocalForageProvider extends ObservableV2<any> {
       // lru 淘汰策略 
       await maintainRooms(this._store, this._room, this._storeName)
       // 获取 updates 缓存
-      // const resolvedUpdates = (await getUpdatesFromStore(this._store, this._room)) as Uint8Array | null
-      // if (resolvedUpdates && resolvedUpdates.byteLength > 2) {
-      //   Y.applyUpdate(this._doc, resolvedUpdates, 'local-forage')
-      //   return
-      // }
-      const snapshot = await getSnapshotFromStore(this._store, this._room)
-      console.log('[YjsLocalForage] snapshot', snapshot)
-      if (snapshot && Object.keys(snapshot).length > 0) {
-        applySnapshotToDoc(this._doc, snapshot)
-        this.save()
+      const resolvedUpdates = (await getUpdatesFromStore(this._store, this._room)) as Uint8Array | null
+      if (resolvedUpdates && resolvedUpdates.byteLength > 2) {
+        Y.applyUpdate(this._doc, resolvedUpdates, 'local-forage')
       }
     } catch (err) {
       console.error('[YjsLocalForage] Failed to load data:', err)

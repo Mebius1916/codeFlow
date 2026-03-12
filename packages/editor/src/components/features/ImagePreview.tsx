@@ -5,8 +5,8 @@ export function ImagePreview() {
   const activeFile = useEditorStore((state) => state.activeFile)
   const files = useEditorStore((state) => state.files)
   const activeContent = activeFile ? files[activeFile] ?? null : null
-  const previewContent = activeContent instanceof Uint8Array || typeof activeContent === 'string' ? activeContent : null
-  const blobUrl = useImageBlob(previewContent, activeFile || undefined)
+
+  const blobUrl = useImageBlob(activeContent, activeFile || undefined)
   const svgText = typeof activeContent === 'string' && activeContent.trim().startsWith('<svg')
 
   if (!activeFile) return null

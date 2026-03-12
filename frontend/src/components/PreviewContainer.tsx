@@ -1,7 +1,6 @@
 import { Suspense, lazy, useState } from "react";
-import { Loading } from "@collaborative-editor/shared";
+import { Loading, useUiStore, useShallow } from "@collaborative-editor/shared";
 import { usePreviewResizeCssVars } from "@collaborative-editor/preview";
-import { usePreviewContentSize } from "../hooks/usePreviewContentSize";
 
 const LazyPreviewPanel = lazy(async () => {
   const mod = await import("@collaborative-editor/preview");
@@ -16,7 +15,8 @@ interface PreviewContainerProps {
 export function PreviewContainer({ roomId, isFullscreen }: PreviewContainerProps) {
   const [previewEnabled] = useState(true);
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = usePreviewResizeCssVars();
-  const previewContentSize = usePreviewContentSize(roomId);
+  // 直接从 Zustand Store 读取，因为 anyStoreSync 已经保证了 Store 和 Yjs 的同步
+  const previewContentSize = useUiStore(useShallow((state) => state.previewContentSize));
 
   return (
     <div

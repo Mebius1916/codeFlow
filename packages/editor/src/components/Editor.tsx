@@ -17,11 +17,10 @@ export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled
   const [isMonacoReady, setIsMonacoReady] = useState(false)
 
   // 实例化 Yjs 线程
-  const { provider, yDocRef, isReady } = useCollaboration({
+  const { provider, yDoc, isReady } = useCollaboration({
     roomId,
     user,
     wsUrl,
-    initialFiles,
     collaborationEnabled,
   })
 
@@ -46,12 +45,11 @@ export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled
   }, [activeFile, isImage, isMonacoReady])
 
   useMonacoBinding({
-    editor: isImage ? null : editorRef.current,
-    yDoc: yDocRef.current,
-    provider: provider,
-    activeFile,
-    onSave,
-    isReady,
+    editor: editorRef.current,
+    yDoc,
+    provider,
+    isReady: isReady && !!yDoc,
+    activeFile: isImage ? null : activeFile,
     domReady: isEditorMounted,
   })
 

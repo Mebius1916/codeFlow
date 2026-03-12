@@ -3,7 +3,6 @@ import { useFileTreeActions } from "@collaborative-editor/file-tree";
 import { TopBar as FileTreeBar } from "@collaborative-editor/topbar";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { useSnapshotPersistence } from "../hooks/useSnapshotPersistence";
 import { Sidebar } from "../components/Sidebar";
 import { EditorContainer } from "../components/EditorContainer";
 import { PreviewContainer } from "../components/PreviewContainer";
@@ -28,11 +27,7 @@ export function EditorPage() {
   const [previewRevision, setPreviewRevision] = useState(0);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
 
-  // 从缓存中获取初始文件状态
-  const { initialFiles } = useSnapshotPersistence({
-    roomId: resolvedRoomId,
-    collaborationEnabled,
-  });
+
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -87,7 +82,6 @@ export function EditorPage() {
               key={`editor:${resolvedRoomId}`}
               roomId={resolvedRoomId}
               userId={userId}
-              initialFiles={initialFiles}
               collaborationEnabled={collaborationEnabled}
             />
           )}

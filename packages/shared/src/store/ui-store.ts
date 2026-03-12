@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import localforage from 'localforage'
 
 type PreviewContentSize = { width: number; height: number }
 
@@ -25,40 +27,61 @@ type SetState<T> = (
   replace?: boolean
 ) => void
 
-export const useUiStore = create<UiState>((set: SetState<UiState>) => ({
-  theme: 'dark',
-  terminalHeight: 200,
-  fileTreeWidth: 250,
-  previewWidth: 520,
-  fileTreeResizing: false,
-  fileTreeResizeHover: false,
-  previewContentSize: null,
+// 创建一个 localforage 实例专门用于 UI store
+const uiStorage = localforage.createInstance({
+  name: 'codeflow-ui-store',
+})
 
-  setTheme: (theme: 'light' | 'dark') => {
-    set({ theme })
-  },
+export const useUiStore = create<UiState>()(
+  persist(
+    (set: SetState<UiState>) => ({
+      theme: 'dark',
+      terminalHeight: 200,
+      fileTreeWidth: 250,
+      previewWidth: 520,
+      fileTreeResizing: false,
+      fileTreeResizeHover: false,
+      previewContentSize: null,
 
-  setTerminalHeight: (height: number) => {
-    set({ terminalHeight: Math.max(150, Math.min(500, height)) })
-  },
+      setTheme: (theme: 'light' | 'dark') => {
+        set({ theme })
+      },
 
-  setFileTreeWidth: (width: number) => {
-    set({ fileTreeWidth: Math.max(150, Math.min(400, width)) })
-  },
+      setTerminalHeight: (height: number) => {
+        set({ terminalHeight: Math.max(150, Math.min(500, height)) })
+      },
 
-  setPreviewWidth: (width: number) => {
-    set({ previewWidth: Math.max(200, Math.min(800, width)) })
-  },
+      setFileTreeWidth: (width: number) => {
+        set({ fileTreeWidth: Math.max(150, Math.min(400, width)) })
+      },
 
-  setFileTreeResizing: (isResizing: boolean) => {
-    set({ fileTreeResizing: isResizing })
-  },
+      setPreviewWidth: (width: number) => {
+        set({ previewWidth: Math.max(200, Math.min(800, width)) })
+      },
 
-  setFileTreeResizeHover: (isHover: boolean) => {
-    set({ fileTreeResizeHover: isHover })
-  },
+      setFileTreeResizing: (isResizing: boolean) => {
+        set({ fileTreeResizing: isResizing })
+      },
 
-  setPreviewContentSize: (size: PreviewContentSize | null) => {
-    set({ previewContentSize: size })
-  },
-}))
+      setFileTreeResizeHover: (isHover: boolean) => {
+        set({ fileTreeResizeHover: isHover })
+      },
+
+      setPreviewContentSize: (size: PreviewContentSize | null) => {
+        set({ previewContentSize: size })
+      },
+    }),
+    {
+      name: 'ui-storage',
+      storage: createJSONStorage(() => uiStorage),
+      // 只持久化部分字段，避免无关状态干扰
+      partialize: (state) => ({
+        theme: state.theme,
+        terminalHeight: state.terminalHeight,
+        fileTreeWidth: state.fileTreeWidth,
+        previewWidth: state.previewWidth,
+        previewContentSize: state.previewContentSize,
+      }),
+    }
+  )
+)

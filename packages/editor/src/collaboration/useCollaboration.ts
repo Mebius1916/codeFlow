@@ -15,14 +15,11 @@ export function useCollaboration({
   roomId,
   user,
   wsUrl,
-  initialFiles,
   collaborationEnabled,
 }: {
   roomId: string
   user: CodeEditorUser
   wsUrl?: string
-  enablePersistence?: boolean
-  initialFiles?: Record<string, string | Uint8Array>
   collaborationEnabled?: boolean
 }) {
   const [isReady, setIsReady] = useState(false)
@@ -98,15 +95,11 @@ export function useCollaboration({
       awareness.off('update', onAwarenessUpdate)
       awareness.destroy()
       yDoc.off('update', onDocUpdate)
-      worker.postMessage({ type: 'destroy' })
-      worker.terminate()
       yDoc.destroy()
-
-      setProvider(null)
+      worker.terminate()
       workerRef.current = null
-      yDocRef.current = null
     }
-  }, [roomId, user.id, user.name, user.color, wsUrl, collaborationEnabled, initialFiles])
+  }, [roomId, collaborationEnabled, user.id, user.name, user.color, wsUrl])
 
-  return { isReady, provider, yDocRef }
+  return { isReady, provider, yDoc: yDocRef.current }
 }

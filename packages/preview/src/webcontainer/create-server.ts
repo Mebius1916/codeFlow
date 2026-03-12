@@ -100,13 +100,11 @@ const buildShell = (innerHtml) => {
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, 'http://localhost');
   let filePath = '.' + url.pathname;
-  console.log('[PreviewServer] request', { url: url.pathname, entryPoint: ENTRY_POINT });
   
   if (filePath === './') {
     if (ENTRY_POINT) {
       filePath = ENTRY_POINT;
     } else {
-      console.log('[PreviewServer] Entry point not found', { entryPoint: ENTRY_POINT, cwd: process.cwd(), url: url.pathname });
       res.writeHead(404);
       res.end('Entry point not found');
       return;
@@ -120,8 +118,6 @@ const server = http.createServer((req, res) => {
       filePath = relativePath;
     }
   }
-  console.log('[PreviewServer] resolved path', { filePath });
-
   const extname = path.extname(filePath);
   let contentType = 'text/html';
   
@@ -137,13 +133,6 @@ const server = http.createServer((req, res) => {
   fs.readFile(filePath, (error, content) => {
     if (error) {
       if(error.code == 'ENOENT'){
-        console.log('[PreviewServer] File not found', {
-          entryPoint: ENTRY_POINT,
-          url: url.pathname,
-          filePath,
-          cwd: process.cwd(),
-          entryExists: ENTRY_POINT ? fs.existsSync(ENTRY_POINT) : null,
-        });
         res.writeHead(404);
         res.end('File not found: ' + filePath);
       } else {

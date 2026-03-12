@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-
+import { ensureUint8Array } from '@collaborative-editor/shared'
 const mimeByExt: Record<string, string> = {
   svg: 'image/svg+xml',
   png: 'image/png',
@@ -25,8 +25,10 @@ export function useImageBlob(content: Uint8Array | string | null, fileName?: str
       return
     }
 
+    const safeContent = ensureUint8Array(content)
+
     const mime = getMime(fileName)
-    const blob = new Blob([content as BlobPart], mime ? { type: mime } : undefined)
+    const blob = new Blob([safeContent as BlobPart], mime ? { type: mime } : undefined)
     const url = URL.createObjectURL(blob)
 
     setBlobUrl(url)

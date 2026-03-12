@@ -17,7 +17,6 @@ export function HomePage() {
   const handleConvert = async () => {
     const result = await parse(url);
     if (result) {
-      // 初始化状态
       const roomId = await runConvertFlow(result);
       navigate(`/room/${encodeURIComponent(roomId)}`);
     }

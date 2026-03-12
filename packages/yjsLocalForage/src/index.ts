@@ -1,2 +1,2 @@
-export { YjsLocalForageProvider, getSnapshot, setSnapshot, clearSnapshot } from './provider'
-export { getBinaryMap, applySnapshotToDoc, extractSnapshotFromDoc } from './yjs/files'
+export { YjsLocalForageProvider } from './provider'
+export { getUpdatesFromStore, setUpdatesToStore } from './storage/updates'
