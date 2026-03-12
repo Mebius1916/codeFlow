@@ -6,6 +6,7 @@ import { createRoomId, setRoomIdInUrl } from './room-id'
 
 export async function runConvertFlow(result: FigmaParseResult) {
   const nextRoomId = createRoomId()
+  setRoomIdInUrl(nextRoomId)
   const size = result.codegen_result?.size
   const nextSize = size?.width && size?.height ? size : undefined
   useUiStore.getState().setPreviewContentSize(nextSize ?? null)
@@ -17,6 +18,5 @@ export async function runConvertFlow(result: FigmaParseResult) {
     openFile,
   })
 
-  setRoomIdInUrl(nextRoomId)
   return nextRoomId
 }

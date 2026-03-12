@@ -26,20 +26,6 @@ ctx.addEventListener('message', async (e: MessageEvent) => {
     provider = new WebsocketProvider(url, config.roomId, yDoc, { connect: true })
 
     persistenceProvider = new YjsLocalForageProvider(config.roomId, yDoc)
-    
-    await persistenceProvider.init();
-
-    await new Promise<void>((resolve) => {
-      const handler = (isSynced: boolean) => {
-        if (!isSynced) return
-        provider?.off('sync', handler)
-        resolve()
-      }
-      provider?.on('sync', handler)
-    })
-
-    const update = Y.encodeStateAsUpdate(yDoc)
-    ctx.postMessage({ type: 'update', payload: update })
 
     yDoc.on('update', (nextUpdate: Uint8Array, origin: any) => {
       if (origin === 'main') return
@@ -58,6 +44,12 @@ ctx.addEventListener('message', async (e: MessageEvent) => {
     provider.on('status', ({ status }: { status: string }) => {
       ctx.postMessage({ type: 'status', payload: status })
     })
+
+    await persistenceProvider.init()
+
+    const update = Y.encodeStateAsUpdate(yDoc)
+    // 将 yDoc 的内容同步到主线程
+    ctx.postMessage({ type: 'update', payload: update })
 
     ctx.postMessage({ type: 'ready' })
     return

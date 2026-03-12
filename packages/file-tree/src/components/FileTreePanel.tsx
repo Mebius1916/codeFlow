@@ -55,7 +55,7 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
           <FileTreeHeader/>
         )}
 
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto py-2 custom-scrollbar">
           {creatingState?.parentPath === null && (
             <NewFileItem
               depth={0}

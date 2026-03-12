@@ -102,18 +102,40 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
       },
     })
 
-const storage = createJSONStorage(() => ({
-  getItem: async (name: string) => {
-    const value = await localforage.getItem<string>(name)
-    return value ?? null
-  },
-  setItem: async (name: string, value: string) => {
-    await localforage.setItem(name, value)
-  },
-  removeItem: async (name: string) => {
-    await localforage.removeItem(name)
-  },
-}))
+const storage = createJSONStorage(() => {
+  const resolveRoomIdFromUrl = () => {
+    if (typeof window === 'undefined') return null
+    const path = window.location?.pathname || ''
+    const match = path.match(/\/room\/([^/?#]+)/)
+    if (!match) return null
+    try {
+      return decodeURIComponent(match[1])
+    } catch {
+      return match[1]
+    }
+  }
+
+  const buildStorageKey = (name: string) => {
+    const roomId = resolveRoomIdFromUrl()
+    return roomId ? `${name}:${roomId}` : name
+  }
+
+  return {
+    getItem: async (name: string) => {
+      const storageKey = buildStorageKey(name)
+      const value = await localforage.getItem<string>(storageKey)
+      return value ?? null
+    },
+    setItem: async (name: string, value: string) => {
+      const storageKey = buildStorageKey(name)
+      await localforage.setItem(storageKey, value)
+    },
+    removeItem: async (name: string) => {
+      const storageKey = buildStorageKey(name)
+      await localforage.removeItem(storageKey)
+    },
+  }
+})
 
 export const useEditorStore = create<EditorState>()(
   persist(createEditorState, {

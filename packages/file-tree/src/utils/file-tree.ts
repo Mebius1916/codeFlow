@@ -31,7 +31,6 @@ export function buildFileTree(paths: string[]): TreeNode[] {
           path: currentPath,
           type: isFile ? 'file' : 'folder',
           children: isFile ? undefined : [],
-          isOpen: true,
         }
         currentLevel.push(node)
       }
