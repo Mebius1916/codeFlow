@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
 import { buildFileTree, type TreeNode } from '../utils/file-tree'
 
+const getDefaultOpen = (path: string) => !(path === 'assets' || path.startsWith('assets/'))
+
 export function useFileTreeData(fileKeys: string[]) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({})
 
@@ -10,8 +12,7 @@ export function useFileTreeData(fileKeys: string[]) {
     const mergeState = (nodes: TreeNode[]): TreeNode[] => {
       return nodes.map((node) => {
         if (node.type === 'folder') {
-          const isAssetsOrChild = node.path === 'assets' || node.path.startsWith('assets/')
-          const defaultOpen = !isAssetsOrChild
+          const defaultOpen = getDefaultOpen(node.path)
           const isOpen = expandedFolders[node.path] ?? node.isOpen ?? defaultOpen
           return {
             ...node,
@@ -27,9 +28,10 @@ export function useFileTreeData(fileKeys: string[]) {
   }, [fileKeys, expandedFolders])
 
   const handleFolderToggle = useCallback((path: string) => {
+    const defaultOpen = getDefaultOpen(path)
     setExpandedFolders((prev: Record<string, boolean>) => ({
       ...prev,
-      [path]: !(prev[path] ?? true),
+      [path]: !(prev[path] ?? defaultOpen),
     }))
   }, [])
 
