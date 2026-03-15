@@ -23,6 +23,12 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
   }, [])
 
   useEffect(() => {
+    const entries = Object.entries(files)
+    if (entries.length === 0) {
+      console.log('[Preview] files 为空，等待文件加载后再启动预览')
+      setIsLoading(true)
+      return
+    }
     if (startedRef.current) return
     startedRef.current = true
     setError(null)

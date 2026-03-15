@@ -61,6 +61,7 @@ export async function ensureWebContainer() {
 
   globalState.bootPromise = (async () => {
     publishLog('Booting WebContainer...')
+    // 启动WebContainer实例
     const instance = await WebContainer.boot()
     globalState.instance = instance
     bindServerReadyOnce(instance)

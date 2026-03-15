@@ -11,7 +11,7 @@ void run();
 async function run() {
   const data = JSON.parse(fs.readFileSync(inputFile, "utf8"));
   const design = await simplifyRawFigmaObjectWithImages(data, {
-    fileKey: "xi5TJ73jny5zfNQC8dRtT4",
+    fileKey: "",
     token: "",
   });
 

@@ -13,6 +13,7 @@ export function PreviewPanel({
   previewContentSize?: PreviewContentSize | null
 }) {
   const previewFiles = useEditorStore((state) => state.files)
+  console.log('[PreviewPanel] previewFiles', previewFiles)
   const { iframeRef, handleIframePointerDown, handleIframeClick } = useIframeScrollFocus()
   const { containerRef, containerSize } = useContainerSize<HTMLDivElement>()
   const { previewUrl, isLoading, error, logs } = useWebContainer(previewFiles)
@@ -105,7 +106,8 @@ export function PreviewPanel({
             background: 'rgb(12, 14, 23)',
           }}
           title="Preview"
-          sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+          sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts allow-top-navigation-by-user-activation allow-storage-access-by-user-activation"
+          allow="cross-origin-isolated"
           onPointerDown={handleIframePointerDown}
           onClick={handleIframeClick}
           onLoad={postLayout}
