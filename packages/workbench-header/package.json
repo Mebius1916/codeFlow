@@ -1,7 +1,7 @@
 {
-  "name": "@collaborative-editor/topbar",
+  "name": "@collaborative-editor/workbench-header",
   "version": "0.1.0",
-  "description": "协同编辑器顶部栏组件",
+  "description": "协同编辑器工作台头部（文件树头 / 标签页 / 预览头）",
   "scripts": {
     "build": "tsc"
   },
@@ -28,4 +28,3 @@
     "typescript": "^5"
   }
 }
-

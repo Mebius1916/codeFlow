@@ -1,6 +1,6 @@
 import { FeatureProvider, useEditorStore, useShallow, useUiStore } from "@collaborative-editor/shared";
 import { useFileTreeActions } from "@collaborative-editor/file-tree";
-import { TopBar as FileTreeBar } from "@collaborative-editor/topbar";
+import { WorkbenchHeader } from "@collaborative-editor/workbench-header";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
@@ -81,7 +81,7 @@ export function EditorPage() {
           }}
           shareEnabled={collaborationEnabled}
         />
-        <FileTreeBar
+        <WorkbenchHeader
           activeFile={activeFile}
           openFiles={openFiles}
           onOpenFile={(path: string) => {

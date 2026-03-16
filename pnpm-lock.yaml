@@ -76,9 +76,9 @@ importers:
       '@collaborative-editor/shared':
         specifier: workspace:*
         version: link:../packages/shared
-      '@collaborative-editor/topbar':
+      '@collaborative-editor/workbench-header':
         specifier: workspace:*
-        version: link:../packages/topbar
+        version: link:../packages/workbench-header
       '@collaborative-editor/yjs-local-forage':
         specifier: workspace:*
         version: link:../packages/yjsLocalForage
@@ -289,7 +289,7 @@ importers:
         specifier: ^5
         version: 5.9.3
 
-  packages/topbar:
+  packages/workbench-header:
     dependencies:
       '@collaborative-editor/file-tree':
         specifier: workspace:*
