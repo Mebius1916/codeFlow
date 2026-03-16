@@ -101,7 +101,7 @@ export function PreviewPanel({
             background: 'rgb(12, 14, 23)',
           }}
           title="Preview"
-          sandbox="allow-forms allow-modals allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts allow-top-navigation-by-user-activation allow-storage-access-by-user-activation"
+          sandbox=" allow-same-origin allow-scripts"
           allow="cross-origin-isolated"
           onPointerDown={handleIframePointerDown}
           onClick={handleIframeClick}
