@@ -18,8 +18,37 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
     if (!webcontainerInstance) return
     const entries = Object.entries(nextFiles)
     if (entries.length === 0) return
+    const startAt = performance.now()
     await ensureDirectories(webcontainerInstance, entries.map(([path]) => path))
+    const afterDirs = performance.now()
     await writeFilesConcurrently(webcontainerInstance, entries, 8)
+    const afterWrite = performance.now()
+    console.log(
+      `[Preview] sync files=${entries.length} ` +
+        `mkdir=${(afterDirs - startAt).toFixed(1)}ms ` +
+        `write=${(afterWrite - afterDirs).toFixed(1)}ms`,
+    )
+  }, [])
+
+  useEffect(() => {
+    const lastUrl = getLastPreviewUrl()
+    if (lastUrl) {
+      console.log('[Preview] 使用上一次预览地址', lastUrl)
+      setPreviewUrl(lastUrl)
+      setIsLoading(false)
+    } else {
+      console.log('[Preview] 未发现预览地址，等待 server-ready')
+    }
+    const unsubscribeLogs = subscribeLogs(addLog)
+    const unsubscribeReady = subscribeServerReady((url) => {
+      console.log('[Preview] 收到 server-ready', url)
+      setPreviewUrl(url)
+      setIsLoading(false)
+    })
+    return () => {
+      unsubscribeLogs()
+      unsubscribeReady()
+    }
   }, [])
 
   useEffect(() => {
@@ -32,22 +61,16 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
     if (startedRef.current) return
     startedRef.current = true
     setError(null)
-    const lastUrl = getLastPreviewUrl()
-    if (lastUrl) {
-      setPreviewUrl(lastUrl)
-      setIsLoading(false)
-    } else {
-      setIsLoading(true)
-    }
-    const unsubscribeLogs = subscribeLogs(addLog)
-    const unsubscribeReady = subscribeServerReady((url) => {
-      setPreviewUrl(url)
-      setIsLoading(false)
-    })
-    // 先启动
+    setIsLoading(true)
+    const startAt = performance.now()
     ensurePreviewServer(files)
       .then(() => {
-        // 再写入文件
+        const afterServer = performance.now()
+        console.log(`[Preview] ensurePreviewServer ${(afterServer - startAt).toFixed(1)}ms`)
+        const urlAfter = getLastPreviewUrl()
+        if (!urlAfter) {
+          console.log('[Preview] server-ready 尚未触发')
+        }
         runSync(files)
       })
       .catch((e) => {
@@ -55,10 +78,6 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
         setIsLoading(false)
         startedRef.current = false
       })
-    return () => {
-      unsubscribeLogs()
-      unsubscribeReady()
-    }
   }, [files, runSync])
 
   return { previewUrl, isLoading, error, logs }

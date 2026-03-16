@@ -13,7 +13,6 @@ export function PreviewPanel({
   previewContentSize?: PreviewContentSize | null
 }) {
   const previewFiles = useEditorStore((state) => state.files)
-  console.log('[PreviewPanel] previewFiles', previewFiles)
   const { iframeRef, handleIframePointerDown, handleIframeClick } = useIframeScrollFocus()
   const { containerRef, containerSize } = useContainerSize<HTMLDivElement>()
   const { previewUrl, isLoading, error, logs } = useWebContainer(previewFiles)
@@ -51,6 +50,7 @@ export function PreviewPanel({
   }, [postLayout, previewUrl])
 
   useEffect(() => {
+    console.log('[Preview][Iframe] previewUrl', previewUrl)
     setIsIframeLoaded(false)
   }, [previewUrl])
 
@@ -60,6 +60,7 @@ export function PreviewPanel({
       if (!data || typeof data !== 'object' || data.type !== 'preview:ready') return
       const iframe = iframeRef.current
       if (!iframe || event.source !== iframe.contentWindow) return
+      console.log('[Preview][Iframe] preview:ready received')
       setIsIframeLoaded(true)
       postLayout()
     }
@@ -70,14 +71,8 @@ export function PreviewPanel({
   }, [iframeRef, postLayout])
 
   useEffect(() => {
-    if (!previewUrl) return
-    const timeout = window.setTimeout(() => {
-      setIsIframeLoaded(true)
-    }, 8000)
-    return () => {
-      window.clearTimeout(timeout)
-    }
-  }, [previewUrl])
+    console.log('[Preview][Iframe] isLoading', isLoading, 'isIframeLoaded', isIframeLoaded)
+  }, [isLoading, isIframeLoaded])
 
   if (error) {
     return (
@@ -110,7 +105,10 @@ export function PreviewPanel({
           allow="cross-origin-isolated"
           onPointerDown={handleIframePointerDown}
           onClick={handleIframeClick}
-          onLoad={postLayout}
+          onLoad={() => {
+            console.log('[Preview][Iframe] onLoad')
+            postLayout()
+          }}
           tabIndex={0}
         />
         {(isLoading || !previewUrl || !isIframeLoaded) && (

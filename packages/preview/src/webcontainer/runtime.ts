@@ -27,6 +27,7 @@ export function getLastPreviewUrl() {
 // 订阅服务器就绪事件
 export function subscribeServerReady(cb: UrlSubscriber) {
   serverReadySubscribers.add(cb)
+  console.log('[Preview][Runtime] subscribe server-ready', serverReadySubscribers.size)
   return () => serverReadySubscribers.delete(cb)
 }
 
@@ -45,8 +46,10 @@ export function publishLog(msg: string) {
 function bindServerReadyOnce(instance: WebContainer) {
   if (globalState.serverReadyBound) return
   globalState.serverReadyBound = true
+  console.log('[Preview][Runtime] bind server-ready')
 
   instance.on('server-ready', (_port: number, url: string) => {
+    console.log('[Preview][Runtime] server-ready', url)
     publishLog(`Server ready at ${url}`)
     globalState.lastPreviewUrl = url
     serverReadySubscribers.forEach((cb) => cb(url))
