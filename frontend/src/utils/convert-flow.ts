@@ -1,4 +1,4 @@
-import { useEditorStore, useUiStore } from '@collaborative-editor/shared'
+import { createLocalForageContentRepository, useEditorStore, useUiStore } from '@collaborative-editor/shared'
 import type { FigmaParseResult } from '../hooks/useFigmaUrlParser'
 import { handleFigmaConvertSuccess as handleFigmaConvertSuccessImpl } from './figma/convert-success'
 import { getCachedContentByUrl } from './cache/image'
@@ -17,6 +17,10 @@ export async function runConvertFlow(result: FigmaParseResult) {
     initializeFiles,
     openFile,
   })
+
+  const files = useEditorStore.getState().files
+  const repo = createLocalForageContentRepository(nextRoomId)
+  await repo.bootstrapIfEmpty(files)
 
   return nextRoomId
 }

@@ -1,6 +1,6 @@
 import type * as Monaco from 'monaco-editor'
 import * as Y from 'yjs'
-import { useEditorStore } from '@collaborative-editor/shared'
+import { setFileContent, useEditorStore } from '@collaborative-editor/shared'
 import { createMonacoBinding, syncCursorToAwareness } from './yjsBinding'
 import type { Ref, Unbind, MonacoBinding } from './cleanup'
 import type { Awareness } from 'y-protocols/awareness'
@@ -30,7 +30,7 @@ export const bindSingleMode = (args: {
     }
     storeUpdateTimer = setTimeout(() => {
       if (args.model.isDisposed()) return
-      useEditorStore.getState().updateFileContent(args.activeFile, args.model.getValue())
+      setFileContent(args.activeFile, args.model.getValue())
     }, 500)
   })
 

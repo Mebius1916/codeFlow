@@ -1,4 +1,4 @@
-import { FeatureProvider, useEditorStore, useShallow, useUiStore } from "@collaborative-editor/shared";
+import { closeFile, FeatureProvider, openFile, useEditorStore, useShallow, useUiStore } from "@collaborative-editor/shared";
 import { useFileTreeActions } from "@collaborative-editor/file-tree";
 import { WorkbenchHeader } from "@collaborative-editor/workbench-header";
 import { useEffect, useMemo, useState } from "react";
@@ -15,12 +15,10 @@ export function EditorPage() {
   const resolvedRoomId = roomId ?? "";
   const userId = useMemo(() => `demo_${Math.random().toString(36).slice(2, 9)}`, []);
   const fileTreeActions = useFileTreeActions();
-  const { activeFile, openFiles, openFile, closeFile } = useEditorStore(
+  const { activeFile, openFiles } = useEditorStore(
     useShallow((state) => ({
       activeFile: state.activeFile,
       openFiles: state.openFiles,
-      openFile: state.openFile,
-      closeFile: state.closeFile,
     }))
   );
   const [collaborationEnabled, setCollaborationEnabled] = useState(false);
@@ -84,12 +82,8 @@ export function EditorPage() {
         <WorkbenchHeader
           activeFile={activeFile}
           openFiles={openFiles}
-          onOpenFile={(path: string) => {
-            openFile(path);
-          }}
-          onCloseFile={(path: string) => {
-            closeFile(path);
-          }}
+          onOpenFile={openFile}
+          onCloseFile={closeFile}
           onNewFile={() => fileTreeActions.handleStartCreate(null, "file")}
           onNewFolder={() => fileTreeActions.handleStartCreate(null, "folder")}
           onPreviewRefresh={() => setPreviewRevision((value) => value + 1)}

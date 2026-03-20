@@ -1,5 +1,5 @@
 import * as Y from 'yjs'
-import { useEditorStore } from '@collaborative-editor/shared'
+import { setFileContent, useEditorStore } from '@collaborative-editor/shared'
 import { observeAny, setAny } from './yjsAny'
 import { anyEqual } from './anyEqual'
 
@@ -18,7 +18,7 @@ export const bindAnyStoreSync = (doc: Y.Doc) => {
       if (isText(current) && isText(value) && anyEqual(current, value)) return
       if (current instanceof Uint8Array && value instanceof Uint8Array && anyEqual(current, value)) return
       
-      useEditorStore.getState().updateFileContent(path, value as string | Uint8Array)
+      setFileContent(path, value as string | Uint8Array)
     })
     disposers.set(path, dispose)
   }

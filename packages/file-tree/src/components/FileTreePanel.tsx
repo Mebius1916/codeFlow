@@ -1,4 +1,4 @@
-import { useEditorStore, useFeatures, useShallow } from '@collaborative-editor/shared'
+import { openFile, useEditorStore, useFeatures, useShallow } from '@collaborative-editor/shared'
 import { useFileTreeData, useFileTreeResizeCssVars, useFileTreeActions } from '../hooks'
 import { FileTreeNode } from './FileTreeNode'
 import type { TreeNode } from '../utils/file-tree'
@@ -13,11 +13,10 @@ interface FileTreePanelProps {
 }
 
 export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
-  const { fileKeys, activeFile, openFile } = useEditorStore(
+  const { fileKeys, activeFile } = useEditorStore(
     useShallow((state) => ({
       fileKeys: state.fileKeys,
       activeFile: state.activeFile,
-      openFile: state.openFile,
     }))
   )
   const { fileTree: isEnabled, toolbar: isToolbarEnabled } = useFeatures()

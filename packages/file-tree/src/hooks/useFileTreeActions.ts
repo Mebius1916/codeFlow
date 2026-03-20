@@ -1,17 +1,8 @@
 import { useState, useCallback } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
-import { useEditorStore, useShallow } from '@collaborative-editor/shared'
+import { addFile, deleteFile, openFile, renameFile, useEditorStore } from '@collaborative-editor/shared'
 
 export function useFileTreeActions() {
-  const { addFile, openFile, deleteFile, renameFile } = useEditorStore(
-    useShallow((state) => ({
-      addFile: state.addFile,
-      openFile: state.openFile,
-      deleteFile: state.deleteFile,
-      renameFile: state.renameFile,
-    }))
-  )
-
   const [contextMenu, setContextMenu] = useState<{
     x: number
     y: number

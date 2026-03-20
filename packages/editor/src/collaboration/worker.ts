@@ -45,9 +45,12 @@ ctx.addEventListener('message', async (e: MessageEvent) => {
       ctx.postMessage({ type: 'status', payload: status })
     })
 
+    // 读取缓存并应用到 yDoc
     await persistenceProvider.init()
 
+    // 全量更新 yDoc 状态
     const update = Y.encodeStateAsUpdate(yDoc)
+
     // 将 yDoc 的内容同步到主线程
     ctx.postMessage({ type: 'update', payload: update })
 

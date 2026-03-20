@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import type { StateCreator } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import localforage from 'localforage'
-import { ensureUint8Array } from '../utils/buffer'
 
 interface EditorState {
   activeFile: string | null
@@ -30,7 +29,8 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
       },
 
       openFile: (path: string) => {
-        const { openFiles } = get()
+        const { openFiles, activeFile } = get()
+        if (activeFile === path) return
         const nextOpenFiles = openFiles.includes(path) ? openFiles : [...openFiles, path]
         set({ openFiles: nextOpenFiles, activeFile: path })
       },
@@ -158,27 +158,15 @@ export const useEditorStore = create<EditorState>()(
     partialize: (state) => ({
       activeFile: state.activeFile,
       openFiles: state.openFiles,
-      files: state.files,
-      fileKeys: state.fileKeys,
     }),
     // 合并持久化状态和当前状态
     merge: (persistedState, currentState) => {
       const restored = persistedState as Partial<EditorState> | undefined
-      const restoredFiles = restored?.files ?? {}
-      const nextFiles: Record<string, string | Uint8Array> = {}
-
-      Object.entries(restoredFiles).forEach(([path, content]) => {
-        const safeContent = ensureUint8Array(content)
-        if (safeContent !== null) {
-          nextFiles[path] = safeContent
-        }
-      })
-
       return {
         ...currentState,
         ...restored,
-        files: nextFiles,
-        fileKeys: Object.keys(nextFiles),
+        files: currentState.files,
+        fileKeys: currentState.fileKeys,
       }
     },
   }),

@@ -8,6 +8,7 @@ import { useMonacoBinding } from '../monaco-binding/useMonacoBinding'
 import { ImagePreview } from './features/ImagePreview'
 import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
 import type { EditorProps } from '../types'
+import { useContentLayer } from '../content/useContentLayer'
 
 export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled }: EditorProps) {
   const activeFile = useEditorStore((state) => state.activeFile)
@@ -15,6 +16,12 @@ export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled
   const editorDomRef = useRef<HTMLElement | null>(null)
   const [isEditorMounted, setIsEditorMounted] = useState(false)
   const [isMonacoReady, setIsMonacoReady] = useState(false)
+
+  const { isContentReady } = useContentLayer({
+    roomId,
+    collaborationEnabled,
+    initialFiles,
+  })
 
   // 实例化 Yjs 线程
   const { provider, yDoc, isReady } = useCollaboration({
@@ -73,6 +80,10 @@ export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled
       window.removeEventListener('keydown', handleKeydownCapture, { capture: true } as AddEventListenerOptions)
     }
   }, [])
+
+  if (!isContentReady) {
+    return <Loading text="正在加载文件..." />
+  }
 
   if (!activeFile) {
     return <EmptyState />

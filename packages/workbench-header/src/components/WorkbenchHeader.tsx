@@ -13,30 +13,6 @@ export type WorkbenchHeaderProps = FileTabsProps & {
 
 const WORKBENCH_BG = 'rgb(25, 30, 50)'
 
-function AddFileIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 5v14" stroke="white" strokeOpacity="0.75" strokeWidth="2" strokeLinecap="round" />
-      <path d="M5 12h14" stroke="white" strokeOpacity="0.75" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function AddFolderIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"
-        stroke="white"
-        strokeOpacity="0.75"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <path d="M12 11v6" stroke="white" strokeOpacity="0.75" strokeWidth="2" strokeLinecap="round" />
-      <path d="M9 14h6" stroke="white" strokeOpacity="0.75" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 export function WorkbenchHeader(props: WorkbenchHeaderProps) {
   const {
@@ -53,35 +29,13 @@ export function WorkbenchHeader(props: WorkbenchHeaderProps) {
     handleStyle: previewHandleStyle,
   } = usePreviewResizeCssVars()
 
-  const fileTreeRightSlot =
-    props.onNewFile || props.onNewFolder ? (
-      <div className="flex items-center gap-1">
-        <button
-          onClick={props.onNewFile}
-          disabled={!props.onNewFile}
-          className="w-7 h-7 rounded-md hover:bg-[#2a2f4c] transition-colors flex items-center justify-center disabled:opacity-40 disabled:hover:bg-transparent"
-          title="新建文件"
-        >
-          <AddFileIcon />
-        </button>
-        <button
-          onClick={props.onNewFolder}
-          disabled={!props.onNewFolder}
-          className="w-7 h-7 rounded-md hover:bg-[#2a2f4c] transition-colors flex items-center justify-center disabled:opacity-40 disabled:hover:bg-transparent"
-          title="新建文件夹"
-        >
-          <AddFolderIcon />
-        </button>
-      </div>
-    ) : undefined
-
   return (
     <div className="h-10 flex items-center" style={{ backgroundColor: WORKBENCH_BG }}>
       <div
         className="flex-shrink-0 h-full overflow-hidden relative border-r border-[#2a2f4c] box-border"
         style={{ width: 'var(--file-tree-width, 250px)', borderRightColor: 'var(--file-tree-border-color, #2a2f4c)' }}
       >
-        <FileTreeHeader withRightBorder={false} rightSlot={fileTreeRightSlot} />
+        <FileTreeHeader withRightBorder={false} />
         <div
           onMouseDown={onFileTreeMouseDown}
           onMouseEnter={onFileTreeMouseEnter}
