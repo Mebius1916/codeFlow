@@ -22,12 +22,6 @@ export function useContentLayer(args: {
 
     const run = async () => {
       if (!repo) {
-        if (initialFiles) {
-          const state = useEditorStore.getState()
-          if (state.fileKeys.length === 0) {
-            state.initializeFiles(initialFiles)
-          }
-        }
         setIsContentReady(true)
         return
       }
