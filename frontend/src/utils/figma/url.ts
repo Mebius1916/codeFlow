@@ -1,7 +1,7 @@
 import { codegen, extractFigmaAsJSON } from '@collaborative-editor/design2code'
 import type { SimplifiedDesign } from '@collaborative-editor/design2code'
 import type { GetFileNodesResponse, GetFileResponse } from '@figma/rest-api-spec'
-import { frontendFetcher } from '../assets/fetch-image'
+import { createFrontendFetcher } from '../assets/fetch-image'
 
 export type FigmaApiData = GetFileResponse | GetFileNodesResponse
 
@@ -68,7 +68,7 @@ export async function safeExtractDesign(args: {
       token: args.token,
       scale: 1,
       format: 'png',
-      fetcher: frontendFetcher,
+      fetcher: createFrontendFetcher({ fileKey: args.fileKey }),
     })
   } catch {
     return null

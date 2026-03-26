@@ -1,14 +1,13 @@
-const sessionAssetUrlMap = new Map<string, string>()
+const sessionAssetPathMap = new Map<string, string>()
 
-export function clearSessionAssetUrlMap() {
-  sessionAssetUrlMap.clear()
+export function clearSessionAssetPathMap() {
+  sessionAssetPathMap.clear()
 }
 
-export function getSessionAssetUrlMap() {
-  return new Map(sessionAssetUrlMap)
+export function getSessionAssetPathMap() {
+  return new Map(sessionAssetPathMap)
 }
 
-export function setSessionAssetUrl(path: string, url: string) {
-  sessionAssetUrlMap.set(path, url)
+export function setSessionAssetPath(path: string) {
+  sessionAssetPathMap.set(path, path)
 }
-

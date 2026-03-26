@@ -9,6 +9,7 @@ const config: Config = {
     "../packages/preview/src/**/*.{js,ts,jsx,tsx,mdx}",
     "../packages/topbar/src/**/*.{js,ts,jsx,tsx,mdx}",
     "../packages/shared/src/**/*.{js,ts,jsx,tsx,mdx}",
+    "../packages/workbench-header/src/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {

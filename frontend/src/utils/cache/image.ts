@@ -3,28 +3,21 @@ import { cacheRoom } from './hash'
 import { ensureUint8Array } from '@collaborative-editor/shared'
 
 export type ResourceContent = string | Uint8Array
+export type CachedResourceSnapshot = { content: ResourceContent; contentType: string }
 
 const store = localforage.createInstance({ name: 'cache-image' })
 
-export async function getCachedContentByUrl(url: string) {
-  const room = await cacheRoom('img', url)
-  const snapshot = await store.getItem<{ content: ResourceContent }>(room)
-  const content = snapshot?.content
-  
-  // 使用 ensureUint8Array 处理序列化后的对象
-  const safeContent = ensureUint8Array(content)
-  return safeContent ?? undefined
-}
-
-export async function getCachedContentTypeByUrl(url: string) {
-  const room = await cacheRoom('img', url)
-  const snapshot = await store.getItem<{ contentType: string }>(room)
+export async function getCachedResourceByAssetPath(assetPath: string): Promise<CachedResourceSnapshot | undefined> {
+  const room = await cacheRoom('img:path', assetPath)
+  const snapshot = await store.getItem<{ content: ResourceContent; contentType: string }>(room)
+  const content = ensureUint8Array(snapshot?.content)
   const contentType = snapshot?.contentType
-  return typeof contentType === 'string' ? contentType : undefined
+  if (!(typeof content === 'string' || content instanceof Uint8Array)) return undefined
+  if (typeof contentType !== 'string') return undefined
+  return { content, contentType }
 }
 
-export async function setCachedContentByUrl(url: string, content: ResourceContent, contentType: string) {
-  const room = await cacheRoom('img', url)
-  await store.setItem(room, { content, contentType })
+export async function setCachedResourceByAssetPath(assetPath: string, snapshot: CachedResourceSnapshot) {
+  const room = await cacheRoom('img:path', assetPath)
+  await store.setItem(room, snapshot)
 }
-

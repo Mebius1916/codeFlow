@@ -1,7 +1,7 @@
 import { createLocalForageContentRepository, useEditorStore, useUiStore } from '@collaborative-editor/shared'
 import type { FigmaParseResult } from '../hooks/useFigmaUrlParser'
 import { handleFigmaConvertSuccess as handleFigmaConvertSuccessImpl } from './figma/convert-success'
-import { getCachedContentByUrl } from './cache/image'
+import { getCachedResourceByAssetPath } from './cache/image'
 import { createRoomId, setRoomIdInUrl } from './room-id'
 
 export async function runConvertFlow(result: FigmaParseResult) {
@@ -13,7 +13,7 @@ export async function runConvertFlow(result: FigmaParseResult) {
 
   const { initializeFiles, openFile } = useEditorStore.getState()
   await handleFigmaConvertSuccessImpl(result, {
-    getCachedContentByUrl,
+    getCachedResourceByAssetPath,
     initializeFiles,
     openFile,
   })

@@ -12,11 +12,11 @@ export const imageExtractor: ExtractorFn = (node, context) => {
   const isImage = context.smartNode?.isImage();
   const isSvg = context.smartNode?.isIcon();
 
-  if (isImage) {
-    pushUnique(ids, node.id);
-  }
-  if (isSvg) {
-    pushUnique(svgNodeIds, node.id);
+  if (isImage || isSvg) {
+    if (isImage) pushUnique(ids, node.id);
+    if (isSvg) pushUnique(svgNodeIds, node.id);
+    context.globalVars.imageAssets = imageAssets;
+    return {};
   }
 
   if (hasValue("fills", node) && Array.isArray(node.fills) && node.fills.length) {

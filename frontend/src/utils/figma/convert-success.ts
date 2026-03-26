@@ -7,7 +7,7 @@ type FileContent = string | Uint8Array
 export async function handleFigmaConvertSuccess(
   result: FigmaParseResult,
   deps: {
-    getCachedContentByUrl: (url: string) => Promise<FileContent | undefined>
+    getCachedResourceByAssetPath: (assetPath: string) => Promise<{ content: FileContent } | undefined>
     initializeFiles: (files: Record<string, FileContent>) => void
     openFile: (path: string) => void
   },
@@ -25,9 +25,9 @@ export async function handleFigmaConvertSuccess(
 
   const assetEntries = Array.from(assetsPathMap.entries())
   const assetContents = await Promise.all(
-    assetEntries.map(async ([path, url]) => {
-      const content = await deps.getCachedContentByUrl(url)
-      return [path, content] as const
+    assetEntries.map(async ([path, assetPath]) => {
+      const snapshot = await deps.getCachedResourceByAssetPath(assetPath)
+      return [path, snapshot?.content] as const
     }),
   )
 
@@ -40,4 +40,3 @@ export async function handleFigmaConvertSuccess(
   deps.initializeFiles(newFiles)
   deps.openFile('src/index.html')
 }
-
