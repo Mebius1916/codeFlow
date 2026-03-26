@@ -10,6 +10,7 @@ import { parseAPIResponse } from "./utils/parse-api.js";
 
 export interface FetcherAdapter {
   image?: (url: string, key: string, headers?: Record<string, string>) => Promise<string>;
+  resolveCache?: (key: string) => Promise<string | undefined>;
 }
 
 /**

@@ -42,21 +42,23 @@ async function buildAssetMaps(
   const imageRefs = imageAssets.imageRefs || [];
   const svgNodeIds = imageAssets.svgNodeIds || [];
 
-  // 获取图片填充资源
+  const { cachedMap: cachedNodeMap, remaining: remainingNodeIds } = await splitByCache(nodeIds, options.fetcher?.resolveCache);
+  const { cachedMap: cachedRefMap, remaining: remainingImageRefs } = await splitByCache(imageRefs, options.fetcher?.resolveCache);
+  const { cachedMap: cachedSvgMap, remaining: remainingSvgNodeIds } = await splitByCache(svgNodeIds, options.fetcher?.resolveCache);
+
   const imageFillUrls =
-    imageRefs.length > 0 ? await fetchImageFillUrls(options.fileKey, options.token, imageRefs) : {};
-  // 获取节点渲染图片/svg
-  const nodeImageMap = await fetchNodeRenderUrls(nodeIds, options);
-  // 获取 svg
-  const svgUrlMap = await fetchNodeRenderUrls(svgNodeIds, { ...options, format: "svg" });
+    remainingImageRefs.length > 0 ? await fetchImageFillUrls(options.fileKey, options.token, remainingImageRefs) : {};
+  const nodeImageMap =
+    remainingNodeIds.length > 0 ? await fetchNodeRenderUrls(remainingNodeIds, options) : {};
+  const svgUrlMap =
+    remainingSvgNodeIds.length > 0 ? await fetchNodeRenderUrls(remainingSvgNodeIds, { ...options, format: "svg" }) : {};
 
-  // 合并资源映射表
-  let imageMap = { ...nodeImageMap, ...imageFillUrls, ...svgUrlMap };
-
+  let remoteMap = { ...nodeImageMap, ...imageFillUrls, ...svgUrlMap };
   if (options.fetcher?.image) {
-    imageMap = await fetchImagesThroughAdapter(imageMap, options.fetcher.image);
+    remoteMap = await fetchImagesThroughAdapter(remoteMap, options.fetcher.image);
   }
 
+  const imageMap = { ...cachedNodeMap, ...cachedRefMap, ...cachedSvgMap, ...remoteMap };
   return { imageMap };
 }
 
@@ -86,6 +88,31 @@ async function fetchImagesThroughAdapter(
   return newMap;
 }
 
+async function splitByCache(
+  keys: string[],
+  resolveCache?: NonNullable<FetcherAdapter["resolveCache"]>,
+): Promise<{ cachedMap: ImageMap; remaining: string[] }> {
+  if (!resolveCache || keys.length === 0) {
+    return { cachedMap: {}, remaining: keys };
+  }
+  const results = await Promise.all(
+    keys.map(async (key) => {
+      const cached = await resolveCache(key);
+      return { key, cached };
+    }),
+  );
+  const cachedMap: ImageMap = {};
+  const remaining: string[] = [];
+  results.forEach(({ key, cached }) => {
+    if (cached) {
+      cachedMap[key] = cached;
+    } else {
+      remaining.push(key);
+    }
+  });
+  return { cachedMap, remaining };
+}
+
 // 回填 图片/svg 映射表到设计中
 function resolveImageAssets(
   design: SimplifiedDesign,
@@ -96,4 +123,3 @@ function resolveImageAssets(
   applyImageMapToNodes(design.nodes, imageMap);
   return design;
 }
-

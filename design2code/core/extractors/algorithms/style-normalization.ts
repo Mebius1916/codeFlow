@@ -41,45 +41,9 @@ function buildLayoutRefs(
   if (!node.layout || typeof node.layout === "string") return {};
 
   const layout = node.layout as SimplifiedLayout;
-  const { atom, rest } = extractLayoutAtoms(layout);
-  let atomId: string | undefined;
-
-  if (atom) {
-    atomId = findOrCreateVar(globalVars, atom as any, "layout-atom");
-  }
-
-  const layoutId = findOrCreateVar(globalVars, rest as any, "layout");
+  const layoutId = findOrCreateVar(globalVars, layout as any, "layout");
   node.layout = layoutId;
-  return { atomId, layoutId };
-}
-
-// 将 layout 分为 atom（可复用） 和 rest（不可复用） 两个部分
-function extractLayoutAtoms(layout: SimplifiedLayout) {
-  if (layout.mode === "none") {
-    return { atom: undefined, rest: layout };
-  }
-
-  const hasAlign =
-    layout.justifyContent !== undefined || layout.alignItems !== undefined;
-
-  if (!hasAlign) {
-    return { atom: undefined, rest: layout };
-  }
-
-  const atom: Partial<SimplifiedLayout> = {
-    mode: layout.mode,
-    justifyContent: layout.justifyContent,
-    alignItems: layout.alignItems,
-    sizing: {},
-  };
-
-  const rest: SimplifiedLayout = {
-    ...layout,
-    justifyContent: undefined,
-    alignItems: undefined,
-  };
-
-  return { atom, rest };
+  return { layoutId };
 }
 
 // 重新计算 alignSelf
@@ -111,11 +75,10 @@ function normalizeDerivedLayout(
 function collectStyleRefs(
   node: SimplifiedNode,
   globalVars: TraversalContext["globalVars"],
-  layoutRefs: { atomId?: string; layoutId?: string },
+  layoutRefs: { layoutId?: string },
 ): string[] {
   const refs = new Set<string>();
   addStyleRef(refs, node.styles);
-  addStyleRef(refs, layoutRefs.atomId);
   addStyleRef(refs, layoutRefs.layoutId ?? (typeof node.layout === "string" ? node.layout : undefined));
   if (node.type !== "TEXT" && node.type !== "SVG") {
     addStyleRef(refs, node.fills);

@@ -13,6 +13,22 @@ export function createFrontendFetcher(ctx: { fileKey: string }) {
       const { path } = await requestImageWithCache({ url, assetKey: key, fileKey: ctx.fileKey, headers })
       return path
     },
+    resolveCache: async (key: string) => {
+      const pngPath = `assets/${key}.png`
+      const pngSnapshot = await getCachedResourceByAssetPath(pngPath)
+      if (pngSnapshot) {
+        setSessionAssetPath(pngPath)
+        return pngPath
+      }
+
+      const svgPath = `assets/${key}.svg`
+      const svgSnapshot = await getCachedResourceByAssetPath(svgPath)
+      if (svgSnapshot) {
+        setSessionAssetPath(svgPath)
+        return svgPath
+      }
+      return undefined
+    },
   }
 }
 
