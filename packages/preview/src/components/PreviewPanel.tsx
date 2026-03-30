@@ -1,5 +1,5 @@
 import { Loading, useEditorStore } from '@collaborative-editor/shared'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
 import { useWebContainer } from '../hooks/useWebContainer'
 import { useContainerSize } from '../hooks/useContainerSize'
@@ -17,6 +17,8 @@ export function PreviewPanel({
   const { containerRef, containerSize } = useContainerSize<HTMLDivElement>()
   const { previewUrl, isLoading, error, logs } = useWebContainer(previewFiles)
   const [isIframeLoaded, setIsIframeLoaded] = useState(false)
+  const readyRef = useRef(false)
+  const bootIdRef = useRef<string | null>(null)
 
   const scale = useMemo(() => {
     if (!previewContentSize?.width || !previewContentSize?.height) return 1
@@ -25,44 +27,50 @@ export function PreviewPanel({
     return Math.min(containerSize.width / width, containerSize.height / height)
   }, [previewContentSize, containerSize])
 
-  const postLayout = useCallback(() => {
-    const iframe = iframeRef.current
-    if (!iframe) return
-    requestAnimationFrame(() => {
-      try {
-        iframe.contentWindow?.postMessage?.(
-          {
-            type: 'preview:layout',
-            payload: {
-              scale,
-              width: previewContentSize?.width,
-              height: previewContentSize?.height,
-            },
-          },
+  const layoutPayload = useMemo(() => {
+    const width = previewContentSize?.width
+    const height = previewContentSize?.height
+    if (!width || !height) return null
+    if (!containerSize.width || !containerSize.height) return null
+    return { scale, width, height }
+  }, [containerSize.height, containerSize.width, previewContentSize?.height, previewContentSize?.width, scale])
+
+  const postLayout = useCallback(
+    () => {
+      if (!readyRef.current) return
+      if (!layoutPayload) return
+      requestAnimationFrame(() => {
+        iframeRef.current?.contentWindow?.postMessage?.(
+          { type: 'preview:layout', payload: { ...layoutPayload, bootId: bootIdRef.current } },
           '*',
         )
-      } catch {}
-    })
-  }, [iframeRef, previewContentSize?.height, previewContentSize?.width, scale])
+      })
+    },
+    [iframeRef, layoutPayload],
+  )
 
   useEffect(() => {
-    postLayout()
-  }, [postLayout, previewUrl])
-
-  useEffect(() => {
-    console.log('[Preview][Iframe] previewUrl', previewUrl)
     setIsIframeLoaded(false)
+    readyRef.current = false
+    bootIdRef.current = null
   }, [previewUrl])
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       const data = event.data
-      if (!data || typeof data !== 'object' || data.type !== 'preview:ready') return
-      const iframe = iframeRef.current
-      if (!iframe || event.source !== iframe.contentWindow) return
-      console.log('[Preview][Iframe] preview:ready received')
-      setIsIframeLoaded(true)
-      postLayout()
+      if (event.source !== iframeRef.current?.contentWindow) return
+      if (!data || typeof data !== 'object') return
+      if ((data as any).type === 'preview:ready') {
+        bootIdRef.current = (data as any).payload?.bootId ?? null
+        readyRef.current = true
+        postLayout()
+        return
+      }
+      if ((data as any).type === 'preview:layout:applied') {
+        const { bootId } = (data as any).payload ?? {}
+        if (bootIdRef.current && bootId !== bootIdRef.current) return
+        setIsIframeLoaded(true)
+      }
     }
     window.addEventListener('message', handleMessage)
     return () => {
@@ -71,12 +79,13 @@ export function PreviewPanel({
   }, [iframeRef, postLayout])
 
   useEffect(() => {
-    console.log('[Preview][Iframe] isLoading', isLoading, 'isIframeLoaded', isIframeLoaded)
-  }, [isLoading, isIframeLoaded])
+    if (!previewUrl) return
+    postLayout()
+  }, [postLayout, previewUrl])
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-[#252526] text-red-400 p-4 text-center">
+      <div className="flex flex-col items-center justify-center h-full text-red-400 p-4 text-center">
         <div className="text-2xl mb-2">⚠️</div>
         <div className="font-bold mb-2">预览环境启动失败</div>
         <div className="text-xs font-mono bg-black/30 p-2 rounded mb-4 max-w-full overflow-auto">{error}</div>
@@ -86,8 +95,8 @@ export function PreviewPanel({
   }
 
   return (
-    <div className="flex flex-col h-full bg-[rgb(12,14,23)]">
-      <div ref={containerRef} className="relative flex-1 w-full h-full overflow-hidden bg-[rgb(12,14,23)]">
+    <div className="flex flex-col h-full ">
+      <div ref={containerRef} className="relative flex-1 w-full h-full overflow-hidden ">
         <iframe
           ref={iframeRef}
           src={previewUrl ?? undefined}
@@ -105,10 +114,6 @@ export function PreviewPanel({
           allow="cross-origin-isolated"
           onPointerDown={handleIframePointerDown}
           onClick={handleIframeClick}
-          onLoad={() => {
-            console.log('[Preview][Iframe] onLoad')
-            postLayout()
-          }}
           tabIndex={0}
         />
         {(isLoading || !previewUrl || !isIframeLoaded) && (

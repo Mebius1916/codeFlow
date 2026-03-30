@@ -39,6 +39,7 @@ export function PreviewContainer({ roomId, isFullscreen }: PreviewContainerProps
           <Loading 
             text="预览加载中..." 
             detail={'Waiting'}
+            className="bg-[rgb(12, 14, 23)] text-gray-400"
           />
         }>
           <LazyPreviewPanel roomId={roomId} previewContentSize={previewContentSize} />

@@ -35,6 +35,8 @@ const buildShell = (innerHtml) => {
         position: absolute;
         left: 0;
         top: 0;
+        opacity: var(--preview-ready-opacity, 0);
+        transition: opacity 120ms ease;
         background-color: #ffffff;
         background-size: 24px 24px;
         background-position: 0 0, 12px 12px;
@@ -42,6 +44,7 @@ const buildShell = (innerHtml) => {
         outline: 1px solid rgba(255, 255, 255, 0.16);
         transform: translate(var(--preview-offset-x, 0px), var(--preview-offset-y, 0px)) scale(var(--preview-scale, 1));
         transform-origin: top left;
+        will-change: transform;
       }
     </style>
     <script>
@@ -49,9 +52,13 @@ const buildShell = (innerHtml) => {
         var s = document.documentElement.style;
         var n = function (v) { return typeof v === 'number' && isFinite(v) && v > 0; };
         var state = { scale: 1, width: 0, height: 0 };
+        var bootId = Math.random().toString(36).slice(2);
+        var readySent = false;
         var notifyReady = function () {
+          if (readySent) return;
+          readySent = true;
           try {
-            window.parent && window.parent.postMessage && window.parent.postMessage({ type: 'preview:ready' }, '*');
+            window.parent && window.parent.postMessage && window.parent.postMessage({ type: 'preview:ready', payload: { bootId: bootId } }, '*');
           } catch (e) {}
         };
         function layout() {
@@ -68,12 +75,17 @@ const buildShell = (innerHtml) => {
           s.setProperty('--preview-height', height + 'px');
           s.setProperty('--preview-offset-x', offsetX + 'px');
           s.setProperty('--preview-offset-y', offsetY + 'px');
+          s.setProperty('--preview-ready-opacity', '1');
+          try {
+            window.parent && window.parent.postMessage && window.parent.postMessage({ type: 'preview:layout:applied', payload: { bootId: bootId } }, '*');
+          } catch (e) {}
         }
         window.addEventListener('message', function (e) {
           var d = e && e.data;
           if (!d || typeof d !== 'object' || d.type !== 'preview:layout') return;
           var p = d.payload || d;
-          var scale = p.scale, width = p.width, height = p.height;
+          var scale = p.scale, width = p.width, height = p.height, bid = p.bootId;
+          if (typeof bid === 'string' && bid !== bootId) return;
           if (n(scale)) state.scale = scale;
           if (n(width)) state.width = width;
           if (n(height)) state.height = height;
@@ -85,7 +97,7 @@ const buildShell = (innerHtml) => {
           document.addEventListener('DOMContentLoaded', notifyReady);
         }
         window.addEventListener('load', notifyReady);
-        window.addEventListener('resize', layout);
+        window.addEventListener('resize', function () { layout(); });
       })();
     </script>
   </head>
