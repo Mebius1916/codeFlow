@@ -49,6 +49,7 @@ export function generateGlobalCSS(globalVars: Record<string, any>): string {
   const order: string[] = [];
 
   Object.entries(styles).forEach(([id, styleObj]) => {
+    if ((styleObj as any)?.refs && Array.isArray((styleObj as any).refs)) return;
     const className = globalVars.classNameMap?.[id] ?? id;
     const body = formatStyleBody(styleObj, styles);
     if (!body) return;

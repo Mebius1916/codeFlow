@@ -29,6 +29,56 @@ export function findOrCreateVar(globalVars: GlobalVars, value: StyleTypes, prefi
   return varId;
 }
 
+export function splitLayoutAtomsInStyles(globalVars: GlobalVars) {
+  const styles = globalVars.styles;
+  const layoutAtomByLayoutId = new Map<string, string>();
+
+  Object.entries(styles).forEach(([id, styleObj]) => {
+    if (!id.startsWith("layout_")) return;
+    if (!styleObj || typeof styleObj !== "object" || Array.isArray(styleObj)) return;
+
+    const layout: any = styleObj;
+    if (layout.mode === "none") return;
+
+    const hasAlign = layout.justifyContent !== undefined || layout.alignItems !== undefined;
+    if (!hasAlign) return;
+
+    const atom = {
+      mode: layout.mode,
+      justifyContent: layout.justifyContent,
+      alignItems: layout.alignItems,
+      sizing: {},
+    };
+
+    const rest = {
+      ...layout,
+      justifyContent: undefined,
+      alignItems: undefined,
+    };
+
+    if (layout.justifyContent === "space-between") {
+      rest.gap = undefined;
+    }
+
+    styles[id] = rest;
+    const atomId = findOrCreateVar(globalVars, atom as any, "layout-atom");
+    layoutAtomByLayoutId.set(id, atomId);
+  });
+
+  if (layoutAtomByLayoutId.size === 0) return;
+
+  Object.values(styles).forEach((styleObj: any) => {
+    if (!styleObj?.refs || !Array.isArray(styleObj.refs)) return;
+    const refs: string[] = styleObj.refs;
+    const next = new Set(refs);
+    refs.forEach((ref) => {
+      const atomId = layoutAtomByLayoutId.get(ref);
+      if (atomId) next.add(atomId);
+    });
+    styleObj.refs = Array.from(next).sort();
+  });
+}
+
 export function createNodeStyleId(
   globalVars: GlobalVars,
   node: SimplifiedNode,

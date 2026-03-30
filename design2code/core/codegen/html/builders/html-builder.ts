@@ -4,6 +4,7 @@ import type { SimplifiedImageFill } from "../../../types/simplified-types.js";
 import type { CodegenContext } from "../../context/index.js";
 import { getTextSegmentStyleId } from "../../css/utils/text-style.js";
 import { resolveImageFill } from "../utils/fill.js";
+import { expandStyleToLeafClasses } from "../utils/classes.js";
 
 /**
  * HtmlNodeBuilder class responsible for constructing HTML for a single node.
@@ -80,9 +81,8 @@ export class HtmlNodeBuilder {
   // 3. Style & Class Processing
   private processStyles() {
     const { node } = this;
-    if (node.styles) {
-      this.classes.push(this.globalVars?.classNameMap?.[node.styles] ?? node.styles);
-    }
+    if (!node.styles) return;
+    this.classes.push(...expandStyleToLeafClasses(node.styles, this.globalVars));
   }
 
   public addChild(html: string) {
@@ -114,7 +114,7 @@ export class HtmlNodeBuilder {
         const effectsToUse = segment.effects;
         const segmentStyleId = getTextSegmentStyleId(segment.style, this.node, this.globalVars, effectsToUse); // 获取文本样式 id
         const segmentClasses = segmentStyleId
-          ? (this.globalVars?.classNameMap?.[segmentStyleId] ?? segmentStyleId)
+          ? expandStyleToLeafClasses(segmentStyleId, this.globalVars).join(" ")
           : "";
         const segmentClassAttr = segmentClasses ? ` class="${segmentClasses}"` : "";
         return `<${tagName}${segmentClassAttr}>${segmentText}</${tagName}>`;

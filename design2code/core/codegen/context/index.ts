@@ -1,4 +1,5 @@
 import type { SimplifiedDesign, GlobalVars } from "../../types/extractor-types.js";
+import { splitLayoutAtomsInStyles } from "../../utils/style-helper.js";
 import { buildClassNameMap } from "../css/builders/css-builder.js";
 
 export interface CodegenContext {
@@ -9,14 +10,18 @@ export interface CodegenContext {
 
 export function createCodegenContext(design: SimplifiedDesign): CodegenContext {
   const styles = { ...design.globalVars.styles };
+
+  const globalVars: GlobalVars = {
+    styles,
+    imageAssets: design.globalVars.imageAssets,
+  };
+
+  splitLayoutAtomsInStyles(globalVars);
+  globalVars.classNameMap = buildClassNameMap(styles);
+
   return {
     design,
-    globalVars: {
-      styles,
-      imageAssets: design.globalVars.imageAssets,
-      styleCache: design.globalVars.styleCache,
-      classNameMap: buildClassNameMap(styles),
-    },
+    globalVars,
     assets: new Map(),
   };
 }
