@@ -1,5 +1,5 @@
 import { Loading, useEditorStore } from '@collaborative-editor/shared'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
 import { useWebContainer } from '../hooks/useWebContainer'
 import { useContainerSize } from '../hooks/useContainerSize'
@@ -20,34 +20,15 @@ export function PreviewPanel({
   const readyRef = useRef(false)
   const bootIdRef = useRef<string | null>(null)
 
-  const scale = useMemo(() => {
-    if (!previewContentSize?.width || !previewContentSize?.height) return 1
-    const { width, height } = previewContentSize
-    if (!containerSize.width || !containerSize.height) return 1
-    return Math.min(containerSize.width / width, containerSize.height / height)
-  }, [previewContentSize, containerSize])
+  const scale =
+    previewContentSize?.width && previewContentSize?.height && containerSize.width && containerSize.height
+      ? Math.min(containerSize.width / previewContentSize.width, containerSize.height / previewContentSize.height)
+      : 1
 
-  const layoutPayload = useMemo(() => {
-    const width = previewContentSize?.width
-    const height = previewContentSize?.height
-    if (!width || !height) return null
-    if (!containerSize.width || !containerSize.height) return null
-    return { scale, width, height }
-  }, [containerSize.height, containerSize.width, previewContentSize?.height, previewContentSize?.width, scale])
-
-  const postLayout = useCallback(
-    () => {
-      if (!readyRef.current) return
-      if (!layoutPayload) return
-      requestAnimationFrame(() => {
-        iframeRef.current?.contentWindow?.postMessage?.(
-          { type: 'preview:layout', payload: { ...layoutPayload, bootId: bootIdRef.current } },
-          '*',
-        )
-      })
-    },
-    [iframeRef, layoutPayload],
-  )
+  const layoutPayload =
+    previewContentSize?.width && previewContentSize?.height && containerSize.width && containerSize.height
+      ? { scale, width: previewContentSize.width, height: previewContentSize.height }
+      : null
 
   useEffect(() => {
     setIsIframeLoaded(false)
@@ -63,7 +44,13 @@ export function PreviewPanel({
       if ((data as any).type === 'preview:ready') {
         bootIdRef.current = (data as any).payload?.bootId ?? null
         readyRef.current = true
-        postLayout()
+        if (!layoutPayload) return
+        requestAnimationFrame(() => {
+          iframeRef.current?.contentWindow?.postMessage?.(
+            { type: 'preview:layout', payload: { ...layoutPayload, bootId: bootIdRef.current } },
+            '*',
+          )
+        })
         return
       }
       if ((data as any).type === 'preview:layout:applied') {
@@ -76,12 +63,19 @@ export function PreviewPanel({
     return () => {
       window.removeEventListener('message', handleMessage)
     }
-  }, [iframeRef, postLayout])
+  }, [iframeRef, layoutPayload, previewUrl])
 
   useEffect(() => {
     if (!previewUrl) return
-    postLayout()
-  }, [postLayout, previewUrl])
+    if (!readyRef.current) return
+    if (!layoutPayload) return
+    requestAnimationFrame(() => {
+      iframeRef.current?.contentWindow?.postMessage?.(
+        { type: 'preview:layout', payload: { ...layoutPayload, bootId: bootIdRef.current } },
+        '*',
+      )
+    })
+  }, [layoutPayload, previewUrl])
 
   if (error) {
     return (

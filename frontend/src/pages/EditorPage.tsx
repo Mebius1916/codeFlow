@@ -1,7 +1,7 @@
 import { closeFile, FeatureProvider, openFile, useEditorStore, useShallow, useUiStore } from "@collaborative-editor/shared";
 import { useFileTreeActions } from "@collaborative-editor/file-tree";
 import { WorkbenchHeader } from "@collaborative-editor/workbench-header";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { EditorContainer } from "../components/EditorContainer";
@@ -13,7 +13,11 @@ export function EditorPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const resolvedRoomId = roomId ?? "";
-  const userId = useMemo(() => `demo_${Math.random().toString(36).slice(2, 9)}`, []);
+  const userIdRef = useRef<string>("");
+  if (!userIdRef.current) {
+    userIdRef.current = `demo_${Math.random().toString(36).slice(2, 9)}`;
+  }
+  const userId = userIdRef.current;
   const fileTreeActions = useFileTreeActions();
   const { activeFile, openFiles } = useEditorStore(
     useShallow((state) => ({

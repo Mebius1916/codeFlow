@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { setOptions } from '@collaborative-editor/design2code';
 import type { AlgorithmOptions } from '@collaborative-editor/design2code';
 import { clearSessionAssetPathMap, getSessionAssetPathMap } from '../utils/figma/assets-map';
@@ -24,7 +24,7 @@ export function useFigmaUrlParser() {
   const [url, setUrl] = useState('');
   const [state, setState] = useState<FigmaUrlParserState>({ status: 'idle' });
 
-  const parse = useCallback(async (inputUrl: string, algorithmOptions?: Partial<AlgorithmOptions>) => {
+  const parse = async (inputUrl: string, algorithmOptions?: Partial<AlgorithmOptions>) => {
     if (!inputUrl) {
       setState({ status: 'error', error: '请输入 figma url' });
       return null;
@@ -70,11 +70,11 @@ export function useFigmaUrlParser() {
       setState({ status: 'error', error: errorMsg });
       return null;
     }
-  }, []);
+  };
 
-  const clearError = useCallback(() => {
+  const clearError = () => {
     setState((prev) => (prev.status === 'error' ? { status: 'idle' } : prev));
-  }, []);
+  };
 
   return {
     url,

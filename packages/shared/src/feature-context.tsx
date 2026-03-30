@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
 import type { CodeEditorFeatures } from './types'
 
@@ -20,7 +20,7 @@ export function FeatureProvider({
   features?: CodeEditorFeatures
   children: ReactNode
 }) {
-  const value = useMemo(() => ({ ...defaultFeatures, ...features }), [features])
+  const value = { ...defaultFeatures, ...features }
 
   return (
     <FeatureContext.Provider value={value}>

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 
 interface UseResizableProps {
@@ -32,23 +32,20 @@ export function useResizable({
 
   const isHorizontal = direction === 'left' || direction === 'right'
 
-  const handleMouseDown = useCallback(
-    (e: ReactMouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
+  const handleMouseDown = (e: ReactMouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
 
-      setIsDragging(true)
-      onDragStart?.()
-      startPosRef.current = isHorizontal ? e.clientX : e.clientY
-      const resolvedInitialSize = getInitialSize?.() ?? initialSize
-      startSizeRef.current = resolvedInitialSize
-      lastSizeRef.current = resolvedInitialSize
+    setIsDragging(true)
+    onDragStart?.()
+    startPosRef.current = isHorizontal ? e.clientX : e.clientY
+    const resolvedInitialSize = getInitialSize?.() ?? initialSize
+    startSizeRef.current = resolvedInitialSize
+    lastSizeRef.current = resolvedInitialSize
 
-      document.body.style.cursor = isHorizontal ? 'col-resize' : 'row-resize'
-      document.body.style.userSelect = 'none'
-    },
-    [getInitialSize, initialSize, isHorizontal, onDragStart],
-  )
+    document.body.style.cursor = isHorizontal ? 'col-resize' : 'row-resize'
+    document.body.style.userSelect = 'none'
+  }
 
   useEffect(() => {
     if (!isDragging) return

@@ -1,7 +1,24 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getWebContainer, getLastPreviewUrl, subscribeLogs, subscribeServerReady } from '../webcontainer/runtime'
 import { ensurePreviewServer } from '../webcontainer/bootstrap'
 import { ensureDirectories, writeFilesConcurrently } from '../webcontainer/fs'
+
+async function syncFiles(nextFiles: Record<string, string | Uint8Array>) {
+  const webcontainerInstance = getWebContainer()
+  if (!webcontainerInstance) return
+  const entries = Object.entries(nextFiles)
+  if (entries.length === 0) return
+  const startAt = performance.now()
+  await ensureDirectories(webcontainerInstance, entries.map(([path]) => path))
+  const afterDirs = performance.now()
+  await writeFilesConcurrently(webcontainerInstance, entries, 8)
+  const afterWrite = performance.now()
+  console.log(
+    `[Preview] sync files=${entries.length} ` +
+      `mkdir=${(afterDirs - startAt).toFixed(1)}ms ` +
+      `write=${(afterWrite - afterDirs).toFixed(1)}ms`,
+  )
+}
 
 export function useWebContainer(files: Record<string, string | Uint8Array>) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -12,23 +29,6 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
   const addLog = (msg: string) => {
     setLogs((prev: string[]) => [...prev.slice(-4), msg])
   }
-
-  const runSync = useCallback(async (nextFiles: Record<string, string | Uint8Array>) => {
-    const webcontainerInstance = getWebContainer()
-    if (!webcontainerInstance) return
-    const entries = Object.entries(nextFiles)
-    if (entries.length === 0) return
-    const startAt = performance.now()
-    await ensureDirectories(webcontainerInstance, entries.map(([path]) => path))
-    const afterDirs = performance.now()
-    await writeFilesConcurrently(webcontainerInstance, entries, 8)
-    const afterWrite = performance.now()
-    console.log(
-      `[Preview] sync files=${entries.length} ` +
-        `mkdir=${(afterDirs - startAt).toFixed(1)}ms ` +
-        `write=${(afterWrite - afterDirs).toFixed(1)}ms`,
-    )
-  }, [])
 
   useEffect(() => {
     const lastUrl = getLastPreviewUrl()
@@ -71,14 +71,14 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
         if (!urlAfter) {
           console.log('[Preview] server-ready 尚未触发')
         }
-        runSync(files)
+        syncFiles(files)
       })
       .catch((e) => {
         setError(e instanceof Error ? e.message : String(e))
         setIsLoading(false)
         startedRef.current = false
       })
-  }, [files, runSync])
+  }, [files])
 
   return { previewUrl, isLoading, error, logs }
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useResizable } from '@collaborative-editor/shared'
 
 type ResizeState = { hoverCount: number; dragging: boolean }
@@ -57,11 +57,11 @@ export function useFileTreeResizeCssVars() {
     applyVisualState()
   }, [])
 
-  const getInitialSize = useCallback(() => {
+  const getInitialSize = () => {
     const root = document.documentElement
     const computedWidth = parseFloat(getComputedStyle(root).getPropertyValue('--file-tree-width')) || DEFAULT_WIDTH
     return clampWidth(computedWidth)
-  }, [])
+  }
 
   const { handleMouseDown } = useResizable({
     initialSize: DEFAULT_WIDTH,
@@ -84,17 +84,17 @@ export function useFileTreeResizeCssVars() {
       applyVisualState()
     },
   })
-  const onMouseEnter = useCallback(() => {
+  const onMouseEnter = () => {
     const state = getResizeState()
     state.hoverCount += 1
     applyVisualState()
-  }, [])
+  }
 
-  const onMouseLeave = useCallback(() => {
+  const onMouseLeave = () => {
     const state = getResizeState()
     state.hoverCount = Math.max(0, state.hoverCount - 1)
     applyVisualState()
-  }, [])
+  }
 
   const handleStyle = { backgroundColor: 'var(--file-tree-handle-bg, transparent)' } as const
 

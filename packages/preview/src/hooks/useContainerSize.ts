@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type Size = { width: number; height: number }
 
 export function useContainerSize<T extends HTMLElement>() {
   const [element, setElement] = useState<T | null>(null)
-  const containerRef = useCallback((node: T | null) => {
+  const containerRef = (node: T | null) => {
     setElement(node)
-  }, [])
+  }
   const [containerSize, setContainerSize] = useState<Size>({ width: 0, height: 0 })
 
   useEffect(() => {

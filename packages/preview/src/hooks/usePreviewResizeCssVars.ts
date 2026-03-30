@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useResizable, useUiStore, useShallow } from '@collaborative-editor/shared'
 
 declare global {
@@ -8,6 +8,29 @@ declare global {
   }
 }
 
+function updateCssVars(width: number, isResizing: boolean, isHovering: boolean) {
+  const root = document.documentElement
+  root.style.setProperty('--preview-panel-width', `${width}px`)
+
+  if (isResizing) {
+    root.style.setProperty('--preview-panel-border-color', 'rgba(59, 130, 246, 0.5)')
+    root.style.setProperty('--preview-panel-handle-bg', 'rgba(59, 130, 246, 0.5)')
+    root.style.setProperty('--preview-panel-active-bg', 'rgba(59, 130, 246, 0.1)')
+    return
+  }
+
+  if (isHovering) {
+    root.style.setProperty('--preview-panel-border-color', 'rgba(59, 130, 246, 0.3)')
+    root.style.setProperty('--preview-panel-handle-bg', 'rgba(59, 130, 246, 0.3)')
+    root.style.setProperty('--preview-panel-active-bg', 'transparent')
+    return
+  }
+
+  root.style.setProperty('--preview-panel-border-color', '#2a2f4c')
+  root.style.setProperty('--preview-panel-handle-bg', 'transparent')
+  root.style.setProperty('--preview-panel-active-bg', 'transparent')
+}
+
 export function usePreviewResizeCssVars() {
   const { previewWidth, setPreviewWidth } = useUiStore(
     useShallow((state) => ({
@@ -15,25 +38,6 @@ export function usePreviewResizeCssVars() {
       setPreviewWidth: state.setPreviewWidth,
     }))
   )
-
-  const updateCssVars = useCallback((width: number, isResizing: boolean, isHovering: boolean) => {
-    const root = document.documentElement
-    root.style.setProperty('--preview-panel-width', `${width}px`)
-    
-    if (isResizing) {
-      root.style.setProperty('--preview-panel-border-color', 'rgba(59, 130, 246, 0.5)')
-      root.style.setProperty('--preview-panel-handle-bg', 'rgba(59, 130, 246, 0.5)')
-      root.style.setProperty('--preview-panel-active-bg', 'rgba(59, 130, 246, 0.1)')
-    } else if (isHovering) {
-      root.style.setProperty('--preview-panel-border-color', 'rgba(59, 130, 246, 0.3)')
-      root.style.setProperty('--preview-panel-handle-bg', 'rgba(59, 130, 246, 0.3)')
-      root.style.setProperty('--preview-panel-active-bg', 'transparent')
-    } else {
-      root.style.setProperty('--preview-panel-border-color', '#2a2f4c')
-      root.style.setProperty('--preview-panel-handle-bg', 'transparent')
-      root.style.setProperty('--preview-panel-active-bg', 'transparent')
-    }
-  }, [])
 
   const { handleMouseDown, isDragging } = useResizable({
     initialSize: previewWidth,
@@ -49,22 +53,22 @@ export function usePreviewResizeCssVars() {
   useEffect(() => {
     window.__PREVIEW_IS_RESIZING__ = isDragging
     updateCssVars(previewWidth, isDragging, window.__PREVIEW_IS_HOVERING__ || false)
-  }, [isDragging, previewWidth, updateCssVars])
+  }, [isDragging, previewWidth])
 
   // 初始化时立即设置一次变量，防止闪烁
   useEffect(() => {
     updateCssVars(previewWidth, false, false)
   }, [])
 
-  const onMouseEnter = useCallback(() => {
+  const onMouseEnter = () => {
     window.__PREVIEW_IS_HOVERING__ = true
     updateCssVars(previewWidth, window.__PREVIEW_IS_RESIZING__ || false, true)
-  }, [previewWidth, updateCssVars])
+  }
 
-  const onMouseLeave = useCallback(() => {
+  const onMouseLeave = () => {
     window.__PREVIEW_IS_HOVERING__ = false
     updateCssVars(previewWidth, window.__PREVIEW_IS_RESIZING__ || false, false)
-  }, [previewWidth, updateCssVars])
+  }
 
   const handleStyle = {
     backgroundColor: 'var(--preview-panel-handle-bg)',

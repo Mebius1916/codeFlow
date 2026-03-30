@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import { addFile, deleteFile, openFile, renameFile, useEditorStore } from '@collaborative-editor/shared'
 
@@ -20,23 +20,20 @@ export function useFileTreeActions() {
     type: 'file' | 'folder'
   } | null>(null)
 
-  const handleContextMenu = useCallback(
-    (e: ReactMouseEvent, path: string | null, type: 'file' | 'folder' = 'folder') => {
-      e.preventDefault()
-      e.stopPropagation()
-      setContextMenu({
-        x: e.clientX,
-        y: e.clientY,
-        path,
-        type,
-      })
-    },
-    [],
-  )
+  const handleContextMenu = (e: ReactMouseEvent, path: string | null, type: 'file' | 'folder' = 'folder') => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      path,
+      type,
+    })
+  }
 
-  const closeContextMenu = useCallback(() => {
+  const closeContextMenu = () => {
     setContextMenu(null)
-  }, [])
+  }
 
   const handleStartCreate = (parentPath: string | null, type: 'file' | 'folder') => {
     let targetParentPath = parentPath

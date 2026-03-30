@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createLocalForageContentRepository, setContentRepository, useEditorStore } from '@collaborative-editor/shared'
 
 type FileContent = string | Uint8Array
@@ -11,10 +11,17 @@ export function useContentLayer(args: {
   const { roomId, collaborationEnabled, initialFiles } = args
   const [isContentReady, setIsContentReady] = useState(false)
 
-  // 初始化
-  const repo = useMemo(() => {
+  const [repo, setRepo] = useState(() => {
     if (collaborationEnabled) return null
     return createLocalForageContentRepository(roomId)
+  })
+
+  useEffect(() => {
+    if (collaborationEnabled) {
+      setRepo(null)
+      return
+    }
+    setRepo(createLocalForageContentRepository(roomId))
   }, [collaborationEnabled, roomId])
 
   useEffect(() => {
