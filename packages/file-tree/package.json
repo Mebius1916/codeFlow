@@ -19,7 +19,8 @@
     "react-dom": ">=19.0.0"
   },
   "dependencies": {
-    "@collaborative-editor/shared": "workspace:*"
+    "@collaborative-editor/shared": "workspace:*",
+    "fflate": "^0.8.2"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -28,4 +29,3 @@
     "typescript": "^5"
   }
 }
-
