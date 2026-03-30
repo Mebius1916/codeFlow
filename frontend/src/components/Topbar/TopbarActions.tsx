@@ -12,7 +12,7 @@ export function TopbarActions({ onShare, shareEnabled }: TopbarActionsProps) {
       {onShare && (
         <button 
           onClick={onShare}
-          className={`w-6 h-6 rounded-md group transition-colors focus:outline-none flex items-center justify-center ${
+          className={`px-3 py-2 rounded-md group transition-colors focus:outline-none inline-flex items-center justify-center gap-1 ${
             shareEnabled ? 'bg-[#1337ec]/20' : 'hover:bg-[#2a2f4c]'
           }`}
           title={shareEnabled ? '已开启协作' : '开启协作分享'}
@@ -25,10 +25,11 @@ export function TopbarActions({ onShare, shareEnabled }: TopbarActionsProps) {
               filter: shareEnabled ? 'invert(48%) sepia(79%) saturate(2476%) hue-rotate(215deg) brightness(98%) contrast(92%)' : 'brightness(0) invert(1)' 
             }}
           />
+          <span className="text-[#9CA3AF] text-xs leading-none font-bold font-['Inter']">Share</span>
         </button>
       )}
 
-      <button className="w-6 h-6 hover:bg-[#2a2f4c] group rounded-md transition-colors focus:outline-none flex items-center justify-center">
+      <button className="px-3 py-1.5 hover:bg-[#2a2f4c] group rounded-md transition-colors focus:outline-none inline-flex items-center justify-center">
         <img 
           src={settingIconUrl} 
           alt="Settings" 
