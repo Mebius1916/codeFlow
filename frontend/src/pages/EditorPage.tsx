@@ -4,9 +4,11 @@ import { WorkbenchHeader } from "@collaborative-editor/workbench-header";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
+import copy from "copy-to-clipboard";
 import { EditorContainer } from "../components/EditorContainer";
 import { PreviewContainer } from "../components/PreviewContainer";
 import { Topbar } from "../components/topbar/index";
+import { Toast, ToastProvider, ToastTitle, ToastViewport } from "../components/ui/toast";
 
 export function EditorPage() {
   const { roomId } = useParams();
@@ -28,6 +30,7 @@ export function EditorPage() {
   const [collaborationEnabled, setCollaborationEnabled] = useState(false);
   const [previewRevision, setPreviewRevision] = useState(0);
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
+  const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -58,62 +61,86 @@ export function EditorPage() {
 
   return (
     <FeatureProvider features={{ fileTree: true, fileTreeHeader: false, toolbar: false, preview: true }}>
-      <div className="h-screen w-screen flex flex-col bg-gray-900">
-        <Topbar
-          onShare={() => {
-            setCollaborationEnabled(true);
-            const params = new URLSearchParams(location.search);
-            if (params.get("collab") !== "1") {
-              params.set("collab", "1");
-            }
-
-            const size = useUiStore.getState().previewContentSize;
-            if (size?.width && size?.height) {
-              params.set("ps", `${size.width}x${size.height}`);
-            } else {
-              params.delete("ps");
-            }
-
-            navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
-
-            const shareUrl = `${window.location.origin}${location.pathname}?${params.toString()}`;
-            if (navigator.clipboard?.writeText) {
-              navigator.clipboard.writeText(shareUrl);
-            }
-          }}
-          shareEnabled={collaborationEnabled}
-        />
-        <WorkbenchHeader
-          activeFile={activeFile}
-          openFiles={openFiles}
-          onOpenFile={openFile}
-          onCloseFile={closeFile}
-          onNewFile={() => fileTreeActions.handleStartCreate(null, "file")}
-          onNewFolder={() => fileTreeActions.handleStartCreate(null, "folder")}
-          onPreviewRefresh={() => setPreviewRevision((value) => value + 1)}
-          onPreviewFullscreenToggle={() => setIsPreviewFullscreen((value) => !value)}
-          isPreviewFullscreen={isPreviewFullscreen}
-        />
-
-        <div className="flex flex-1 overflow-hidden relative border-t border-[#2a2f4c]">
-          {!isPreviewFullscreen && <Sidebar fileTreeActions={fileTreeActions} />}
-
-          {!isPreviewFullscreen && (
-            <EditorContainer
-              key={`editor:${resolvedRoomId}`}
-              roomId={resolvedRoomId}
-              userId={userId}
-              collaborationEnabled={collaborationEnabled}
-            />
+      <ToastProvider>
+        <div className="h-screen w-screen flex flex-col bg-gray-900">
+          {toast && (
+            <Toast
+              key={toast.id}
+              defaultOpen
+              duration={1600}
+              onOpenChange={(open) => {
+                if (!open) setToast(null);
+              }}
+            >
+              <ToastTitle>{toast.message}</ToastTitle>
+            </Toast>
           )}
+          <ToastViewport />
 
-          <PreviewContainer
-            key={`preview:${resolvedRoomId}:${previewRevision}`}
-            roomId={resolvedRoomId}
-            isFullscreen={isPreviewFullscreen}
+          <Topbar
+            onShare={() => {
+              const params = new URLSearchParams(location.search);
+              if (collaborationEnabled) {
+                setCollaborationEnabled(false);
+                params.delete("collab");
+                params.delete("ps");
+                navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+                setToast({ id: Date.now(), message: "已关闭协同" });
+                return;
+              }
+
+              setCollaborationEnabled(true);
+              params.set("collab", "1");
+
+              const size = useUiStore.getState().previewContentSize;
+              if (size?.width && size?.height) {
+                params.set("ps", `${size.width}x${size.height}`);
+              } else {
+                params.delete("ps");
+              }
+
+              navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+
+              const query = params.toString();
+              const shareUrl = `${window.location.origin}${location.pathname}${query ? `?${query}` : ""}`;
+              const copied = copy(shareUrl);
+              setToast({ id: Date.now(), message: copied ? "链接已复制到剪贴板" : "协同已开启" });
+            }}
+            shareEnabled={collaborationEnabled}
           />
+
+          <WorkbenchHeader
+            activeFile={activeFile}
+            openFiles={openFiles}
+            onOpenFile={openFile}
+            onCloseFile={closeFile}
+            onNewFile={() => fileTreeActions.handleStartCreate(null, "file")}
+            onNewFolder={() => fileTreeActions.handleStartCreate(null, "folder")}
+            onPreviewRefresh={() => setPreviewRevision((value) => value + 1)}
+            onPreviewFullscreenToggle={() => setIsPreviewFullscreen((value) => !value)}
+            isPreviewFullscreen={isPreviewFullscreen}
+          />
+
+          <div className="flex flex-1 overflow-hidden relative border-t border-[#2a2f4c]">
+            {!isPreviewFullscreen && <Sidebar fileTreeActions={fileTreeActions} />}
+
+            {!isPreviewFullscreen && (
+              <EditorContainer
+                key={`editor:${resolvedRoomId}`}
+                roomId={resolvedRoomId}
+                userId={userId}
+                collaborationEnabled={collaborationEnabled}
+              />
+            )}
+
+            <PreviewContainer
+              key={`preview:${resolvedRoomId}:${previewRevision}`}
+              roomId={resolvedRoomId}
+              isFullscreen={isPreviewFullscreen}
+            />
+          </div>
         </div>
-      </div>
+      </ToastProvider>
     </FeatureProvider>
   );
 }
