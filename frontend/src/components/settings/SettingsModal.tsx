@@ -1,15 +1,26 @@
 import settingIconUrl from '../../../assets/Setting.svg';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Link2, KeyRound, X } from 'lucide-react';
 import { useUiStore } from '@collaborative-editor/shared';
 import { getDefaultOptions, type AlgorithmOptions } from '@collaborative-editor/design2code';
 import { Button } from '../ui/button';
-import { Dialog, DialogBody, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
+import {
+  Dialog,
+  DialogBody,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Switch } from '../ui/switch';
 import { AlgorithmOptionsForm } from './AlgorithmOptionsForm';
+
+const maskedTextStyle = { WebkitTextSecurity: 'disc' } as CSSProperties;
 
 export function WorkspaceSettingsModal({
   open,
@@ -86,13 +97,21 @@ export function WorkspaceSettingsModal({
             <img src={settingIconUrl} alt="" className="w-5 h-5" style={{ filter: 'brightness(0) invert(0.7)' }} />
             <DialogTitle>Workspace Settings</DialogTitle>
           </div>
+          <DialogDescription className="sr-only">Configure workspace settings.</DialogDescription>
           <DialogClose asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" type="button">
               <X className="h-4 w-4 text-[#9CA3AF]" />
             </Button>
           </DialogClose>
         </DialogHeader>
 
+        <form
+          className="flex flex-1 flex-col overflow-hidden"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+        >
         <DialogBody className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="flex flex-col gap-3">
             <div className="text-[#E5E7EB] text-sm leading-5 font-medium uppercase tracking-[0.07em] font-['Inter']">
@@ -131,10 +150,12 @@ export function WorkspaceSettingsModal({
             <div className="flex flex-col gap-1.5">
               <Label>Figma Token</Label>
               <Input
-                type="password"
+                type="text"
                 value={figmaTokenDraft}
                 onChange={(e) => setFigmaTokenDraft(e.target.value)}
                 placeholder="figd_..."
+                autoComplete="off"
+                style={maskedTextStyle}
               />
             </div>
           </div>
@@ -153,6 +174,7 @@ export function WorkspaceSettingsModal({
                     onChange={(e) => setApiEndpoint(e.target.value)}
                     placeholder="https://your-llm-api.example/v1"
                     className="pl-9"
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -161,7 +183,14 @@ export function WorkspaceSettingsModal({
                 <Label>Model API Key</Label>
                 <div className="relative">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
-                  <Input value={apiKey} onChange={(e) => setApiKey(e.target.value)} className="pl-9" />
+                  <Input
+                    type="text"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    className="pl-9"
+                    autoComplete="off"
+                    style={maskedTextStyle}
+                  />
                 </div>
               </div>
             </div>
@@ -193,11 +222,12 @@ export function WorkspaceSettingsModal({
         </DialogBody>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <Button type="submit">Save Changes</Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

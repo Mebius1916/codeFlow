@@ -4,17 +4,31 @@ import vueIconUrl from "../../assets/Vue.svg";
 import tailwindIconUrl from "../../assets/Tailwind.svg";
 import htmlIconUrl from "../../assets/Html.svg";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useUiStore } from "@collaborative-editor/shared";
 import { useFigmaUrlParser } from "../hooks/useFigmaUrlParser";
 import { runConvertFlow } from "../utils/convert-flow";
 import { Brand } from "../components/topbar/Brand";
+import settingIconUrl from "../../assets/Setting.svg";
+import { WorkspaceSettingsModal } from "../components/settings/SettingsModal";
+import { Button } from "../components/ui/button";
 
 export function HomePage() {
   const navigate = useNavigate();
   const { url, setUrl, state, parse, clearError } = useFigmaUrlParser();
   const isLoading = state.status === "loading";
   const error = state.status === "error" ? state.error : null;
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const figmaToken = useUiStore((s) => s.figmaToken);
+  const [tokenError, setTokenError] = useState<string | null>(null);
 
   const handleConvert = async () => {
+    if (!figmaToken.trim()) {
+      setTokenError("Figma Token 是必填项，请先在右上角 Settings 填写。");
+      setSettingsOpen(true);
+      return;
+    }
+    setTokenError(null);
     const result = await parse(url);
     if (result) {
       const roomId = await runConvertFlow(result);
@@ -30,7 +44,33 @@ export function HomePage() {
 
       <div className="relative z-10 flex h-[64px] w-full items-center justify-between px-12">
         <Brand />
-        <div className="text-sm text-slate-300">Sign In</div>
+        <div className="inline-flex items-center rounded-full border border-[#2A2F4C] bg-[#15182A]/70 p-1 shadow-sm backdrop-blur-sm">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 rounded-full px-4 text-slate-300 hover:bg-white/5"
+            title="Sign in (Coming soon)"
+          >
+            Sign in
+          </Button>
+          <div className="mx-1 h-6 w-px bg-white/10" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full hover:bg-white/5 group"
+            onClick={() => setSettingsOpen(true)}
+            title="Settings"
+          >
+            <img
+              src={settingIconUrl}
+              alt=""
+              className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity"
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
+          </Button>
+        </div>
       </div>
 
       <div className="relative z-10 mx-auto flex h-[calc(100%-64px)] w-full max-w-5xl flex-col items-center justify-center px-6">
@@ -72,6 +112,7 @@ export function HomePage() {
               {isLoading ? "Converting..." : "Convert to Code"}
             </button>
           </div>
+          {tokenError && <div className="mt-2 text-xs text-red-400">{tokenError}</div>}
         </div>
 
         <div className="mt-10 flex flex-col items-center gap-4">
@@ -110,6 +151,8 @@ export function HomePage() {
       <div className="absolute bottom-4 left-0 right-0 text-center text-xs text-slate-500">
         © 2026 Figma2Code Inc. All rights reserved.
       </div>
+
+      <WorkspaceSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

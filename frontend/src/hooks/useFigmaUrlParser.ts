@@ -35,6 +35,12 @@ export function useFigmaUrlParser() {
       return null;
     }
 
+    const token = figmaToken.trim();
+    if (!token) {
+      setState({ status: 'error', error: '请先在 Settings 填写 Figma Token' });
+      return null;
+    }
+
     setState({ status: 'loading' });
     clearSessionAssetPathMap();
 
@@ -48,8 +54,6 @@ export function useFigmaUrlParser() {
       }
       const { fileKey, dataApiUrl } = parseFigmaUrl(inputUrl);
 
-      // 获取 Token
-      const token = figmaToken || import.meta.env.VITE_FIGMA_TOKEN || '';
       const figmaData = await fetchFigmaData(dataApiUrl, token);
 
       // 2. 调用 D2C Engine 进行转换
