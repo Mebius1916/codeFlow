@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { setOptions } from '@collaborative-editor/design2code';
+import { getDefaultOptions, setOptions } from '@collaborative-editor/design2code';
 import type { AlgorithmOptions } from '@collaborative-editor/design2code';
+import { useUiStore } from '@collaborative-editor/shared';
 import { clearSessionAssetPathMap, getSessionAssetPathMap } from '../utils/figma/assets-map';
 import { fetchFigmaData, parseFigmaUrl, safeCodegen, safeExtractDesign } from '../utils/figma/url';
 
@@ -23,6 +24,10 @@ export type FigmaUrlParserState =
 export function useFigmaUrlParser() {
   const [url, setUrl] = useState('');
   const [state, setState] = useState<FigmaUrlParserState>({ status: 'idle' });
+  const { figmaToken, algorithmOptions: storedAlgorithmOptions } = useUiStore((s) => ({
+    figmaToken: s.figmaToken,
+    algorithmOptions: s.algorithmOptions,
+  }));
 
   const parse = async (inputUrl: string, algorithmOptions?: Partial<AlgorithmOptions>) => {
     if (!inputUrl) {
@@ -34,18 +39,21 @@ export function useFigmaUrlParser() {
     clearSessionAssetPathMap();
 
     try {
-      // 如果传入了算法配置，则更新引擎
+      setOptions(getDefaultOptions());
+      if (storedAlgorithmOptions && Object.keys(storedAlgorithmOptions).length) {
+        setOptions(storedAlgorithmOptions as Partial<AlgorithmOptions>);
+      }
       if (algorithmOptions) {
         setOptions(algorithmOptions);
       }
       const { fileKey, dataApiUrl } = parseFigmaUrl(inputUrl);
 
       // 获取 Token
-      const token = import.meta.env.VITE_FIGMA_TOKEN;
-      const figmaData = await fetchFigmaData(dataApiUrl, token || '');
+      const token = figmaToken || import.meta.env.VITE_FIGMA_TOKEN || '';
+      const figmaData = await fetchFigmaData(dataApiUrl, token);
 
       // 2. 调用 D2C Engine 进行转换
-      const simplifiedDesign = await safeExtractDesign({ figmaData, fileKey, token: token || '' });
+      const simplifiedDesign = await safeExtractDesign({ figmaData, fileKey, token });
       if (!simplifiedDesign) {
         throw new Error('Figma 解析失败');
       }

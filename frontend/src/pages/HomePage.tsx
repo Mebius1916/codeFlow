@@ -6,7 +6,7 @@ import htmlIconUrl from "../../assets/Html.svg";
 import { useNavigate } from "react-router-dom";
 import { useFigmaUrlParser } from "../hooks/useFigmaUrlParser";
 import { runConvertFlow } from "../utils/convert-flow";
-import { Brand } from "../components/Topbar/Brand";
+import { Brand } from "../components/topbar/Brand";
 
 export function HomePage() {
   const navigate = useNavigate();

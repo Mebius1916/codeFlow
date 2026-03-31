@@ -12,6 +12,11 @@ interface UiState {
   fileTreeResizing: boolean
   fileTreeResizeHover: boolean
   previewContentSize: PreviewContentSize | null
+  modelApiEndpoint: string
+  modelApiKey: string
+  aiEnhance: boolean
+  figmaToken: string
+  algorithmOptions: Record<string, unknown>
 
   setTheme: (theme: 'light' | 'dark') => void
   setTerminalHeight: (height: number) => void
@@ -20,6 +25,11 @@ interface UiState {
   setFileTreeResizing: (isResizing: boolean) => void
   setFileTreeResizeHover: (isHover: boolean) => void
   setPreviewContentSize: (size: PreviewContentSize | null) => void
+  setModelApiEndpoint: (endpoint: string) => void
+  setModelApiKey: (key: string) => void
+  setAiEnhance: (enabled: boolean) => void
+  setFigmaToken: (token: string) => void
+  setAlgorithmOptions: (next: Record<string, unknown>) => void
 }
 
 type SetState<T> = (
@@ -42,6 +52,11 @@ export const useUiStore = create<UiState>()(
       fileTreeResizing: false,
       fileTreeResizeHover: false,
       previewContentSize: null,
+      modelApiEndpoint: '',
+      modelApiKey: '',
+      aiEnhance: true,
+      figmaToken: '',
+      algorithmOptions: {},
 
       setTheme: (theme: 'light' | 'dark') => {
         set({ theme })
@@ -70,6 +85,26 @@ export const useUiStore = create<UiState>()(
       setPreviewContentSize: (size: PreviewContentSize | null) => {
         set({ previewContentSize: size })
       },
+
+      setModelApiEndpoint: (endpoint: string) => {
+        set({ modelApiEndpoint: endpoint })
+      },
+
+      setModelApiKey: (key: string) => {
+        set({ modelApiKey: key })
+      },
+
+      setAiEnhance: (enabled: boolean) => {
+        set({ aiEnhance: enabled })
+      },
+
+      setFigmaToken: (token: string) => {
+        set({ figmaToken: token })
+      },
+
+      setAlgorithmOptions: (next: Record<string, unknown>) => {
+        set({ algorithmOptions: next })
+      },
     }),
     {
       name: 'ui-storage',
@@ -81,6 +116,11 @@ export const useUiStore = create<UiState>()(
         fileTreeWidth: state.fileTreeWidth,
         previewWidth: state.previewWidth,
         previewContentSize: state.previewContentSize,
+        modelApiEndpoint: state.modelApiEndpoint,
+        modelApiKey: state.modelApiKey,
+        aiEnhance: state.aiEnhance,
+        figmaToken: state.figmaToken,
+        algorithmOptions: state.algorithmOptions,
       }),
     }
   )

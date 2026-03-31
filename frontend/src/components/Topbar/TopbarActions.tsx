@@ -1,5 +1,7 @@
 import shareIconUrl from '../../../assets/Share.svg';
 import settingIconUrl from '../../../assets/Setting.svg';
+import { useState } from 'react';
+import { WorkspaceSettingsModal } from '../settings/SettingsModal';
 
 interface TopbarActionsProps {
   onShare?: () => void;
@@ -7,6 +9,8 @@ interface TopbarActionsProps {
 }
 
 export function TopbarActions({ onShare, shareEnabled }: TopbarActionsProps) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
   return (
     <div className="flex items-center gap-2">
       {onShare && (
@@ -29,7 +33,10 @@ export function TopbarActions({ onShare, shareEnabled }: TopbarActionsProps) {
         </button>
       )}
 
-      <button className="px-3 py-1.5 hover:bg-[#2a2f4c] group rounded-md transition-colors focus:outline-none inline-flex items-center justify-center">
+      <button
+        className="px-3 py-1.5 hover:bg-[#2a2f4c] group rounded-md transition-colors focus:outline-none inline-flex items-center justify-center"
+        onClick={() => setSettingsOpen(true)}
+      >
         <img 
           src={settingIconUrl} 
           alt="Settings" 
@@ -37,6 +44,8 @@ export function TopbarActions({ onShare, shareEnabled }: TopbarActionsProps) {
           style={{ filter: 'brightness(0) invert(1)' }}
         />
       </button>
+
+      <WorkspaceSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

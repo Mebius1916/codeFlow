@@ -6,7 +6,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/Sidebar";
 import { EditorContainer } from "../components/EditorContainer";
 import { PreviewContainer } from "../components/PreviewContainer";
-import { Topbar } from "../components/Topbar/index";
+import { Topbar } from "../components/topbar/index";
 
 export function EditorPage() {
   const { roomId } = useParams();
