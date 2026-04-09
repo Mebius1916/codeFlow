@@ -1,7 +1,8 @@
-import { ensureDirectories, writeFilesConcurrently } from './fs'
-import { spawnServer } from './server'
+import { ensureDirectories, writeFilesConcurrently } from '../fs/fs'
+import { createServerScript } from '../server/create-server'
+import { spawnServer } from '../server/server'
 import { ensureWebContainer, publishLog } from './runtime'
-import { createServerScript } from './create-server'
+
 type FileContent = string | Uint8Array
 
 let serverStartPromise: Promise<void> | null = null
@@ -56,5 +57,5 @@ export async function ensureServerScriptUpdated(files: Record<string, FileConten
 
 function buildServerScript(files: Record<string, FileContent>) {
   const newFile = files['src/index.html'] != null ? './src/index.html' : null
-  return createServerScript(newFile);
+  return createServerScript(newFile)
 }

@@ -28,4 +28,3 @@ export async function spawnServer(
 
   return process
 }
-

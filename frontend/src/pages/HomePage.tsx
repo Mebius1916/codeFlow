@@ -19,16 +19,30 @@ export function HomePage() {
   const isLoading = state.status === "loading";
   const error = state.status === "error" ? state.error : null;
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const figmaToken = useUiStore((s) => s.figmaToken);
-  const [tokenError, setTokenError] = useState<string | null>(null);
+  const { figmaToken, aiEnhance, modelApiEndpoint, modelApiKey } = useUiStore((s) => ({
+    figmaToken: s.figmaToken,
+    aiEnhance: s.aiEnhance,
+    modelApiEndpoint: s.modelApiEndpoint,
+    modelApiKey: s.modelApiKey,
+  }));
+  const [shouldHighlightFigmaToken, setShouldHighlightFigmaToken] = useState(false);
+  const [shouldHighlightModelApi, setShouldHighlightModelApi] = useState(false);
 
   const handleConvert = async () => {
     if (!figmaToken.trim()) {
-      setTokenError("Figma Token 是必填项，请先在右上角 Settings 填写。");
+      setShouldHighlightFigmaToken(true);
+      setShouldHighlightModelApi(false);
       setSettingsOpen(true);
       return;
     }
-    setTokenError(null);
+    if (aiEnhance && (!modelApiEndpoint.trim() || !modelApiKey.trim())) {
+      setShouldHighlightFigmaToken(false);
+      setShouldHighlightModelApi(true);
+      setSettingsOpen(true);
+      return;
+    }
+    setShouldHighlightFigmaToken(false);
+    setShouldHighlightModelApi(false);
     const result = await parse(url);
     if (result) {
       const roomId = await runConvertFlow(result);
@@ -112,7 +126,6 @@ export function HomePage() {
               {isLoading ? "Converting..." : "Convert to Code"}
             </button>
           </div>
-          {tokenError && <div className="mt-2 text-xs text-red-400">{tokenError}</div>}
         </div>
 
         <div className="mt-10 flex flex-col items-center gap-4">
@@ -152,7 +165,16 @@ export function HomePage() {
         © 2026 Figma2Code Inc. All rights reserved.
       </div>
 
-      <WorkspaceSettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <WorkspaceSettingsModal
+        open={settingsOpen}
+        onClose={() => {
+          setSettingsOpen(false);
+          setShouldHighlightFigmaToken(false);
+          setShouldHighlightModelApi(false);
+        }}
+        highlightFigmaToken={shouldHighlightFigmaToken}
+        highlightModelApiConfig={shouldHighlightModelApi}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
 import { useWebContainer } from '../hooks/useWebContainer'
 import { useContainerSize } from '../hooks/useContainerSize'
+import { PreviewExportButton } from './PreviewExportButton'
 
 type PreviewContentSize = { width: number; height: number }
 
@@ -45,12 +46,10 @@ export function PreviewPanel({
         bootIdRef.current = (data as any).payload?.bootId ?? null
         readyRef.current = true
         if (!layoutPayload) return
-        requestAnimationFrame(() => {
-          iframeRef.current?.contentWindow?.postMessage?.(
-            { type: 'preview:layout', payload: { ...layoutPayload, bootId: bootIdRef.current } },
-            '*',
-          )
-        })
+        iframeRef.current?.contentWindow?.postMessage?.(
+          { type: 'preview:layout', payload: { ...layoutPayload, bootId: bootIdRef.current } },
+          '*',
+        )
         return
       }
       if ((data as any).type === 'preview:layout:applied') {
@@ -69,12 +68,10 @@ export function PreviewPanel({
     if (!previewUrl) return
     if (!readyRef.current) return
     if (!layoutPayload) return
-    requestAnimationFrame(() => {
-      iframeRef.current?.contentWindow?.postMessage?.(
-        { type: 'preview:layout', payload: { ...layoutPayload, bootId: bootIdRef.current } },
-        '*',
-      )
-    })
+    iframeRef.current?.contentWindow?.postMessage?.(
+      { type: 'preview:layout', payload: { ...layoutPayload, bootId: bootIdRef.current } },
+      '*',
+    )
   }, [layoutPayload, previewUrl])
 
   if (error) {
@@ -88,9 +85,20 @@ export function PreviewPanel({
     )
   }
 
+  const targetExportSize =
+    previewContentSize?.width && previewContentSize?.height
+      ? { width: Math.round(previewContentSize.width), height: Math.round(previewContentSize.height) }
+      : containerSize.width && containerSize.height
+        ? { width: Math.round(containerSize.width), height: Math.round(containerSize.height) }
+        : null
+
   return (
     <div className="flex flex-col h-full ">
       <div ref={containerRef} className="relative flex-1 w-full h-full overflow-hidden ">
+        <PreviewExportButton
+          targetSize={targetExportSize}
+          disabled={isLoading || !previewUrl || !isIframeLoaded}
+        />
         <iframe
           ref={iframeRef}
           src={previewUrl ?? undefined}

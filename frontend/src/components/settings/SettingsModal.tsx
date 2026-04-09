@@ -1,8 +1,6 @@
 import settingIconUrl from '../../../assets/Setting.svg';
-import { useEffect, useState, type CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 import { Link2, KeyRound, X } from 'lucide-react';
-import { useUiStore } from '@collaborative-editor/shared';
-import { getDefaultOptions, type AlgorithmOptions } from '@collaborative-editor/design2code';
 import { Button } from '../ui/button';
 import {
   Dialog,
@@ -19,75 +17,54 @@ import { Label } from '../ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Switch } from '../ui/switch';
 import { AlgorithmOptionsForm } from './AlgorithmOptionsForm';
+import { useWorkspaceSettingsModalState } from './useWorkspaceSettingsModalState';
 
 const maskedTextStyle = { WebkitTextSecurity: 'disc' } as CSSProperties;
 
 export function WorkspaceSettingsModal({
   open,
   onClose,
+  highlightFigmaToken,
+  highlightModelApiConfig,
 }: {
   open: boolean;
   onClose: () => void;
+  highlightFigmaToken?: boolean;
+  highlightModelApiConfig?: boolean;
 }) {
   const {
-    modelApiEndpoint,
-    modelApiKey,
-    aiEnhance,
-    figmaToken,
-    algorithmOptions,
-    setModelApiEndpoint,
-    setModelApiKey,
-    setAiEnhance,
-    setFigmaToken,
-    setAlgorithmOptions,
-  } = useUiStore(
-    (state) => ({
-      modelApiEndpoint: state.modelApiEndpoint,
-      modelApiKey: state.modelApiKey,
-      aiEnhance: state.aiEnhance,
-      figmaToken: state.figmaToken,
-      algorithmOptions: state.algorithmOptions,
-      setModelApiEndpoint: state.setModelApiEndpoint,
-      setModelApiKey: state.setModelApiKey,
-      setAiEnhance: state.setAiEnhance,
-      setFigmaToken: state.setFigmaToken,
-      setAlgorithmOptions: state.setAlgorithmOptions,
-    }),
-  );
-
-  const [framework, setFramework] = useState('HTML + CSS');
-  const [stylingSystem, setStylingSystem] = useState('CSS');
-  const [apiEndpoint, setApiEndpoint] = useState(modelApiEndpoint);
-  const [apiKey, setApiKey] = useState(modelApiKey);
-  const [aiEnhanceDraft, setAiEnhanceDraft] = useState(aiEnhance);
-  const [figmaTokenDraft, setFigmaTokenDraft] = useState(figmaToken);
-  const [algorithmOptionsEnabled, setAlgorithmOptionsEnabled] = useState(false);
-  const [algorithmOptionsDraft, setAlgorithmOptionsDraft] = useState<AlgorithmOptions>(() => {
-    return Object.keys(algorithmOptions).length ? (algorithmOptions as unknown as AlgorithmOptions) : getDefaultOptions();
+    framework,
+    setFramework,
+    stylingSystem,
+    setStylingSystem,
+    apiEndpoint,
+    setApiEndpoint,
+    apiKey,
+    setApiKey,
+    aiEnhanceDraft,
+    setAiEnhanceDraft,
+    figmaTokenDraft,
+    setFigmaTokenDraft,
+    figmaTokenInputRef,
+    figmaTokenInvalid,
+    setFigmaTokenTouched,
+    setModelApiEndpointTouched,
+    setModelApiKeyTouched,
+    modelApiEndpointInputRef,
+    modelApiKeyInputRef,
+    modelApiEndpointInvalid,
+    modelApiKeyInvalid,
+    algorithmOptionsEnabled,
+    setAlgorithmOptionsEnabled,
+    algorithmOptionsDraft,
+    setAlgorithmOptionsDraft,
+    handleSave,
+  } = useWorkspaceSettingsModalState({
+    open,
+    onClose,
+    highlightFigmaToken,
+    highlightModelApiConfig,
   });
-
-  useEffect(() => {
-    if (!open) return;
-    setApiEndpoint(modelApiEndpoint);
-    setApiKey(modelApiKey);
-    setAiEnhanceDraft(aiEnhance);
-    setFigmaTokenDraft(figmaToken);
-    setAlgorithmOptionsEnabled(false);
-    setAlgorithmOptionsDraft(
-      Object.keys(algorithmOptions).length ? (algorithmOptions as unknown as AlgorithmOptions) : getDefaultOptions(),
-    );
-  }, [aiEnhance, algorithmOptions, figmaToken, modelApiEndpoint, modelApiKey, open]);
-
-  const handleSave = () => {
-    setModelApiEndpoint(apiEndpoint);
-    setModelApiKey(apiKey);
-    setAiEnhance(aiEnhanceDraft);
-    setFigmaToken(figmaTokenDraft);
-    setAlgorithmOptions(
-      algorithmOptionsEnabled ? (algorithmOptionsDraft as unknown as Record<string, unknown>) : {},
-    );
-    onClose();
-  };
 
   return (
     <Dialog open={open} onOpenChange={(next) => (next ? null : onClose())}>
@@ -151,12 +128,18 @@ export function WorkspaceSettingsModal({
               <Label>Figma Token</Label>
               <Input
                 type="text"
+                ref={figmaTokenInputRef}
                 value={figmaTokenDraft}
                 onChange={(e) => setFigmaTokenDraft(e.target.value)}
                 placeholder="figd_..."
                 autoComplete="off"
                 style={maskedTextStyle}
+                onBlur={() => setFigmaTokenTouched(true)}
+                className={figmaTokenInvalid ? 'border-red-500/70 focus-visible:ring-red-500/40' : undefined}
               />
+              {figmaTokenInvalid && (
+                <div className="text-[11px] leading-[16px] text-red-400">Figma Token 是必填项</div>
+              )}
             </div>
           </div>
 
@@ -170,13 +153,19 @@ export function WorkspaceSettingsModal({
                 <div className="relative">
                   <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
                   <Input
+                    ref={modelApiEndpointInputRef}
                     value={apiEndpoint}
                     onChange={(e) => setApiEndpoint(e.target.value)}
                     placeholder="https://your-llm-api.example/v1"
-                    className="pl-9"
                     autoComplete="off"
+                    onBlur={() => setModelApiEndpointTouched(true)}
+                    aria-invalid={modelApiEndpointInvalid}
+                    className={`pl-9 ${modelApiEndpointInvalid ? 'border-red-500/70 focus-visible:ring-red-500/40' : ''}`}
                   />
                 </div>
+                {modelApiEndpointInvalid && (
+                  <div className="text-[11px] leading-[16px] text-red-400">Model API Endpoint 是必填项</div>
+                )}
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -185,13 +174,19 @@ export function WorkspaceSettingsModal({
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
                   <Input
                     type="text"
+                    ref={modelApiKeyInputRef}
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    className="pl-9"
                     autoComplete="off"
                     style={maskedTextStyle}
+                    onBlur={() => setModelApiKeyTouched(true)}
+                    aria-invalid={modelApiKeyInvalid}
+                    className={`pl-9 ${modelApiKeyInvalid ? 'border-red-500/70 focus-visible:ring-red-500/40' : ''}`}
                   />
                 </div>
+                {modelApiKeyInvalid && (
+                  <div className="text-[11px] leading-[16px] text-red-400">Model API Key 是必填项</div>
+                )}
               </div>
             </div>
           </div>

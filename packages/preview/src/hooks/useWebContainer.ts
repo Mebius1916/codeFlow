@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { getWebContainer, getLastPreviewUrl, subscribeLogs, subscribeServerReady } from '../webcontainer/runtime'
-import { ensurePreviewServer } from '../webcontainer/bootstrap'
-import { ensureDirectories, writeFilesConcurrently } from '../webcontainer/fs'
+import { getWebContainer, getLastPreviewUrl, subscribeLogs, subscribeServerReady } from '../webcontainer/runtime/runtime'
+import { ensurePreviewServer } from '../webcontainer/runtime/bootstrap'
+import { ensureDirectories, writeFilesConcurrently } from '../webcontainer/fs/fs'
 
 async function syncFiles(nextFiles: Record<string, string | Uint8Array>) {
   const webcontainerInstance = getWebContainer()
