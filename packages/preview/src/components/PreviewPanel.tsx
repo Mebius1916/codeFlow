@@ -98,6 +98,7 @@ export function PreviewPanel({
         <PreviewExportButton
           targetSize={targetExportSize}
           disabled={isLoading || !previewUrl || !isIframeLoaded}
+          iframeRef={iframeRef}
         />
         <iframe
           ref={iframeRef}
