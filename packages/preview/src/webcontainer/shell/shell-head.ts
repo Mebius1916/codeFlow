@@ -7,6 +7,5 @@ export const PREVIEW_SHELL_HEAD = `<!DOCTYPE html>
       __PREVIEW_RESET_CSS__
       __PREVIEW_STYLE_CSS__
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <title>Preview</title>
 `

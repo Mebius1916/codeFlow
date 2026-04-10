@@ -1,24 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getWebContainer, getLastPreviewUrl, subscribeLogs, subscribeServerReady } from '../webcontainer/runtime/runtime'
 import { ensurePreviewServer } from '../webcontainer/runtime/bootstrap'
-import { ensureDirectories, writeFilesConcurrently } from '../webcontainer/fs/fs'
-
-async function syncFiles(nextFiles: Record<string, string | Uint8Array>) {
-  const webcontainerInstance = getWebContainer()
-  if (!webcontainerInstance) return
-  const entries = Object.entries(nextFiles)
-  if (entries.length === 0) return
-  const startAt = performance.now()
-  await ensureDirectories(webcontainerInstance, entries.map(([path]) => path))
-  const afterDirs = performance.now()
-  await writeFilesConcurrently(webcontainerInstance, entries, 8)
-  const afterWrite = performance.now()
-  console.log(
-    `[Preview] sync files=${entries.length} ` +
-      `mkdir=${(afterDirs - startAt).toFixed(1)}ms ` +
-      `write=${(afterWrite - afterDirs).toFixed(1)}ms`,
-  )
-}
+import { syncFilesToWebContainer } from '../webcontainer/fs/sync-files'
 
 export function useWebContainer(files: Record<string, string | Uint8Array>) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -29,13 +12,19 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
   const addLog = (msg: string) => {
     setLogs((prev: string[]) => [...prev.slice(-4), msg])
   }
-
+  const writerUrl = (url:string) => {
+      const webcontainerInstance = getWebContainer()
+      if (webcontainerInstance) {
+        webcontainerInstance.fs.writeFile('.preview-origin', new URL(url).origin)
+      }
+  }
   useEffect(() => {
     const lastUrl = getLastPreviewUrl()
     if (lastUrl) {
       console.log('[Preview] 使用上一次预览地址', lastUrl)
       setPreviewUrl(lastUrl)
       setIsLoading(false)
+      writerUrl(lastUrl);
     } else {
       console.log('[Preview] 未发现预览地址，等待 server-ready')
     }
@@ -44,6 +33,7 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
       console.log('[Preview] 收到 server-ready', url)
       setPreviewUrl(url)
       setIsLoading(false)
+      writerUrl(url);
     })
     return () => {
       unsubscribeLogs()
@@ -71,7 +61,7 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
         if (!urlAfter) {
           console.log('[Preview] server-ready 尚未触发')
         }
-        syncFiles(files)
+        syncFilesToWebContainer(files)
       })
       .catch((e) => {
         setError(e instanceof Error ? e.message : String(e))

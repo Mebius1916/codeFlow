@@ -71,7 +71,8 @@ const server = http.createServer((req, res) => {
         'Access-Control-Allow-Origin': '*'
       });
       if (contentType === 'text/html') {
-        const shell = buildShell(content.toString());
+        const origin = String(fs.readFileSync('.preview-origin', 'utf8') || '').trim()
+        const shell = buildShell(content.toString(), origin);
         res.end(shell, 'utf-8');
         return;
       }
