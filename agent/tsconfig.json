@@ -5,11 +5,20 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "index.ts",
+    "runtime/**/*.ts",
+    "steps/**/*.ts",
+    "prompts/**/*.ts",
+    "llm/**/*.ts",
+    "tools/**/*.ts",
+    "utils/**/*.ts",
+    "types/**/*.ts"
+  ]
 }

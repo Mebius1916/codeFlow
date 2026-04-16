@@ -4,7 +4,7 @@ export type CreateLLMParams = {
   baseUrl?: string;
 };
 
-export type RunAgentParams = {
+export type RunVisualRepairParams = {
   baselinePngBase64: string;
   currentPngBase64: string;
   diffPngBase64: string;
@@ -16,12 +16,18 @@ export type RunAgentParams = {
   baseUrl?: string;
 };
 
-export type AnalyzeVisualDiffParams = Pick<
-  RunAgentParams,
+// 兼容旧命名，避免外部调用方一次性改太多。
+export type RunAgentParams = RunVisualRepairParams;
+
+export type ObserveVisualDiffParams = Pick<
+  RunVisualRepairParams,
   "baselinePngBase64" | "currentPngBase64" | "diffPngBase64" | "diffRatio" | "similarity"
 >;
 
-export type FixHtmlParams = { analysisJson: string; html: string };
+export type RewriteHtmlParams = {
+  analysisJson: string;
+  html: string;
+};
 
 export type VisualDiffParams = {
   baselinePngBase64: string;
@@ -32,3 +38,8 @@ export type VisualDiffParams = {
   baseUrl?: string;
 };
 
+export type VisualRepairState = {
+  currentHtml: string;
+  analysisJson?: string;
+  iteration: number;
+};
