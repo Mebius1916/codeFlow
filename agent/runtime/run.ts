@@ -9,10 +9,8 @@ export async function runVisualRepair(
     model: params.model,
     apiKey: params.apiKey,
     baseUrl: params.baseUrl,
+    temperature: params.temperature,
   });
 
   return runVisualRepairLoop(llm, params);
 }
-
-// 兼容旧的调用名称。
-export const runAgent = runVisualRepair;

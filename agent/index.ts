@@ -1,16 +1,10 @@
 import { runVisualRepair } from "./runtime/run.js";
 import { diffPng } from "./utils/diff-png.js";
-
-export * from "./tools/index.js";
-export { runAgent, runVisualRepair } from "./runtime/run.js";
-
-import type { RunAgentParams, RunVisualRepairParams, VisualDiffParams } from "./types/index.js";
-
-export type { RunAgentParams, RunVisualRepairParams, VisualDiffParams };
+import type { RunVisualRepairParams, VisualDiffParams } from "./types/index.js";
 
 export function visualDiff(params: VisualDiffParams) {
-  const { baselinePngBase64, currentPngBase64, html, model, apiKey, baseUrl } = params;
-  const diff = diffPng(baselinePngBase64, currentPngBase64);
+  const { baselinePngBase64, currentPngBase64, html, model, apiKey, baseUrl, temperature, threshold } = params;
+  const diff = diffPng(baselinePngBase64, currentPngBase64, threshold);
 
   return runVisualRepair({
     baselinePngBase64,
@@ -22,5 +16,6 @@ export function visualDiff(params: VisualDiffParams) {
     model,
     apiKey,
     baseUrl,
+    temperature,
   } satisfies RunVisualRepairParams);
 }

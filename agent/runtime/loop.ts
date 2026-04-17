@@ -1,5 +1,4 @@
 import type { ChatOpenAI } from "@langchain/openai";
-
 import { observeVisualDiff } from "../steps/observe-visual-diff.js";
 import { rewriteHtml } from "../steps/rewrite-html.js";
 import type { RunVisualRepairParams } from "../types/index.js";

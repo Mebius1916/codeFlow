@@ -1,7 +1,8 @@
 export type CreateLLMParams = {
   model: string;
   apiKey: string;
-  baseUrl?: string;
+  baseUrl: string;
+  temperature: number;
 };
 
 export type RunVisualRepairParams = {
@@ -13,11 +14,9 @@ export type RunVisualRepairParams = {
   html: string;
   model: string;
   apiKey: string;
-  baseUrl?: string;
+  baseUrl: string;
+  temperature: number;
 };
-
-// 兼容旧命名，避免外部调用方一次性改太多。
-export type RunAgentParams = RunVisualRepairParams;
 
 export type ObserveVisualDiffParams = Pick<
   RunVisualRepairParams,
@@ -35,7 +34,9 @@ export type VisualDiffParams = {
   html: string;
   model: string;
   apiKey: string;
-  baseUrl?: string;
+  baseUrl: string;
+  temperature: number;
+  threshold: number;
 };
 
 export type VisualRepairState = {

@@ -5,7 +5,7 @@ export function createLLM(params: CreateLLMParams) {
   return new ChatOpenAI({
     apiKey: params.apiKey,
     model: params.model,
-    configuration: params.baseUrl ? { baseURL: params.baseUrl } : undefined,
-    temperature: 0,
+    configuration: { baseURL: params.baseUrl },
+    temperature: params.temperature,
   });
 }

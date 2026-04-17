@@ -1,7 +1,7 @@
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
 
-export function diffPng(baselineBase64: string, currentBase64: string) {
+export function diffPng(baselineBase64: string, currentBase64: string, threshold: number) {
   const baseline = PNG.sync.read(Buffer.from(baselineBase64, "base64"));
   const current = PNG.sync.read(Buffer.from(currentBase64, "base64"));
 
@@ -13,7 +13,7 @@ export function diffPng(baselineBase64: string, currentBase64: string) {
 
   const diff = new PNG({ width: baseline.width, height: baseline.height });
   const diffPixels = pixelmatch(baseline.data, current.data, diff.data, baseline.width, baseline.height, {
-    threshold: 0.05,
+    threshold: threshold,
     includeAA: true,
   });
 
