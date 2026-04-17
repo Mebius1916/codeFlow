@@ -16,6 +16,7 @@ export function PreviewContainer({ roomId, isFullscreen }: PreviewContainerProps
   const [previewEnabled] = useState(true);
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = usePreviewResizeCssVars();
   const previewContentSize = useUiStore(useShallow((state) => state.previewContentSize));
+  const setPreviewCapturePngBase64 = useUiStore((state) => state.setPreviewCapturePngBase64);
   return (
     <div
       className={`flex flex-col relative transition-colors box-border ${isFullscreen ? 'flex-1' : 'border-l'}`}
@@ -42,7 +43,11 @@ export function PreviewContainer({ roomId, isFullscreen }: PreviewContainerProps
             className="bg-[rgb(12, 14, 23)] text-gray-400"
           />
         }>
-          <LazyPreviewPanel roomId={roomId} previewContentSize={previewContentSize} />
+          <LazyPreviewPanel
+            roomId={roomId}
+            previewContentSize={previewContentSize}
+            onCapturePngBase64={setPreviewCapturePngBase64}
+          />
         </Suspense>
       )}
     </div>

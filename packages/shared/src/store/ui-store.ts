@@ -12,6 +12,7 @@ interface UiState {
   fileTreeResizing: boolean
   fileTreeResizeHover: boolean
   previewContentSize: PreviewContentSize | null
+  previewCapturePngBase64: string | null
   modelApiEndpoint: string
   modelApiKey: string
   aiEnhance: boolean
@@ -25,6 +26,7 @@ interface UiState {
   setFileTreeResizing: (isResizing: boolean) => void
   setFileTreeResizeHover: (isHover: boolean) => void
   setPreviewContentSize: (size: PreviewContentSize | null) => void
+  setPreviewCapturePngBase64: (base64: string | null) => void
   setModelApiEndpoint: (endpoint: string) => void
   setModelApiKey: (key: string) => void
   setAiEnhance: (enabled: boolean) => void
@@ -52,6 +54,7 @@ export const useUiStore = create<UiState>()(
       fileTreeResizing: false,
       fileTreeResizeHover: false,
       previewContentSize: null,
+      previewCapturePngBase64: null,
       modelApiEndpoint: '',
       modelApiKey: '',
       aiEnhance: true,
@@ -84,6 +87,10 @@ export const useUiStore = create<UiState>()(
 
       setPreviewContentSize: (size: PreviewContentSize | null) => {
         set({ previewContentSize: size })
+      },
+
+      setPreviewCapturePngBase64: (base64: string | null) => {
+        set({ previewCapturePngBase64: base64 })
       },
 
       setModelApiEndpoint: (endpoint: string) => {
