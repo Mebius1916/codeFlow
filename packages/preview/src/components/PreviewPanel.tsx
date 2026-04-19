@@ -44,9 +44,23 @@ export function PreviewPanel({
   const targetExportSize = 
     computeCaptureTargetSize(previewContentSize, containerSize)
 
+  type PreviewStatus = 'booting' | 'waiting_url' | 'waiting_layout' | 'ready'
+
+  const status: PreviewStatus = (() => {
+    if (isLoading) return 'booting'
+    if (!previewUrl) return 'waiting_url'
+    if (layoutPayload && !isIframeLoaded) return 'waiting_layout'
+    return 'ready'
+  })()
+
+  const isReady = status === 'ready'
+  const lastLog = logs[logs.length - 1]
+  const loadingText =
+    status === 'waiting_url' ? '等待预览地址...' : '启动预览环境...'
+
   usePreviewAutoCapture({
     targetSize: targetExportSize,
-    disabled: isLoading || !previewUrl || !isIframeLoaded,
+    disabled: !isReady,
     iframeRef,
     onCapturedBase64: onCapturePngBase64,
   })
@@ -73,9 +87,9 @@ export function PreviewPanel({
           onClick={handleIframeClick}
           tabIndex={0}
         />
-        {(isLoading || !previewUrl || !isIframeLoaded) && (
+        {!isReady && (
           <div className="absolute inset-0">
-            <Loading className="bg-[rgb(12,14,23)] text-gray-400" text="启动预览环境..." detail={logs[logs.length - 1]} />
+            <Loading className="bg-[rgb(12,14,23)] text-gray-400" text={loadingText} detail={lastLog} />
           </div>
         )}
       </div>
