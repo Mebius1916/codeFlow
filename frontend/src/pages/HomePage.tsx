@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useUiStore } from "@collaborative-editor/shared";
 import { useFigmaUrlParser } from "../hooks/useFigmaUrlParser";
-import { runConvertFlow } from "../utils/convert-flow";
+import { runConvertFlow } from "../utils/figma/convert-flow";
 import { Brand } from "../components/topbar/Brand";
 import settingIconUrl from "../../assets/Setting.svg";
 import { WorkspaceSettingsModal } from "../components/settings/SettingsModal";

@@ -9,4 +9,5 @@ export const PREVIEW_SHELL_HEAD = `<!DOCTYPE html>
     </style>
     <title>Preview</title>
     <script src="https://unpkg.com/modern-screenshot@4.4.39/dist/index.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 `
