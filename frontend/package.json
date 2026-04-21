@@ -5,12 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "ws": "collab-server start",
-    "dev:all": "concurrently \"vite\" \"collab-server start\"",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "start": "vite preview",
-    "start:all": "concurrently \"vite preview\" \"collab-server start\"",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -18,10 +15,8 @@
     "@collaborative-editor/editor": "workspace:*",
     "@collaborative-editor/file-tree": "workspace:*",
     "@collaborative-editor/preview": "workspace:*",
-    "@collaborative-editor/server": "workspace:*",
     "@collaborative-editor/shared": "workspace:*",
     "@collaborative-editor/workbench-header": "workspace:*",
-    "@collaborative-editor/yjs-local-forage": "workspace:*",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-select": "^2.1.2",
@@ -30,7 +25,6 @@
     "@radix-ui/react-toast": "^1.2.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "copy-to-clipboard": "^3.3.3",
     "localforage": "^1.10.0",
     "lucide-react": "^0.469.0",
     "react": "^19.0.0",

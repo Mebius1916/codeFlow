@@ -8,11 +8,10 @@ const LazyPreviewPanel = lazy(async () => {
 });
 
 interface PreviewContainerProps {
-  roomId: string;
   isFullscreen?: boolean;
 }
 
-export function PreviewContainer({ roomId, isFullscreen }: PreviewContainerProps) {
+export function PreviewContainer({ isFullscreen }: PreviewContainerProps) {
   const [previewEnabled] = useState(true);
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = usePreviewResizeCssVars();
   const previewContentSize = useUiStore(useShallow((state) => state.previewContentSize));
@@ -44,9 +43,8 @@ export function PreviewContainer({ roomId, isFullscreen }: PreviewContainerProps
           />
         }>
           <LazyPreviewPanel
-            roomId={roomId}
             previewContentSize={previewContentSize}
-            onCapturePngBase64={setPreviewCapturePngBase64}
+            onCapturePngBase64={(base64) => setPreviewCapturePngBase64(base64)}
           />
         </Suspense>
       )}

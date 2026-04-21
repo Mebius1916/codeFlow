@@ -9,11 +9,9 @@ import { computeCaptureTargetSize, computeLayoutPayload } from '../utils/common'
 type PreviewContentSize = { width: number; height: number }
 
 export function PreviewPanel({
-  roomId: _roomId,
   previewContentSize,
   onCapturePngBase64,
 }: {
-  roomId: string
   previewContentSize?: PreviewContentSize | null
   onCapturePngBase64?: (base64: string) => void
 }) {

@@ -7,26 +7,23 @@ export type ContentRepository = {
   saveFile: (path: string, content: FileContent) => Promise<void>
   deleteFile: (path: string) => Promise<void>
   renameFile: (oldPath: string, newPath: string) => Promise<void>
-  bootstrapIfEmpty: (files: Record<string, FileContent>) => Promise<boolean>
+  replaceAll: (files: Record<string, FileContent>) => Promise<void>
 }
 
-const makeIndexKey = (roomId: string) => `${roomId}:__index__`
-const makeFileKey = (roomId: string, path: string) => `${roomId}:file:${path}`
+const INDEX_KEY = '__index__'
+const makeFileKey = (path: string) => `file:${path}`
 
-const ensureRoomId = (roomId: string) => (roomId ? roomId : '__default__')
-
-export function createLocalForageContentRepository(roomId: string): ContentRepository {
-  const normalizedRoomId = ensureRoomId(roomId)
+export function createLocalForageContentRepository(): ContentRepository {
   const store = localforage.createInstance({ name: 'codeflow-content' })
 
   const loadIndex = async (): Promise<string[]> => {
-    const raw = await store.getItem<unknown>(makeIndexKey(normalizedRoomId))
+    const raw = await store.getItem<unknown>(INDEX_KEY)
     if (!Array.isArray(raw)) return []
     return raw.filter((v): v is string => typeof v === 'string')
   }
 
   const saveIndex = async (fileKeys: string[]) => {
-    await store.setItem(makeIndexKey(normalizedRoomId), fileKeys)
+    await store.setItem(INDEX_KEY, fileKeys)
   }
 
   const loadAll = async () => {
@@ -34,7 +31,7 @@ export function createLocalForageContentRepository(roomId: string): ContentRepos
     const files: Record<string, FileContent> = {}
     await Promise.all(
       fileKeys.map(async (path) => {
-        const value = await store.getItem<FileContent>(makeFileKey(normalizedRoomId, path))
+        const value = await store.getItem<FileContent>(makeFileKey(path))
         if (typeof value === 'string' || value instanceof Uint8Array) {
           files[path] = value
         }
@@ -44,7 +41,7 @@ export function createLocalForageContentRepository(roomId: string): ContentRepos
   }
 
   const saveFile = async (path: string, content: FileContent) => {
-    await store.setItem(makeFileKey(normalizedRoomId, path), content)
+    await store.setItem(makeFileKey(path), content)
     const fileKeys = await loadIndex()
     if (!fileKeys.includes(path)) {
       await saveIndex([...fileKeys, path])
@@ -52,7 +49,7 @@ export function createLocalForageContentRepository(roomId: string): ContentRepos
   }
 
   const deleteFile = async (path: string) => {
-    await store.removeItem(makeFileKey(normalizedRoomId, path))
+    await store.removeItem(makeFileKey(path))
     const fileKeys = await loadIndex()
     if (fileKeys.includes(path)) {
       await saveIndex(fileKeys.filter((k) => k !== path))
@@ -60,11 +57,11 @@ export function createLocalForageContentRepository(roomId: string): ContentRepos
   }
 
   const renameFile = async (oldPath: string, newPath: string) => {
-    const oldKey = makeFileKey(normalizedRoomId, oldPath)
+    const oldKey = makeFileKey(oldPath)
     const value = await store.getItem<FileContent>(oldKey)
     if (!(typeof value === 'string' || value instanceof Uint8Array)) return
 
-    await store.setItem(makeFileKey(normalizedRoomId, newPath), value)
+    await store.setItem(makeFileKey(newPath), value)
     await store.removeItem(oldKey)
 
     const fileKeys = await loadIndex()
@@ -74,14 +71,14 @@ export function createLocalForageContentRepository(roomId: string): ContentRepos
     await saveIndex(nextKeys)
   }
 
-  const bootstrapIfEmpty = async (files: Record<string, FileContent>) => {
+  const replaceAll = async (files: Record<string, FileContent>) => {
     const existingKeys = await loadIndex()
-    if (existingKeys.length > 0) return false
+    await Promise.all(existingKeys.map((path) => store.removeItem(makeFileKey(path))))
+    await store.removeItem(INDEX_KEY)
 
     const entries = Object.entries(files)
-    await Promise.all(entries.map(([path, content]) => store.setItem(makeFileKey(normalizedRoomId, path), content)))
+    await Promise.all(entries.map(([path, content]) => store.setItem(makeFileKey(path), content)))
     await saveIndex(entries.map(([path]) => path))
-    return true
   }
 
   return {
@@ -89,6 +86,6 @@ export function createLocalForageContentRepository(roomId: string): ContentRepos
     saveFile,
     deleteFile,
     renameFile,
-    bootstrapIfEmpty,
+    replaceAll,
   }
 }

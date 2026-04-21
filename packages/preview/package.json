@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@collaborative-editor/shared": "workspace:*",
-    "@collaborative-editor/yjs-local-forage": "workspace:*",
     "@webcontainer/api": "^1.3.3"
   },
   "devDependencies": {

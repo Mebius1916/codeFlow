@@ -3,33 +3,19 @@ import type * as Monaco from 'monaco-editor'
 import { Loading, useEditorStore } from '@collaborative-editor/shared'
 import { initMonaco } from '../utils/initMonaco'
 import { EmptyState } from './common/EmptyState'
-import { useCollaboration } from '../collaboration/useCollaboration'
 import { useMonacoBinding } from '../monaco-binding/useMonacoBinding'
 import { ImagePreview } from './features/ImagePreview'
 import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
-import type { EditorProps } from '../types'
 import { useContentLayer } from '../content/useContentLayer'
 
-export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled }: EditorProps) {
+export function Editor() {
   const activeFile = useEditorStore((state) => state.activeFile)
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null)
   const editorDomRef = useRef<HTMLElement | null>(null)
   const [isEditorMounted, setIsEditorMounted] = useState(false)
   const [isMonacoReady, setIsMonacoReady] = useState(false)
 
-  const { isContentReady } = useContentLayer({
-    roomId,
-    collaborationEnabled,
-    initialFiles,
-  })
-
-  // 实例化 Yjs 线程
-  const { provider, yDoc, isReady } = useCollaboration({
-    roomId,
-    user,
-    wsUrl,
-    collaborationEnabled,
-  })
+  const { isContentReady } = useContentLayer()
 
   const isImage = activeFile ? /\.(svg|png|jpg|jpeg|gif|webp)$/i.test(activeFile) : false
 
@@ -53,9 +39,6 @@ export function Editor({ roomId, user, wsUrl, initialFiles, collaborationEnabled
 
   useMonacoBinding({
     editor: editorRef.current,
-    yDoc,
-    provider,
-    isReady: isReady && !!yDoc,
     activeFile: isImage ? null : activeFile,
     domReady: isEditorMounted,
   })

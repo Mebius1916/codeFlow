@@ -2,12 +2,7 @@ import { Brand } from './Brand';
 import { SearchBox } from './SearchBox';
 import { TopbarActions } from './TopbarActions';
 
-export interface TopbarProps {
-  onShare?: () => void;
-  shareEnabled?: boolean;
-}
-
-export function Topbar(props: TopbarProps) {
+export function Topbar() {
   return (
     <div 
       className="h-[56px] border-b border-[#2a2f4c] flex items-center px-4 justify-between relative"
@@ -15,7 +10,7 @@ export function Topbar(props: TopbarProps) {
     >
       <Brand />
       <SearchBox />
-      <TopbarActions onShare={props.onShare} shareEnabled={props.shareEnabled} />
+      <TopbarActions />
     </div>
   );
 }

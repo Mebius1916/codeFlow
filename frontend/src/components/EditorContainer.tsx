@@ -6,28 +6,12 @@ const LazyEditor = lazy(async () => {
   return { default: mod.Editor };
 });
 
-type EditorProps = {
-  roomId: string;
-  userId: string;
-  initialFiles?: Record<string, string | Uint8Array>;
-  collaborationEnabled?: boolean;
-};
-
-export function EditorContainer({ roomId, userId, initialFiles, collaborationEnabled }: EditorProps) {
+export function EditorContainer() {
   return (
     <div className="flex flex-1 flex-col overflow-hidden relative">
       <div className="flex-1 overflow-hidden relative">
         <Suspense fallback={<Loading text="正在初始化编辑器..." />}>
-          <LazyEditor
-            roomId={roomId}
-            user={{
-              id: userId,
-              name: "协作者",
-            }}
-            wsUrl="ws://localhost:8848"
-            initialFiles={initialFiles}
-            collaborationEnabled={collaborationEnabled}
-          />
+          <LazyEditor />
         </Suspense>
       </div>
     </div>

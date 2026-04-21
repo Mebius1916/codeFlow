@@ -1,21 +1,17 @@
 import { createLocalForageContentRepository, useEditorStore, useUiStore } from '@collaborative-editor/shared'
 import type { FigmaParseResult } from '../../hooks/useFigmaUrlParser'
 import { getCachedResourceByAssetPath } from '../cache/image'
-import { createRoomId, setRoomIdInUrl } from '../ide/room-id'
 import { DEFAULT_RESET_CSS } from '../ide/defaults'
 import { formatCss, formatHtml } from '../formatting/code'
 
 type FileContent = string | Uint8Array
 
 export async function runConvertFlow(result: FigmaParseResult) {
-  const nextRoomId = createRoomId()
-  setRoomIdInUrl(nextRoomId)
-
   const size = result.codegen_result?.size
   const nextSize = size?.width && size?.height ? size : undefined
   useUiStore.getState().setPreviewContentSize(nextSize ?? null)
 
-  if (!result.codegen_result) return nextRoomId
+  if (!result.codegen_result) return
 
   const { html, body, css } = result.codegen_result
   const files: Record<string, FileContent> = {
@@ -35,8 +31,6 @@ export async function runConvertFlow(result: FigmaParseResult) {
   initializeFiles(files)
   openFile('src/index.html')
 
-  const repo = createLocalForageContentRepository(nextRoomId)
-  await repo.bootstrapIfEmpty(files)
-
-  return nextRoomId
+  const repo = createLocalForageContentRepository()
+  await repo.replaceAll(files)
 }

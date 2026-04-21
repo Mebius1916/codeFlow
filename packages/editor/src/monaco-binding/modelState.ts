@@ -1,12 +1,6 @@
 import type * as Monaco from 'monaco-editor'
-import * as Y from 'yjs'
 import { setFileContent, useEditorStore } from '@collaborative-editor/shared'
-import { createMonacoBinding, syncCursorToAwareness } from './yjsBinding'
-import type { Ref, Unbind, MonacoBinding } from './cleanup'
-import type { Awareness } from 'y-protocols/awareness'
-type AwarenessProvider = {
-  awareness: Awareness
-}
+import type { Unbind } from './cleanup'
 
 // 单机模式，只与zustand 绑定
 export const bindSingleMode = (args: {
@@ -42,27 +36,4 @@ export const bindSingleMode = (args: {
     disposable.dispose()
     unsubscribeStore()
   }
-}
-
-// 协作模式，与 yjs 和 zustand 绑定
-export const bindCollabMode = async (args: {
-  activeFile: string
-  model: Monaco.editor.ITextModel
-  editor: Monaco.editor.IStandaloneCodeEditor
-  yDoc: Y.Doc
-  provider: AwarenessProvider
-  bindingRef: Ref<MonacoBinding | null>
-  isMounted: () => boolean
-}) => {
-  const yText = args.yDoc.getText(args.activeFile)
-  if (!args.isMounted()) return
-
-  const binding = await createMonacoBinding(yText, args.editor, args.provider)
-  if (!args.isMounted()) {
-    binding.destroy()
-    return
-  }
-
-  args.bindingRef.current = binding as MonacoBinding
-  syncCursorToAwareness(args.editor, args.provider)
 }

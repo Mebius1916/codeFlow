@@ -1,9 +1,3 @@
-export interface CodeEditorUser {
-  id: string
-  name?: string
-  color?: string
-}
-
 export interface CodeEditorFeatures {
   terminal?: boolean
   fileTree?: boolean
@@ -12,4 +6,3 @@ export interface CodeEditorFeatures {
   autoSave?: boolean | number
   preview?: boolean
 }
-

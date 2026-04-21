@@ -13,7 +13,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '@collaborative-editor/yjs-local-forage': path.resolve(__dirname, '../packages/yjsLocalForage/src'),
     },
   },
   server: {

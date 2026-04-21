@@ -12,8 +12,8 @@ export function SearchBox() {
   const handleConvert = async () => {
     const result = await parse(url);
     if (result) {
-      const roomId = await runConvertFlow(result);
-      navigate(`/room/${encodeURIComponent(roomId)}`);
+      await runConvertFlow(result);
+      navigate(`/editor`);
     }
   };
 

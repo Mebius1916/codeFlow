@@ -45,8 +45,8 @@ export function HomePage() {
     setShouldHighlightModelApi(false);
     const result = await parse(url);
     if (result) {
-      const roomId = await runConvertFlow(result);
-      navigate(`/room/${encodeURIComponent(roomId)}`);
+      await runConvertFlow(result);
+      navigate(`/editor`);
     }
   };
 
@@ -146,16 +146,6 @@ export function HomePage() {
                 <div>{item.label}</div>
               </div>
             ))}
-          </div>
-        </div>
-
-        <div className="mt-12 flex items-center gap-3">
-          <div className="flex items-center gap-2 rounded-full border border-[#1337EC]/30 bg-[#1337EC]/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#1337EC]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#1337EC]" />
-            Real-time Collaboration
-          </div>
-          <div className="text-[10px] text-slate-500">
-            Yjs-powered Multi-user editing
           </div>
         </div>
 

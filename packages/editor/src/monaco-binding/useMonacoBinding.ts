@@ -1,39 +1,23 @@
 import { useEffect, useRef } from 'react'
 import type * as Monaco from 'monaco-editor'
-import * as Y from 'yjs'
 import { initMonaco } from '../utils/initMonaco'
-import {
-  destroyBindingRef,
-  disposeUnbindRef,
-  type MonacoBinding,
-} from './cleanup'
+import { disposeUnbindRef } from './cleanup'
 import { getOrCreateModel, attachModelToEditor, setModelFromStore } from './monacoModel'
-import { bindCollabMode, bindSingleMode } from './modelState'
-import type { Awareness } from 'y-protocols/awareness'
-type AwarenessProvider = {
-  awareness: Awareness
-}
+import { bindSingleMode } from './modelState'
 interface UseMonacoBindingProps {
   editor: Monaco.editor.IStandaloneCodeEditor | null
-  yDoc: Y.Doc | null
-  provider: AwarenessProvider | null
   activeFile: string | null
-  isReady: boolean
   domReady: boolean
 }
 
-export function useMonacoBinding({ editor, yDoc, provider, activeFile, isReady, domReady }: UseMonacoBindingProps) {
-  const bindingRef = useRef<MonacoBinding | null>(null)
+export function useMonacoBinding({ editor, activeFile, domReady }: UseMonacoBindingProps) {
   const unbindRef = useRef<null | (() => void)>(null)
   const modelRef = useRef<Monaco.editor.ITextModel | null>(null)
 
   useEffect(() => {
     if (!editor || !activeFile || !domReady) return
 
-    const isCollaborationReady = Boolean(yDoc && provider && isReady)
-
     disposeUnbindRef(unbindRef)
-    destroyBindingRef(bindingRef)
 
     let isMounted = true
 
@@ -50,23 +34,7 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, isReady, 
           // 从store中设置模型内容
           setModelFromStore(model, activeFile)
         } catch { }
-
-        if (!isCollaborationReady) {
-          return bindSingleMode({
-            activeFile,
-            model,
-          })
-        }
-
-        await bindCollabMode({
-          activeFile,
-          model,
-          editor,
-          yDoc: yDoc!,
-          provider: provider!,
-          bindingRef,
-          isMounted: () => isMounted,
-        })
+        return bindSingleMode({ activeFile, model })
       }
     }
 
@@ -83,7 +51,6 @@ export function useMonacoBinding({ editor, yDoc, provider, activeFile, isReady, 
     return () => {
       isMounted = false
       disposeUnbindRef(unbindRef)
-      destroyBindingRef(bindingRef)
     }
-  }, [editor, yDoc, provider, activeFile, isReady, domReady])
+  }, [editor, activeFile, domReady])
 }

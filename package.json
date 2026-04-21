@@ -6,10 +6,8 @@
     "dev": "pnpm --filter @collaborative-editor/frontend dev",
     "build": "pnpm -r --filter @collaborative-editor/shared --filter @collaborative-editor/file-tree --filter @collaborative-editor/preview --filter @collaborative-editor/workbench-header --filter @collaborative-editor/editor --filter @collaborative-editor/agent build && pnpm --filter @collaborative-editor/frontend build",
     "start": "pnpm --filter @collaborative-editor/frontend start",
-    "start:all": "pnpm --filter @collaborative-editor/frontend start:all",
     "lint": "pnpm --filter @collaborative-editor/frontend lint",
-    "ws": "pnpm --filter @collaborative-editor/server start",
-    "dev:all": "pnpm --filter @collaborative-editor/frontend dev:all"
+    "dev:all": "pnpm --filter @collaborative-editor/frontend dev"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",
