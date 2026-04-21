@@ -1,11 +1,22 @@
 import { ensureDirectories, writeFilesConcurrently } from '../fs/fs'
 import { createServerScript } from '../server/create-server'
 import { spawnServer } from '../server/server'
-import { ensureWebContainer, publishLog } from './runtime'
+import { ensureWebContainer, getLastPreviewUrl, publishLog, subscribeServerReady } from './runtime'
 
 type FileContent = string | Uint8Array
 
 let serverStartPromise: Promise<void> | null = null
+
+function waitForServerReady() {
+  const existingUrl = getLastPreviewUrl()
+  if (existingUrl) return Promise.resolve(existingUrl)
+  return new Promise<string>((resolve) => {
+    const unsubscribe = subscribeServerReady((url) => {
+      unsubscribe()
+      resolve(url)
+    })
+  })
+}
 
 export async function ensurePreviewServer(files: Record<string, FileContent>) {
   if (serverStartPromise) return serverStartPromise
@@ -31,6 +42,7 @@ export async function ensurePreviewServer(files: Record<string, FileContent>) {
     await spawnServer(instance, {
       onOutput: (data) => publishLog(`[Server] ${data}`),
     })
+    await waitForServerReady()
     const afterSpawn = performance.now()
     const timingLog =
       `[Preview][Timing] boot=${(afterBoot - startAt).toFixed(1)}ms ` +

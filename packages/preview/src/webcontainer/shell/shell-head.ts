@@ -8,6 +8,6 @@ export const PREVIEW_SHELL_HEAD = `<!DOCTYPE html>
       __PREVIEW_STYLE_CSS__
     </style>
     <title>Preview</title>
-    <script src="https://unpkg.com/modern-screenshot@4.4.39/dist/index.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/modern-screenshot@4.4.39/dist/index.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
 `
