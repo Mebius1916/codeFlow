@@ -39,10 +39,11 @@ function buildSimplifiedFrameValues(node: SmartNode): SimplifiedLayout {
   if (rawNode.overflowDirection?.includes("VERTICAL")) overflowScroll.push("y");
   if (overflowScroll.length > 0) frameValues.overflowScroll = overflowScroll;
 
+  if ("clipsContent" in rawNode && rawNode.clipsContent) {
+    frameValues.clipsContent = true;
+  }
+
   if (frameValues.mode === "none") {
-    if ("clipsContent" in rawNode && rawNode.clipsContent) {
-      frameValues.clipsContent = true;
-    }
     return frameValues;
   }
 

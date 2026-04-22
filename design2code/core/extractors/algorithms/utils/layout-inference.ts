@@ -1,6 +1,6 @@
 import type { SimplifiedNode } from "../../../types/extractor-types.js";
-import type { SimplifiedLayout } from "../../../types/simplified-types.js";
-import { calculateRelativePosition } from "../../../utils/geometry.js";
+import type { BoundingBox, SimplifiedLayout } from "../../../types/simplified-types.js";
+import { calculateRelativePosition, getUnionRect } from "../../../utils/geometry.js";
 import { computeAutoLayoutGap, inferAutoLayoutAlignment } from "./auto-layout.js";
 import { createVirtualFrame, type CreateVirtualFrameOptions } from "./virtual-node.js";
 
@@ -31,7 +31,7 @@ export function buildContainerByGap(
   if (allowSingle && children.length === 1) return children[0];
   const { gap, uniform } = computeAutoLayoutGap(children, direction);
   // 如果 gap 不同，就用相绝布局
-  if (!uniform) return createPositionContainer({ name, children, semanticTag, idPrefix });
+  if (!uniform) return createPositionContainer({ name, children, semanticTag, idPrefix, parent });
   // 如果 gap 相同，就用 autoLayout
   return createAutoLayoutContainer({
     name,
@@ -119,19 +119,32 @@ function createAutoLayoutContainer(options: BaseVirtualOptions & { direction: "r
   });
 }
 
-function createPositionContainer(options: BaseVirtualOptions) {
+function createPositionContainer(options: BaseVirtualOptions & { parent?: SimplifiedNode }) {
   const {
     name,
     children,
     semanticTag,
     idPrefix,
-    visualSignature
+    visualSignature,
+    parent,
   } = options;
+  const containerLayout: SimplifiedLayout = { mode: "none", sizing: {}, position: "relative" };
+  // 虚拟容器自身需要明确的尺寸与定位：
+  // pipeline 中 grouping 所见的 parent 与最终 HTML 父节点未必一致，
+  // 因此统一写入 absolute + locationRelativeToParent，保证任何父容器场景下位置都不丢失。
+  if (parent?.absRect) {
+    const unionRect = getUnionRect(children.map(c => c.absRect).filter((r): r is BoundingBox => !!r));
+    if (unionRect) {
+      containerLayout.dimensions = { width: unionRect.width, height: unionRect.height };
+      containerLayout.position = "absolute";
+      containerLayout.locationRelativeToParent = calculateRelativePosition(unionRect, parent.absRect);
+    }
+  }
   const container = createVirtualFrame({
     idPrefix,
     name,
     type: "CONTAINER",
-    layout: { mode: "none", sizing: {}, position: "relative" },
+    layout: containerLayout,
     children,
     semanticTag,
     visualSignature

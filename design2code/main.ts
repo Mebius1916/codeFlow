@@ -17,6 +17,7 @@ export async function extractFigmaAsJSON(
     assetsDir?: string;
     assetsUrlPrefix?: string;
     fetcher?: FetcherAdapter;
+    skipAssetFetch?: boolean;
   },
 ): Promise<SimplifiedDesign> {
   return simplifyRawFigmaObjectWithImages(figmaData, options);

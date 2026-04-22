@@ -44,10 +44,10 @@ export function groupNodesByLayout(nodes: SimplifiedNode[], parent?: SimplifiedN
 
   // 根据决策结果处理
   if (bestDirection === "row") {
-    const processedRows = rowGroupMeta.map((meta) => buildGroup(meta.group, "column", parent));
+    const processedRows = rowGroupMeta.map((meta) => buildGroup(meta.group, "row", parent));
     return [...processedRows, ...absoluteNodes];
   } else if (bestDirection === "column") {
-    const processedCols = colGroupMeta.map((meta) => buildGroup(meta.group, "row", parent));
+    const processedCols = colGroupMeta.map((meta) => buildGroup(meta.group, "column", parent));
     return [...processedCols, ...absoluteNodes];
   }
 

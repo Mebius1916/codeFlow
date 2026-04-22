@@ -24,6 +24,7 @@ export async function simplifyRawFigmaObjectWithImages(
     format?: "png" | "jpg" | "svg" | "pdf";
     scale?: number;
     fetcher?: FetcherAdapter;
+    skipAssetFetch?: boolean;
   },
 ): Promise<SimplifiedDesign> {
   const { metadata, rawNodes, components, componentSets, extraStyles } =

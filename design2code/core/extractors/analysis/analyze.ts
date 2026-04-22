@@ -5,7 +5,6 @@ import { isIcon } from "../../transformers/icon.js";
 import { isImageNode } from "../../transformers/image.js";
 import { isFrame } from "../../utils/identity.js";
 import { isVisible, pixelRound } from "../../utils/common.js";
-import { isRectContained } from "../../utils/geometry.js";
 import { extractTextStyle, hasTextStyle } from "../../transformers/text.js";
 import type { SimplifiedTextStyle } from "../../types/simplified-types.js";
 
@@ -79,8 +78,19 @@ export function analyzeNode(node: FigmaNode, parent?: FigmaNode): NodeFeatures {
     } else {
       const childBox = (node as any).absoluteBoundingBox;
       const parentBox = (parent as any).absoluteBoundingBox;
-      if (childBox && parentBox && !isRectContained(parentBox, childBox)) {
-        isAbsolute = true;
+      if (childBox && parentBox) {
+        const x1 = Math.max(childBox.x, parentBox.x);
+        const y1 = Math.max(childBox.y, parentBox.y);
+        const x2 = Math.min(childBox.x + childBox.width, parentBox.x + parentBox.width);
+        const y2 = Math.min(childBox.y + childBox.height, parentBox.y + parentBox.height);
+
+        const iw = Math.max(0, x2 - x1);
+        const ih = Math.max(0, y2 - y1);
+        const intersectionArea = iw * ih;
+        const childArea = Math.max(0, childBox.width) * Math.max(0, childBox.height);
+
+        const coverage = childArea > 0 ? intersectionArea / childArea : 1;
+        if (coverage < 0.85) isAbsolute = true;
       }
     }
   }

@@ -2,6 +2,7 @@ import type { SimplifiedDesign } from "../../types/extractor-types.js";
 import { fetchNodeRenderUrls, fetchImageFillUrls } from "./utils/fetch-urls.js";
 import { applyImageMapToStyles, applyImageMapToNodes } from "./utils/apply-to-nodes.js";
 import type { FetcherAdapter } from "./design-extractor.js";
+import { buildPlaceholderImageMap } from "./utils/placeholders.js";
 
 type ImageResolveOptions = {
   fileKey: string;
@@ -9,6 +10,7 @@ type ImageResolveOptions = {
   format?: "png" | "jpg" | "svg" | "pdf";
   scale?: number;
   fetcher?: FetcherAdapter;
+  skipAssetFetch?: boolean;
 };
 
 type ImageMap = Record<string, string>;
@@ -26,9 +28,11 @@ export async function resolveImageAssetsFromFigma(
   if (!imageAssets || (!hasNodeIds && !hasImageRefs && !hasSvgNodeIds)) {
     return design;
   }
-  if (!options.fileKey || !options.token) {
-    return design;
+  if (options.skipAssetFetch) {
+    const imageMap = buildPlaceholderImageMap(design.nodes, imageAssets);
+    return resolveImageAssets(design, imageMap);
   }
+  if (!options.fileKey || !options.token) return design;
   const { imageMap } = await buildAssetMaps(imageAssets, options);
   return resolveImageAssets(design, imageMap);
 }
