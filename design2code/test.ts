@@ -131,59 +131,6 @@ async function renderPageToPng(
       return links.every((l) => (l as HTMLLinkElement).sheet);
     });
     await page.waitForTimeout(50);
-    await page.evaluate((target) => {
-      const root = document.body?.firstElementChild as HTMLElement | null;
-      if (!root) return;
-
-      let minLeft = Infinity;
-      let minTop = Infinity;
-      let maxRight = -Infinity;
-      let maxBottom = -Infinity;
-
-      const nodes = root.querySelectorAll<HTMLElement>("*");
-      const limit = Math.min(nodes.length, 5000);
-      for (let i = 0; i < limit; i++) {
-        const el = nodes[i];
-        const r = el.getBoundingClientRect();
-        if (!Number.isFinite(r.width) || !Number.isFinite(r.height)) continue;
-        if (r.width <= 0 || r.height <= 0) continue;
-        minLeft = Math.min(minLeft, r.left);
-        minTop = Math.min(minTop, r.top);
-        maxRight = Math.max(maxRight, r.right);
-        maxBottom = Math.max(maxBottom, r.bottom);
-      }
-
-      const fallback = root.getBoundingClientRect();
-      const contentWidth =
-        Math.ceil((Number.isFinite(maxRight) ? maxRight : fallback.right) - (Number.isFinite(minLeft) ? minLeft : fallback.left)) ||
-        Math.ceil(fallback.width) ||
-        target.width;
-      const contentHeight =
-        Math.ceil((Number.isFinite(maxBottom) ? maxBottom : fallback.bottom) - (Number.isFinite(minTop) ? minTop : fallback.top)) ||
-        Math.ceil(fallback.height) ||
-        target.height;
-
-      const s = Math.min(target.width / contentWidth, target.height / contentHeight, 1);
-
-      let wrapper = root.querySelector<HTMLElement>(':scope > [data-render-wrapper="1"]');
-      if (!wrapper) {
-        wrapper = document.createElement("div");
-        wrapper.setAttribute("data-render-wrapper", "1");
-        while (root.firstChild) wrapper.appendChild(root.firstChild);
-        root.appendChild(wrapper);
-        wrapper.style.position = "absolute";
-        wrapper.style.left = "0";
-        wrapper.style.top = "0";
-      }
-
-      wrapper.style.transformOrigin = "0 0";
-      wrapper.style.transform = `scale(${s})`;
-      const scaledW = contentWidth * s;
-      const scaledH = contentHeight * s;
-      wrapper.style.left = `${Math.max(0, Math.round((target.width - scaledW) / 2))}px`;
-      wrapper.style.top = `${Math.max(0, Math.round((target.height - scaledH) / 2))}px`;
-    }, viewport);
-    await page.waitForTimeout(50);
     await page.screenshot({ path: outPath, type: "png" });
   } finally {
     await page.close();
