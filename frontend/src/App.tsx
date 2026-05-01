@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { HomePage } from "./pages/HomePage";
-import { EditorPage } from "./pages/EditorPage";
+import { HomePage } from "./routes/HomeRoute";
+import { EditorPage } from "./routes/EditorRoute";
 
 export default function App() {
   return (

@@ -1,8 +1,8 @@
-import { FeatureProvider } from '@/core/feature-flags';
-import { closeFile, openFile } from '@/core/editor-service';
-import { useEditorStore } from '@/state/editor-store';
+import { FeatureProvider } from '@/features/workspace/providers/feature-flags';
+import { closeFile, openFile } from '@/features/workspace/services/workspace-service';
+import { useEditorStore } from '@/features/workspace/store/editor-store';
 import { useShallow } from 'zustand/react/shallow';
-import { useFileTreeActions } from "@/features/file-tree";
+import { useFileTreeActions } from "@/features/fileTree";
 import { WorkbenchHeader } from "@/features/workbench";
 import { useState } from "react";
 import { EditorPane, PreviewPane, SidebarPane, Topbar } from '@/features/workbench';

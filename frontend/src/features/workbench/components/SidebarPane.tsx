@@ -1,4 +1,4 @@
-import { FileTreePanel, type useFileTreeActions } from "@/features/file-tree";
+import { FileTreePanel, type useFileTreeActions } from "@/features/fileTree";
 
 interface SidebarPaneProps {
   fileTreeActions: ReturnType<typeof useFileTreeActions>;

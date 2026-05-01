@@ -1,4 +1,4 @@
-import settingIconUrl from '../../../../assets/Setting.svg';
+import settingIconUrl from '@assets/Setting.svg';
 import { type CSSProperties } from 'react';
 import { Link2, KeyRound, X } from 'lucide-react';
 import { Button } from '@/ui/button';

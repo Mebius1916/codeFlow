@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ensureUint8Array } from '@/lib/buffer'
+import { ensureUint8Array } from '@/utils/buffer'
 const mimeByExt: Record<string, string> = {
   svg: 'image/svg+xml',
   png: 'image/png',

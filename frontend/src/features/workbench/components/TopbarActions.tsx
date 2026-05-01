@@ -1,6 +1,6 @@
-import settingIconUrl from '../../../../assets/Setting.svg';
+import settingIconUrl from '@assets/Setting.svg';
 import { useState } from 'react';
-import { WorkspaceSettingsModal } from '@/features/workspace-settings';
+import { WorkspaceSettingsModal } from '@/features/settings';
 
 export function TopbarActions() {
   const [settingsOpen, setSettingsOpen] = useState(false);

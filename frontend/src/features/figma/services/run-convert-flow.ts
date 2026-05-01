@@ -1,10 +1,10 @@
-import { createLocalForageContentRepository } from '@/core/content-repository'
-import { useEditorStore } from '@/state/editor-store'
-import { useUiStore } from '@/state/ui-store'
-import type { FigmaParseResult } from '../../hooks/useFigmaUrlParser'
-import { getCachedResourceByAssetPath } from '../cache/image'
-import { DEFAULT_RESET_CSS } from '../ide/defaults'
-import { formatCss, formatHtml } from '../formatting/code'
+import { createLocalForageContentRepository } from '@/features/workspace/repository/content-repository'
+import { useEditorStore } from '@/features/workspace/store/editor-store'
+import { useUiStore } from '@/features/workspace/store/ui-store'
+import type { FigmaParseResult } from '../hooks/useFigmaUrlParser'
+import { getCachedResourceByAssetPath } from '@/utils/cache/image'
+import { DEFAULT_RESET_CSS } from '@/utils/ide/defaults'
+import { formatCss, formatHtml } from '@/utils/formatting/code'
 
 type FileContent = string | Uint8Array
 

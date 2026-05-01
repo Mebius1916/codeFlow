@@ -1,11 +1,10 @@
 import React from 'react'
-
-const cssIcon = new URL('../assets/Css.svg', import.meta.url).toString()
-const jsxIcon = new URL('../assets/Jsx.svg', import.meta.url).toString()
-const assetsIcon = new URL('../assets/Purple.svg', import.meta.url).toString()
-const svgIcon = new URL('../assets/Svg.svg', import.meta.url).toString()
-const srcIcon = new URL('../assets/Yellow.svg', import.meta.url).toString()
-const imageIcon = new URL('../assets/Image.svg', import.meta.url).toString()
+import cssIcon from '@assets/Css.svg'
+import jsxIcon from '@assets/Jsx.svg'
+import assetsIcon from '@assets/Purple.svg'
+import svgIcon from '@assets/Svg.svg'
+import srcIcon from '@assets/Yellow.svg'
+import imageIcon from '@assets/Image.svg'
 
 interface FileIconProps {
   name: string

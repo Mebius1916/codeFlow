@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
-import { addFile, deleteFile, openFile, renameFile } from '@/core/editor-service'
-import { useEditorStore } from '@/state/editor-store'
+import { addFile, deleteFile, openFile, renameFile } from '@/features/workspace/services/workspace-service'
+import { useEditorStore } from '@/features/workspace/store/editor-store'
 
 export function useFileTreeActions() {
   const [contextMenu, setContextMenu] = useState<{

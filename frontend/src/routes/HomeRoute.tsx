@@ -1,16 +1,16 @@
-import figmaIconUrl from "../../assets/Figma.svg";
-import reactIconUrl from "../../assets/React.svg";
-import vueIconUrl from "../../assets/Vue.svg";
-import tailwindIconUrl from "../../assets/Tailwind.svg";
-import htmlIconUrl from "../../assets/Html.svg";
+import figmaIconUrl from "@assets/Figma.svg";
+import reactIconUrl from "@assets/React.svg";
+import vueIconUrl from "@assets/Vue.svg";
+import tailwindIconUrl from "@assets/Tailwind.svg";
+import htmlIconUrl from "@assets/Html.svg";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useUiStore } from "@/state/ui-store";
-import { useFigmaUrlParser } from "../hooks/useFigmaUrlParser";
-import { runConvertFlow } from "../utils/figma/convert-flow";
+import { useUiStore } from "@/features/workspace/store/ui-store";
+import { useFigmaUrlParser } from "@/features/figma/hooks/useFigmaUrlParser";
+import { runConvertFlow } from "@/features/figma/services/run-convert-flow";
 import { Brand } from '@/ui/Brand';
-import settingIconUrl from "../../assets/Setting.svg";
-import { WorkspaceSettingsModal } from '@/features/workspace-settings';
+import settingIconUrl from "@assets/Setting.svg";
+import { WorkspaceSettingsModal } from '@/features/settings';
 import { Button } from '@/ui/button';
 
 export function HomePage() {

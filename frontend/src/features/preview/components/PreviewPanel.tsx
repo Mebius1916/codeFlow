@@ -1,4 +1,4 @@
-import { useEditorStore } from '@/state/editor-store'
+import { useEditorStore } from '@/features/workspace/store/editor-store'
 import { Loading } from '@/ui/Loading'
 import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
 import { usePreviewAutoCapture } from '../hooks/usePreviewAutoCapture'

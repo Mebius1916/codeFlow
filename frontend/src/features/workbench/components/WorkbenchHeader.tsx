@@ -1,4 +1,4 @@
-import { FileTreeHeader, useFileTreeResizeCssVars } from '@/features/file-tree'
+import { FileTreeHeader, useFileTreeResizeCssVars } from '@/features/fileTree'
 import { usePreviewResizeCssVars } from '@/features/preview'
 import { FileTabs, type FileTabsProps } from './FileTabs'
 import { PreviewHeader } from './PreviewHeader'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { createLocalForageContentRepository } from '@/core/content-repository'
-import { useEditorStore } from '@/state/editor-store'
+import { createLocalForageContentRepository } from '@/features/workspace/repository/content-repository'
+import { useEditorStore } from '@/features/workspace/store/editor-store'
 
 export function useContentLayer() {
   const [isContentReady, setIsContentReady] = useState(false)

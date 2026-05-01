@@ -1,4 +1,4 @@
-import refreshIconUrl from '../assets/Refresh.svg'
+import refreshIconUrl from '@assets/Refresh.svg'
 
 export type PreviewHeaderProps = {
   onRefresh?: () => void

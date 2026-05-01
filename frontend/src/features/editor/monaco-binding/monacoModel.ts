@@ -1,5 +1,5 @@
 import type * as Monaco from 'monaco-editor'
-import { useEditorStore } from '@/state/editor-store'
+import { useEditorStore } from '@/features/workspace/store/editor-store'
 import { getLanguageFromPath } from '../utils/file'
 import type { Ref } from './cleanup'
 

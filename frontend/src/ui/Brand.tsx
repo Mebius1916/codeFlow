@@ -1,4 +1,4 @@
-import logoUrl from '../../assets/Logo.svg';
+import logoUrl from '@assets/Logo.svg';
 
 export function Brand() {
   return (

@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type * as Monaco from 'monaco-editor'
-import { useEditorStore } from '@/state/editor-store'
+import { useEditorStore } from '@/features/workspace/store/editor-store'
 import { Loading } from '@/ui/Loading'
 import { initMonaco } from '../utils/initMonaco'
 import { EmptyState } from './common/EmptyState'
 import { useMonacoBinding } from '../monaco-binding/useMonacoBinding'
 import { ImagePreview } from './features/ImagePreview'
 import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
-import { useContentLayer } from '../content/useContentLayer'
+import { useContentLayer } from '@/features/workspace/hooks/useContentLayer'
 
 export function Editor() {
   const activeFile = useEditorStore((state) => state.activeFile)

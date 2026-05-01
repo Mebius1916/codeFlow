@@ -1,4 +1,4 @@
-import { FileIcon } from '@/features/file-tree'
+import { FileIcon } from '@/features/fileTree'
 import type { MouseEvent } from 'react'
 import { splitFileName } from '../utils/splitFileName'
 

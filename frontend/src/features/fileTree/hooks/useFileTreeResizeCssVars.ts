@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useResizable } from '@/hooks/useResizable'
+import { useResizable } from '@/features/workspace/hooks/useResizable'
 
 type ResizeState = { hoverCount: number; dragging: boolean }
 

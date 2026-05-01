@@ -1,9 +1,8 @@
 import type { MouseEvent as ReactMouseEvent } from 'react'
+import dropIcon from '@assets/Drop.svg'
 import type { TreeNode } from '../utils/file-tree'
 import { NewFileItem } from './NewFileItem'
 import { FileIcon } from './FileIcon'
-
-const dropIcon = new URL('../assets/Drop.svg', import.meta.url).toString()
 
 interface FileTreeNodeProps {
   node: TreeNode

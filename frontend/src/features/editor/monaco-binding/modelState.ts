@@ -1,6 +1,6 @@
 import type * as Monaco from 'monaco-editor'
-import { setFileContent } from '@/core/editor-service'
-import { useEditorStore } from '@/state/editor-store'
+import { setFileContent } from '@/features/workspace/services/workspace-service'
+import { useEditorStore } from '@/features/workspace/store/editor-store'
 import type { Unbind } from './cleanup'
 
 // 单机模式，只与zustand 绑定
