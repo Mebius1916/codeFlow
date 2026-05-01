@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "pnpm --filter @collaborative-editor/frontend dev",
-    "build": "pnpm -r --filter @collaborative-editor/shared --filter @collaborative-editor/file-tree --filter @collaborative-editor/preview --filter @collaborative-editor/workbench-header --filter @collaborative-editor/editor --filter @collaborative-editor/agent build && pnpm --filter @collaborative-editor/frontend build",
+    "build": "pnpm --filter @collaborative-editor/agent build && pnpm --filter @collaborative-editor/frontend build",
     "start": "pnpm --filter @collaborative-editor/frontend start",
     "lint": "pnpm --filter @collaborative-editor/frontend lint",
     "dev:all": "pnpm --filter @collaborative-editor/frontend dev"

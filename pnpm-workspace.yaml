@@ -1,5 +1,4 @@
 packages:
-  - 'packages/*'
   - 'frontend'
   - 'design2code'
   - 'agent'

@@ -1,13 +1,13 @@
 # dependencies
 node_modules/
-data/
-test/
+
 .pnp
 .pnp.js
 .pnp.*
 
 # testing
 coverage/
+data/
 
 # next.js
 .next/

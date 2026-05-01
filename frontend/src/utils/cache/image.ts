@@ -1,6 +1,6 @@
 import localforage from 'localforage'
 import { cacheRoom } from './hash'
-import { ensureUint8Array } from '@collaborative-editor/shared'
+import { ensureUint8Array } from '@/lib/buffer'
 
 export type ResourceContent = string | Uint8Array
 export type CachedResourceSnapshot = { content: ResourceContent; contentType: string }

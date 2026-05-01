@@ -1,4 +1,6 @@
-import { createLocalForageContentRepository, useEditorStore, useUiStore } from '@collaborative-editor/shared'
+import { createLocalForageContentRepository } from '@/core/content-repository'
+import { useEditorStore } from '@/state/editor-store'
+import { useUiStore } from '@/state/ui-store'
 import type { FigmaParseResult } from '../../hooks/useFigmaUrlParser'
 import { getCachedResourceByAssetPath } from '../cache/image'
 import { DEFAULT_RESET_CSS } from '../ide/defaults'

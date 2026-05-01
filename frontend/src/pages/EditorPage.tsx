@@ -1,11 +1,14 @@
-import { closeFile, FeatureProvider, openFile, useEditorStore, useShallow } from "@collaborative-editor/shared";
-import { useFileTreeActions } from "@collaborative-editor/file-tree";
-import { WorkbenchHeader } from "@collaborative-editor/workbench-header";
+import { FeatureProvider } from '@/core/feature-flags';
+import { closeFile, openFile } from '@/core/editor-service';
+import { useEditorStore } from '@/state/editor-store';
+import { useShallow } from 'zustand/react/shallow';
+import { useFileTreeActions } from "@/features/file-tree";
+import { WorkbenchHeader } from "@/features/workbench";
 import { useState } from "react";
-import { Sidebar } from "../components/Sidebar";
-import { EditorContainer } from "../components/EditorContainer";
-import { PreviewContainer } from "../components/PreviewContainer";
-import { Topbar } from "../components/topbar/index";
+import { EditorPane, PreviewPane, SidebarPane, Topbar } from '@/features/workbench';
+
+
+
 
 export function EditorPage() {
   const fileTreeActions = useFileTreeActions();
@@ -36,11 +39,11 @@ export function EditorPage() {
         />
 
         <div className="flex flex-1 overflow-hidden relative border-t border-[#2a2f4c]">
-          {!isPreviewFullscreen && <Sidebar fileTreeActions={fileTreeActions} />}
+          {!isPreviewFullscreen && <SidebarPane fileTreeActions={fileTreeActions} />}
 
-          {!isPreviewFullscreen && <EditorContainer key="editor" />}
+          {!isPreviewFullscreen && <EditorPane key="editor" />}
 
-          <PreviewContainer key={`preview:${previewRevision}`} isFullscreen={isPreviewFullscreen} />
+          <PreviewPane key={`preview:${previewRevision}`} isFullscreen={isPreviewFullscreen} />
         </div>
       </div>
     </FeatureProvider>
