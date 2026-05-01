@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useUiStore } from '@/features/workspace/store/ui-store'
-import { getDefaultOptions, type AlgorithmOptions } from '@collaborative-editor/design2code'
+import { getDefaultOptions, type AlgorithmOptions } from '@codify/design2code'
 
 export function useWorkspaceSettingsModalState({
   open,

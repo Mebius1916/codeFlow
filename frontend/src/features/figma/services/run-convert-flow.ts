@@ -2,9 +2,9 @@ import { createLocalForageContentRepository } from '@/features/workspace/reposit
 import { useEditorStore } from '@/features/workspace/store/editor-store'
 import { useUiStore } from '@/features/workspace/store/ui-store'
 import type { FigmaParseResult } from '../hooks/useFigmaUrlParser'
-import { getCachedResourceByAssetPath } from '@/utils/cache/image'
-import { DEFAULT_RESET_CSS } from '@/utils/ide/defaults'
-import { formatCss, formatHtml } from '@/utils/formatting/code'
+import { getCachedResourceByAssetPath } from '@/features/figma/utils/image-cache'
+import { DEFAULT_RESET_CSS } from '@/features/workspace/utils/default-files'
+import { formatCss, formatHtml } from '@/utils/format'
 
 type FileContent = string | Uint8Array
 

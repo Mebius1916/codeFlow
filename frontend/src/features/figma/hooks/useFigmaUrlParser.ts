@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { getDefaultOptions, setOptions } from '@collaborative-editor/design2code';
-import type { AlgorithmOptions } from '@collaborative-editor/design2code';
+import { getDefaultOptions, setOptions } from '@codify/design2code';
+import type { AlgorithmOptions } from '@codify/design2code';
 import { useUiStore } from '@/features/workspace/store/ui-store';
 import { clearSessionAssetPathMap, getSessionAssetPathMap } from '../utils/assets-map';
 import { fetchFigmaData, parseFigmaUrl, safeCodegen, safeExtractDesign } from '../services/figma';

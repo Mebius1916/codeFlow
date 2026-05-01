@@ -1,4 +1,4 @@
-import type { AlgorithmOptions } from '@collaborative-editor/design2code'
+import type { AlgorithmOptions } from '@codify/design2code'
 import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Switch } from '@/ui/switch'

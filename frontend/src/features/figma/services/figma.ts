@@ -1,7 +1,7 @@
-import { codegen, extractFigmaAsJSON } from '@collaborative-editor/design2code'
-import type { SimplifiedDesign } from '@collaborative-editor/design2code'
+import { codegen, extractFigmaAsJSON } from '@codify/design2code'
+import type { SimplifiedDesign } from '@codify/design2code'
 import type { GetFileNodesResponse, GetFileResponse } from '@figma/rest-api-spec'
-import { createFrontendFetcher } from '@/utils/assets/fetch-image'
+import { createFrontendFetcher } from './fetch-image'
 
 export type FigmaApiData = GetFileResponse | GetFileNodesResponse
 

@@ -1,5 +1,5 @@
 {
-  "name": "@collaborative-editor/agent",
+  "name": "@codify/agent",
   "private": true,
   "version": "0.0.1",
   "type": "module",

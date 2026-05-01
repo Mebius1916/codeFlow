@@ -95,7 +95,7 @@ importers:
 
   frontend:
     dependencies:
-      '@collaborative-editor/design2code':
+      '@codify/design2code':
         specifier: workspace:*
         version: link:../design2code
       '@monaco-editor/react':
