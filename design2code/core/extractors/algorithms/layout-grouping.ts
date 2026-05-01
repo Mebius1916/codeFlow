@@ -24,6 +24,15 @@ export function groupNodesByLayout(nodes: SimplifiedNode[], parent?: SimplifiedN
     return [...flowNodes, ...absoluteNodes];
   }
 
+  // 父节点已经有明确的 AutoLayout 语义时，保留原始 children 顺序，
+  // 不再用几何分组结果覆盖父级的主轴方向。
+  if (parent && typeof parent.layout === "object" && parent.layout) {
+    const parentMode = parent.layout.mode;
+    if (parentMode === "row" || parentMode === "column") {
+      return [...flowNodes, ...absoluteNodes];
+    }
+  }
+
   const { layoutGap } = getOptions();
   const minGap = typeof layoutGap.minGap === "number" ? layoutGap.minGap : 2;
   const globalAvgWidth = calculateGlobalAverageSize(flowNodes, "x");

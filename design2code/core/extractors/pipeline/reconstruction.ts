@@ -1,11 +1,10 @@
 import { removeOccludedNodes } from "../algorithms/occlusion.js";
-import { mergeSpatialIcons } from "../algorithms/spatial-merging.js";
 import { reparentNodes } from "../algorithms/reparenting.js";
 import { groupNodesByLayout } from "../algorithms/layout-grouping.js";
-import { inferListPatterns } from "../algorithms/list-inference.js";
 import { groupNodesByAdjacency } from "../algorithms/adjacency-clustering.js";
 import { inferSemanticTags } from "../algorithms/semantic-inference.js";
 import type { SimplifiedNode, TraversalContext } from "../../types/extractor-types.js";
+import { SimplifiedLayout } from "../../types/simplified-types.js";
 
 /**
  * Structure + Layout Pipeline
@@ -28,11 +27,15 @@ export function runReconstructionPipeline(
   // 2. Reparenting 
   processedNodes = reparentNodes(processedNodes, parent);
 
-  // 3. Layout Grouping 
-  processedNodes = groupNodesByLayout(processedNodes, parent);
-
-  // 4. Adjacency Clustering
-  processedNodes = groupNodesByAdjacency(processedNodes, parent);
+  const parentLayout = parent?.layout as SimplifiedLayout;
+  
+  if (parentLayout.mode !== "row" && 
+      parentLayout.mode !== "column") {
+      // 3. Layout Grouping 
+      processedNodes = groupNodesByLayout(processedNodes, parent);
+      // 4. Adjacency Clustering
+      processedNodes = groupNodesByAdjacency(processedNodes, parent);
+  }
 
   // 5. Semantic Inference
   processedNodes = inferSemanticTags(processedNodes);
