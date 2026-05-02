@@ -23,6 +23,6 @@
     "src/**/*.tsx",
     "src/**/*.d.ts",
     "vite.config.ts"
-, "vite-env.d.ts"  ],
+, "src/vite-env.d.ts"  ],
   "exclude": ["node_modules"]
 }

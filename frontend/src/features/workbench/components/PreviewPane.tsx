@@ -1,5 +1,5 @@
 import { Suspense, lazy, useState } from "react";
-import { useUiStore } from '@/features/workspace/store/ui-store';
+import { useUiStore } from '@/features/workspace/store/uiStore';
 import { Loading } from '@/ui/Loading';
 import { useShallow } from 'zustand/react/shallow';
 import { usePreviewResizeCssVars } from "@/features/preview";

@@ -9,9 +9,9 @@ export function SidebarPane({ fileTreeActions }: SidebarPaneProps) {
     <div
       className="h-full border-r box-border flex flex-col"
       style={{
-        width: "var(--file-tree-width, 250px)",
+        width: "var(--fileTree-width, 250px)",
         backgroundColor: "rgb(15, 17, 25)",
-        borderRightColor: "var(--file-tree-border-color, #2a2f4c)",
+        borderRightColor: "var(--fileTree-border-color, #2a2f4c)",
       }}
     >
       <FileTreePanel actions={fileTreeActions} showHeader={false} />

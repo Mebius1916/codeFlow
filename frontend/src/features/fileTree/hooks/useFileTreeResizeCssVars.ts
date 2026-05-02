@@ -17,9 +17,9 @@ export function initFileTreeResizeCssVars() {
   const persistedWidth = raw ? Number(raw) : Number.NaN
   const width = clampWidth(Number.isFinite(persistedWidth) ? persistedWidth : DEFAULT_WIDTH)
   const root = document.documentElement
-  root.style.setProperty('--file-tree-width', `${width}px`)
-  root.style.setProperty('--file-tree-border-color', '#2a2f4c')
-  root.style.setProperty('--file-tree-handle-bg', 'transparent')
+  root.style.setProperty('--fileTree-width', `${width}px`)
+  root.style.setProperty('--fileTree-border-color', '#2a2f4c')
+  root.style.setProperty('--fileTree-handle-bg', 'transparent')
 }
 
 function getResizeState(): ResizeState {
@@ -34,21 +34,21 @@ function applyVisualState() {
   const root = document.documentElement
   const { hoverCount, dragging } = getResizeState()
   if (dragging) {
-    root.style.setProperty('--file-tree-border-color', '#3b82f6')
-    root.style.setProperty('--file-tree-handle-bg', '#3b82f6')
+    root.style.setProperty('--fileTree-border-color', '#3b82f6')
+    root.style.setProperty('--fileTree-handle-bg', '#3b82f6')
     return
   }
   if (hoverCount > 0) {
-    root.style.setProperty('--file-tree-border-color', 'rgba(59, 130, 246, 0.5)')
-    root.style.setProperty('--file-tree-handle-bg', 'rgba(59, 130, 246, 0.5)')
+    root.style.setProperty('--fileTree-border-color', 'rgba(59, 130, 246, 0.5)')
+    root.style.setProperty('--fileTree-handle-bg', 'rgba(59, 130, 246, 0.5)')
     return
   }
-  root.style.setProperty('--file-tree-border-color', '#2a2f4c')
-  root.style.setProperty('--file-tree-handle-bg', 'transparent')
+  root.style.setProperty('--fileTree-border-color', '#2a2f4c')
+  root.style.setProperty('--fileTree-handle-bg', 'transparent')
 }
 
 function setWidthVar(width: number) {
-  document.documentElement.style.setProperty('--file-tree-width', `${width}px`)
+  document.documentElement.style.setProperty('--fileTree-width', `${width}px`)
 }
 
 export function useFileTreeResizeCssVars() {
@@ -59,7 +59,7 @@ export function useFileTreeResizeCssVars() {
 
   const getInitialSize = () => {
     const root = document.documentElement
-    const computedWidth = parseFloat(getComputedStyle(root).getPropertyValue('--file-tree-width')) || DEFAULT_WIDTH
+    const computedWidth = parseFloat(getComputedStyle(root).getPropertyValue('--fileTree-width')) || DEFAULT_WIDTH
     return clampWidth(computedWidth)
   }
 
@@ -96,7 +96,7 @@ export function useFileTreeResizeCssVars() {
     applyVisualState()
   }
 
-  const handleStyle = { backgroundColor: 'var(--file-tree-handle-bg, transparent)' } as const
+  const handleStyle = { backgroundColor: 'var(--fileTree-handle-bg, transparent)' } as const
 
   return { onMouseDown: handleMouseDown, onMouseEnter, onMouseLeave, handleStyle }
 }

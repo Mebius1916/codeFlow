@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { addFile, openFile, renameFile } from '@/features/workspace/services/workspace-service'
-import { useEditorStore } from '@/features/workspace/store/editor-store'
+import { addFile, openFile, renameFile } from '@/features/workspace/services/workspaceService'
+import { useEditorStore } from '@/features/workspace/store/editorStore'
 
 export function useFileTreeActions() {
   const [creatingState, setCreatingState] = useState<{

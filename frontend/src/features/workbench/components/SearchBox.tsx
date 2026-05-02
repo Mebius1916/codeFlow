@@ -1,7 +1,7 @@
 import figmaIconUrl from '@assets/Figma.svg';
 import { useNavigate } from 'react-router-dom';
 import { useFigmaUrlParser } from '@/features/figma/hooks/useFigmaUrlParser';
-import { runConvertFlow } from '@/features/figma/services/run-convert-flow';
+import { runConvertFlow } from '@/features/figma/services/runConvertFlow';
 
 export function SearchBox() {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
 import { ensureDirectories, writeFilesConcurrently } from '../fs/fs'
-import { createServerScript } from '../server/create-server'
+import { createServerScript } from '../server/createServer'
 import { spawnServer } from '../server/server'
 import { ensureWebContainer, getLastPreviewUrl, publishLog, subscribeServerReady } from './runtime'
 

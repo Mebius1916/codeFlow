@@ -1,14 +1,14 @@
-import { openFile } from '@/features/workspace/services/workspace-service'
-import { useFeatures } from '@/features/workspace/providers/feature-flags'
-import { useEditorStore } from '@/features/workspace/store/editor-store'
+import { openFile } from '@/features/workspace/services/workspaceService'
+import { useFeatures } from '@/features/workspace/providers/featureFlags'
+import { useEditorStore } from '@/features/workspace/store/editorStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useFileTreeData, useFileTreeResizeCssVars, useFileTreeActions } from '../hooks'
 import { FileTreeNode } from './FileTreeNode'
-import type { TreeNode } from '../utils/file-tree'
+import type { TreeNode } from '../utils/fileTree'
 import { NewFileItem } from './NewFileItem'
 import { FileTreeHeader } from './FileTreeHeader'
 import downloadIconUrl from '@assets/Download.svg'
-import { downloadAllFilesAsZip } from '../utils/download-all'
+import { downloadAllFilesAsZip } from '../utils/downloadAll'
 
 type FileTreeActions = ReturnType<typeof useFileTreeActions>
 

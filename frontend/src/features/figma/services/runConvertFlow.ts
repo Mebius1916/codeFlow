@@ -1,9 +1,9 @@
-import { createLocalForageContentRepository } from '@/features/workspace/repository/content-repository'
-import { useEditorStore } from '@/features/workspace/store/editor-store'
-import { useUiStore } from '@/features/workspace/store/ui-store'
+import { createLocalForageContentRepository } from '@/features/workspace/repository/contentRepository'
+import { useEditorStore } from '@/features/workspace/store/editorStore'
+import { useUiStore } from '@/features/workspace/store/uiStore'
 import type { FigmaParseResult } from '../hooks/useFigmaUrlParser'
-import { getCachedResourceByAssetPath } from '@/features/figma/utils/image-cache'
-import { DEFAULT_RESET_CSS } from '@/features/workspace/utils/default-files'
+import { getCachedResourceByAssetPath } from '@/features/figma/utils/imageCache'
+import { DEFAULT_RESET_CSS } from '@/features/workspace/utils/defaultFiles'
 import { formatCss, formatHtml } from '@/utils/format'
 
 type FileContent = string | Uint8Array

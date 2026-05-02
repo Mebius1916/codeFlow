@@ -1,5 +1,5 @@
-import { createLocalForageContentRepository, type ContentRepository, type FileContent } from '../repository/content-repository'
-import { useEditorStore } from '../store/editor-store'
+import { createLocalForageContentRepository, type ContentRepository, type FileContent } from '../repository/contentRepository'
+import { useEditorStore } from '../store/editorStore'
 
 let contentRepository: ContentRepository | null = null
 const getRepository = () => {

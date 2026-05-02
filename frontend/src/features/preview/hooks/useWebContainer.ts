@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { getWebContainer, getLastPreviewUrl, subscribeLogs, subscribeServerReady } from '../webcontainer/runtime/runtime'
 import { ensurePreviewServer } from '../webcontainer/runtime/bootstrap'
-import { syncFilesToWebContainer } from '../webcontainer/fs/sync-files'
+import { syncFilesToWebContainer } from '../webcontainer/fs/syncFiles'
 
 export function useWebContainer(files: Record<string, string | Uint8Array>) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)

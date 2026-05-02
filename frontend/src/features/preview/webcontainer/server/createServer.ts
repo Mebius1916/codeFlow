@@ -1,8 +1,8 @@
-import { PREVIEW_SHELL_BODY } from '../shell/shell-body'
-import { PREVIEW_SHELL_HEAD } from '../shell/shell-head'
-import { PREVIEW_SHELL_RUNTIME } from '../shell/shell-runtime'
-import { PREVIEW_SHELL_STYLE } from '../shell/shell-style'
-import { createBuildShellSection } from './build-shell'
+import { PREVIEW_SHELL_BODY } from '../shell/shellBody'
+import { PREVIEW_SHELL_HEAD } from '../shell/shellHead'
+import { PREVIEW_SHELL_RUNTIME } from '../shell/shellRuntime'
+import { PREVIEW_SHELL_STYLE } from '../shell/shellStyle'
+import { createBuildShellSection } from './buildShell'
 
 const PREVIEW_SHELL_TEMPLATE = [PREVIEW_SHELL_HEAD, PREVIEW_SHELL_STYLE, PREVIEW_SHELL_RUNTIME, PREVIEW_SHELL_BODY].join(
   '',

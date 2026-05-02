@@ -41,7 +41,7 @@ type SetState<T> = (
 
 // 创建一个 localforage 实例专门用于 UI store
 const uiStorage = localforage.createInstance({
-  name: 'codeflow-ui-store',
+  name: 'codeflow-uiStore',
 })
 
 export const useUiStore = create<UiState>()(

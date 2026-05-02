@@ -33,7 +33,7 @@ export function WorkbenchHeader(props: WorkbenchHeaderProps) {
     <div className="h-10 flex items-center" style={{ backgroundColor: WORKBENCH_BG }}>
       <div
         className="flex-shrink-0 h-full overflow-hidden relative border-r border-[#2a2f4c] box-border"
-        style={{ width: 'var(--file-tree-width, 250px)', borderRightColor: 'var(--file-tree-border-color, #2a2f4c)' }}
+        style={{ width: 'var(--fileTree-width, 250px)', borderRightColor: 'var(--fileTree-border-color, #2a2f4c)' }}
       >
         <FileTreeHeader withRightBorder={false} />
         <div

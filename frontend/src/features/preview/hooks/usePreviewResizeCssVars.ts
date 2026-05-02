@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useResizable } from '@/features/workspace/hooks/useResizable'
-import { useUiStore } from '@/features/workspace/store/ui-store'
+import { useUiStore } from '@/features/workspace/store/uiStore'
 import { useShallow } from 'zustand/react/shallow'
 
 declare global {

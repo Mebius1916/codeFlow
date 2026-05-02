@@ -1,6 +1,6 @@
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import dropIcon from '@assets/Drop.svg'
-import type { TreeNode } from '../utils/file-tree'
+import type { TreeNode } from '../utils/fileTree'
 import { NewFileItem } from './NewFileItem'
 import { FileIcon } from './FileIcon'
 

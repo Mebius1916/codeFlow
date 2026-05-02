@@ -1,6 +1,6 @@
-import { buildAssetPathFromContentType } from '../utils/asset-path'
-import { setSessionAssetPath } from '@/features/figma/utils/assets-map'
-import { getCachedResourceByAssetPath, setCachedResourceByAssetPath, type ResourceContent } from '../utils/image-cache'
+import { buildAssetPathFromContentType } from '../utils/assetPath'
+import { setSessionAssetPath } from '@/features/figma/utils/assetsMap'
+import { getCachedResourceByAssetPath, setCachedResourceByAssetPath, type ResourceContent } from '../utils/imageCache'
 
 export interface ImageFetchResult {
   path: string

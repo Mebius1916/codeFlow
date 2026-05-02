@@ -1,6 +1,6 @@
-import { FeatureProvider } from '@/features/workspace/providers/feature-flags';
-import { closeFile, openFile } from '@/features/workspace/services/workspace-service';
-import { useEditorStore } from '@/features/workspace/store/editor-store';
+import { FeatureProvider } from '@/features/workspace/providers/featureFlags';
+import { closeFile, openFile } from '@/features/workspace/services/workspaceService';
+import { useEditorStore } from '@/features/workspace/store/editorStore';
 import { useShallow } from 'zustand/react/shallow';
 import { useFileTreeActions } from "@/features/fileTree";
 import { WorkbenchHeader } from "@/features/workbench";

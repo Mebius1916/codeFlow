@@ -33,5 +33,5 @@ export function downloadAllFilesAsZip(args: {
 
   const zipped = zipSync(entries, { level: 0 })
   const blob = new Blob([new Uint8Array(zipped)], { type: 'application/zip' })
-  triggerDownload(blob, zipName || 'download-all.zip')
+  triggerDownload(blob, zipName || 'downloadAll.zip')
 }

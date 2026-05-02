@@ -1,4 +1,4 @@
-import { useEditorStore } from '@/features/workspace/store/editor-store'
+import { useEditorStore } from '@/features/workspace/store/editorStore'
 import { useImageBlob } from '../../hooks/useImageBlob'
 
 export function ImagePreview() {
