@@ -1,16 +1,8 @@
 import { useState } from 'react'
-import type { MouseEvent as ReactMouseEvent } from 'react'
-import { addFile, deleteFile, openFile, renameFile } from '@/features/workspace/services/workspace-service'
+import { addFile, openFile, renameFile } from '@/features/workspace/services/workspace-service'
 import { useEditorStore } from '@/features/workspace/store/editor-store'
 
 export function useFileTreeActions() {
-  const [contextMenu, setContextMenu] = useState<{
-    x: number
-    y: number
-    path: string | null
-    type: 'file' | 'folder'
-  } | null>(null)
-
   const [creatingState, setCreatingState] = useState<{
     parentPath: string | null
     type: 'file' | 'folder'
@@ -21,31 +13,9 @@ export function useFileTreeActions() {
     type: 'file' | 'folder'
   } | null>(null)
 
-  const handleContextMenu = (e: ReactMouseEvent, path: string | null, type: 'file' | 'folder' = 'folder') => {
-    e.preventDefault()
-    e.stopPropagation()
-    setContextMenu({
-      x: e.clientX,
-      y: e.clientY,
-      path,
-      type,
-    })
-  }
-
-  const closeContextMenu = () => {
-    setContextMenu(null)
-  }
-
   const handleStartCreate = (parentPath: string | null, type: 'file' | 'folder') => {
-    let targetParentPath = parentPath
-
-    if (contextMenu?.type === 'file' && parentPath) {
-      const parts = parentPath.split('/')
-      targetParentPath = parts.length > 1 ? parts.slice(0, -1).join('/') : null
-    }
-
     setCreatingState({
-      parentPath: targetParentPath,
+      parentPath,
       type,
     })
   }
@@ -67,15 +37,6 @@ export function useFileTreeActions() {
 
   const handleCancelCreate = () => {
     setCreatingState(null)
-  }
-
-  const handleStartRename = () => {
-    if (contextMenu?.path) {
-      setRenamingState({
-        path: contextMenu.path,
-        type: contextMenu.type,
-      })
-    }
   }
 
   const handleConfirmRename = (newName: string) => {
@@ -105,36 +66,13 @@ export function useFileTreeActions() {
     setRenamingState(null)
   }
 
-  const handleDelete = () => {
-    if (!contextMenu?.path) return
-
-    const path = contextMenu.path
-
-    if (contextMenu.type === 'file') {
-      deleteFile(path)
-      return
-    }
-
-    const fileKeys = useEditorStore.getState().fileKeys
-    fileKeys.forEach((file) => {
-      if (file.startsWith(path + '/')) {
-        deleteFile(file)
-      }
-    })
-  }
-
   return {
-    contextMenu,
     creatingState,
     renamingState,
-    handleContextMenu,
-    closeContextMenu,
     handleStartCreate,
     handleConfirmCreate,
     handleCancelCreate,
-    handleStartRename,
     handleConfirmRename,
-    handleDelete,
     setRenamingState,
   }
 }

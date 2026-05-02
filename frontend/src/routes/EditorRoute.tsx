@@ -22,7 +22,7 @@ export function EditorPage() {
   const [isPreviewFullscreen, setIsPreviewFullscreen] = useState(false);
 
   return (
-    <FeatureProvider features={{ fileTree: true, fileTreeHeader: false, toolbar: false, preview: true }}>
+    <FeatureProvider features={{ fileTree: true, toolbar: false }}>
       <div className="h-screen w-screen flex flex-col bg-gray-900">
         <Topbar />
 

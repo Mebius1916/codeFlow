@@ -2,21 +2,13 @@ import { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
 
 export interface CodeEditorFeatures {
-  terminal?: boolean
   fileTree?: boolean
-  fileTreeHeader?: boolean
   toolbar?: boolean
-  autoSave?: boolean | number
-  preview?: boolean
 }
 
 const defaultFeatures: CodeEditorFeatures = {
-  terminal: false,
   fileTree: false,
-  fileTreeHeader: true,
   toolbar: false,
-  autoSave: false,
-  preview: false,
 }
 
 const FeatureContext = createContext<CodeEditorFeatures>(defaultFeatures)

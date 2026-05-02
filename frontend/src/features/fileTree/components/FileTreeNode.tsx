@@ -12,7 +12,6 @@ interface FileTreeNodeProps {
   renamingState: { path: string; type: 'file' | 'folder' } | null
   onFileClick: (path: string) => void
   onFolderToggle: (path: string) => void
-  onContextMenu: (e: ReactMouseEvent, path: string | null, type: 'file' | 'folder') => void
   onConfirmCreate: (name: string) => void
   onCancelCreate: () => void
   onConfirmRename: (name: string) => void
@@ -27,7 +26,6 @@ export const FileTreeNode = ({
   renamingState,
   onFileClick,
   onFolderToggle,
-  onContextMenu,
   onConfirmCreate,
   onCancelCreate,
   onConfirmRename,
@@ -52,7 +50,6 @@ export const FileTreeNode = ({
   const handleContextMenu = (e: ReactMouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    // onContextMenu(e, node.path, node.type)
   }
 
   if (isRenaming) {
@@ -114,7 +111,6 @@ export const FileTreeNode = ({
               renamingState={renamingState}
               onFileClick={onFileClick}
               onFolderToggle={onFolderToggle}
-              onContextMenu={onContextMenu}
               onConfirmCreate={onConfirmCreate}
               onCancelCreate={onCancelCreate}
               onConfirmRename={onConfirmRename}

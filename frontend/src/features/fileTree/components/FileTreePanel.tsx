@@ -72,11 +72,6 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
               renamingState={renamingState}
               onFileClick={openFile}
               onFolderToggle={handleFolderToggle}
-              // onContextMenu={handleContextMenu}
-              onContextMenu={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-              }}
               onConfirmCreate={handleConfirmCreate}
               onCancelCreate={handleCancelCreate}
               onConfirmRename={handleConfirmRename}
