@@ -1,7 +1,11 @@
-import type { ReviewResult } from "../steps/reviewHtml.js";
 import type { VisualRepairContext } from "./loop.js";
 
-export type RepairActionType = "plan" | "rewrite" | "finish";
+export type RepairActionType =
+  | "plan"
+  | "reobserve"
+  | "retry_with_new_plan"
+  | "rewrite"
+  | "finish";
 
 export interface RepairAction {
   type: RepairActionType;
@@ -9,7 +13,8 @@ export interface RepairAction {
 }
 
 export function decideNextAction(context: VisualRepairContext): RepairAction {
-  const [reviewResult, repairPlan] =  [context.reviewResult, context.repairPlan];
+  const [reviewResult, repairPlan] = [context.reviewResult, context.repairPlan];
+
   if (!repairPlan) {
     return {
       type: "plan",
@@ -34,8 +39,22 @@ export function decideNextAction(context: VisualRepairContext): RepairAction {
     };
   }
 
+  if (context.lastAction === "rewrite") {
+    return {
+      type: "reobserve",
+      reason: "上一轮 rewrite 后仍未通过自检，先补充观察最新问题。",
+    };
+  }
+
+  if (context.lastAction === "reobserve") {
+    return {
+      type: "retry_with_new_plan",
+      reason: "补充观察后需要刷新修改方案，先基于新观察重做计划。",
+    };
+  }
+
   return {
     type: "rewrite",
-    reason: reviewResult.summary,
+    reason: "已完成补充观察和重新规划，继续按新计划执行 rewrite。",
   };
 }

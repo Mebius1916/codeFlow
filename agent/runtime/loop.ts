@@ -13,6 +13,7 @@ export interface VisualRepairContext {
   analysisJson?: string;
   repairPlan?: string;
   reviewResult?: ReviewResult;
+  lastAction?: RepairAction["type"];
 }
 
 const MAX_ACTION_ROUNDS = 10;
@@ -46,9 +47,10 @@ export async function runVisualRepairLoop(
       return context.currentHtml;
     }
 
-    // 执行动作会更新 context，例如补计划、改 HTML、写入 review 结果。
+    // 执行动作会更新 context，例如补观察、重做计划、改 HTML、写入 review 结果。
     await executeRepairAction(llm, context, nextAction);
 
+    // 一轮动作完成后，再根据最新上下文进入下一次决策。
     context.round += 1;
     nextAction = decideNextAction(context);
   }
