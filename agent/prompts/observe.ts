@@ -1,4 +1,4 @@
-import type { ObserveVisualDiffParams } from "../types/index.js";
+import type { ObserveVisualDiffParams } from "../steps/observeVisualDiff.js";
 
 export const observeVisualDiffSystemPrompt = [
   "你是资深前端视觉还原评审专家。",

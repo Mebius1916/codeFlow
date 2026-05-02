@@ -1,5 +1,5 @@
 import { useEffect, useRef, type RefObject } from 'react'
-import type { RectSize } from '../contracts'
+import type { RectSize } from '../interfaces/contracts'
 import { blobToBase64Png } from '../utils/common'
 type PreviewCaptureMessage =
   | { type: 'preview:capture:done'; payload?: { buffer?: ArrayBuffer } }

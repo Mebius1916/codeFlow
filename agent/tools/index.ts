@@ -1,5 +1,5 @@
-import { compressHtml } from "./compress-html.js";
-import { diffPngTool } from "./diff-png.js";
+import { compressHtml } from "./compressHtml.js";
+import { diffPngTool } from "./diffPng.js";
 
 export const toolDirectory = [
   {

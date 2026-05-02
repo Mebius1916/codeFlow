@@ -19,6 +19,6 @@
     "llm/**/*.ts",
     "tools/**/*.ts",
     "utils/**/*.ts",
-    "types/**/*.ts"
+    "interfaces/**/*.ts"
   ]
 }

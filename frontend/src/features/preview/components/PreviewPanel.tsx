@@ -5,7 +5,7 @@ import { usePreviewAutoCapture } from '../hooks/usePreviewAutoCapture'
 import { usePreviewIframeLayout } from '../hooks/usePreviewIframeLayout'
 import { useWebContainer } from '../hooks/useWebContainer'
 import { useContainerSize } from '../hooks/useContainerSize'
-import type { RectSize } from '../contracts'
+import type { RectSize } from '../interfaces/contracts'
 import { computeCaptureTargetSize, computeLayoutPayload } from '../utils/common'
 
 interface PreviewPanelProps {

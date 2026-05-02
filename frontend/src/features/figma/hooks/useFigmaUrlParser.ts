@@ -4,7 +4,7 @@ import type { AlgorithmOptions } from '@codify/design2code';
 import { useUiStore } from '@/features/workspace/store/uiStore';
 import { clearSessionAssetPathMap, getSessionAssetPathMap } from '../utils/assetsMap';
 import { fetchFigmaData, parseFigmaUrl, safeCodegen, safeExtractDesign } from '../services/figma';
-import type { FigmaParseResult } from '../model';
+import type { FigmaParseResult } from '../interfaces/model';
 
 type FigmaUrlParserState =
   | { status: 'idle' }

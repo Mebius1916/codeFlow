@@ -1,4 +1,4 @@
-import type { RectSize } from '../contracts'
+import type { RectSize } from '../interfaces/contracts'
 
 export function blobToBase64Png(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {

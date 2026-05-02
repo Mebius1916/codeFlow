@@ -1,4 +1,4 @@
-import { diffPng } from "../utils/diff-png.js";
+import { diffPng } from "../utils/diffPng.js";
 
 export async function diffPngTool(input: string): Promise<string> {
   let payload: any;

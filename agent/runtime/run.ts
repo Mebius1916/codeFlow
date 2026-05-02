@@ -1,5 +1,5 @@
-import { createLLM } from "../llm/create-llm.js";
-import type { RunVisualRepairParams } from "../types/index.js";
+import { createLLM } from "../llm/createLLM.js";
+import type { RunVisualRepairParams } from "../interfaces/runtime.js";
 import { runVisualRepairLoop } from "./loop.js";
 
 export async function runVisualRepair(

@@ -2,8 +2,13 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import type { ChatOpenAI } from "@langchain/openai";
 
 import { buildObserveVisualDiffUserText, observeVisualDiffSystemPrompt } from "../prompts/observe.js";
-import type { ObserveVisualDiffParams } from "../types/index.js";
+import type { RunVisualRepairParams } from "../interfaces/runtime.js";
 import { toPngDataUrl } from "../utils/common.js";
+
+export type ObserveVisualDiffParams = Pick<
+  RunVisualRepairParams,
+  "baselinePngBase64" | "currentPngBase64" | "diffPngBase64" | "diffRatio" | "similarity"
+>;
 
 export async function observeVisualDiff(
   llm: ChatOpenAI,

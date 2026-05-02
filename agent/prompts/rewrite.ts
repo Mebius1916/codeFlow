@@ -1,4 +1,4 @@
-import type { RewriteHtmlParams } from "../types/index.js";
+import type { RewriteHtmlParams } from "../steps/rewriteHtml.js";
 
 export const rewriteHtmlSystemPrompt = [
   "你是资深前端工程师。你将收到一份视觉还原差异分析报告和当前的 Tailwind HTML 片段。",
@@ -17,6 +17,9 @@ export function buildRewriteHtmlUserText(params: RewriteHtmlParams): string {
   return [
     "## 视觉差异分析报告",
     params.analysisJson,
+    "",
+    "## 修改计划",
+    params.repairPlan,
     "",
     "## 当前 Tailwind HTML 片段",
     params.html,

@@ -1,7 +1,7 @@
 import { createLocalForageContentRepository } from '@/features/workspace/repository/contentRepository'
 import { useEditorStore } from '@/features/workspace/store/editorStore'
 import { useUiStore } from '@/features/workspace/store/uiStore'
-import type { FigmaParseResult } from '../model'
+import type { FigmaParseResult } from '../interfaces/model'
 import { getCachedResourceByAssetPath } from '@/features/figma/utils/imageCache'
 import { DEFAULT_RESET_CSS } from '@/features/workspace/utils/defaultFiles'
 import { formatCss, formatHtml } from '@/utils/format'

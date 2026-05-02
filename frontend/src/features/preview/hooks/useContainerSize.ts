@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { RectSize } from '../contracts'
+import type { RectSize } from '../interfaces/contracts'
 
 export function useContainerSize<T extends HTMLElement>() {
   const [element, setElement] = useState<T | null>(null)

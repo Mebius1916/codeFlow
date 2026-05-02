@@ -1,5 +1,11 @@
 import { ChatOpenAI } from "@langchain/openai";
-import type { CreateLLMParams } from "../types/index.js";
+
+export interface CreateLLMParams {
+  model: string;
+  apiKey: string;
+  baseUrl: string;
+  temperature: number;
+}
 
 export function createLLM(params: CreateLLMParams) {
   return new ChatOpenAI({

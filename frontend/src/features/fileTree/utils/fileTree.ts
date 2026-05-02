@@ -1,4 +1,4 @@
-import type { FileTreeNodeData } from '../contracts'
+import type { FileTreeNodeData } from '../interfaces/contracts'
 
 export function buildFileTree(paths: string[]): FileTreeNodeData[] {
   const root: FileTreeNodeData[] = []

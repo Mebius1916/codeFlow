@@ -1,19 +1,26 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import type { ChatOpenAI } from "@langchain/openai";
 
-import { buildRewriteHtmlUserText, rewriteHtmlSystemPrompt } from "../prompts/rewrite.js";
-import type { RewriteHtmlParams } from "../types/index.js";
+import {
+  buildPlanVisualRepairUserText,
+  planVisualRepairSystemPrompt,
+} from "../prompts/plan.js";
 
-export async function rewriteHtml(
+export interface PlanVisualRepairParams {
+  analysisJson: string;
+  html: string;
+}
+
+export async function planVisualRepair(
   llm: ChatOpenAI,
-  params: RewriteHtmlParams
+  params: PlanVisualRepairParams
 ): Promise<string> {
-  const system = new SystemMessage(rewriteHtmlSystemPrompt);
+  const system = new SystemMessage(planVisualRepairSystemPrompt);
   const user = new HumanMessage({
     content: [
       {
         type: "text",
-        text: buildRewriteHtmlUserText(params),
+        text: buildPlanVisualRepairUserText(params),
       },
     ],
   });

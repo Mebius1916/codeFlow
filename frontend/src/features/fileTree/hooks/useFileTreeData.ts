@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { FileTreeNodeData } from '../contracts'
+import type { FileTreeNodeData } from '../interfaces/contracts'
 import { buildFileTree } from '../utils/fileTree'
 
 const getDefaultOpen = (path: string) => !(path === 'assets' || path.startsWith('assets/'))
