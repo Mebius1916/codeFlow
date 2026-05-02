@@ -1,24 +1,22 @@
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import type { ChatOpenAI } from "@langchain/openai";
 
-import { buildRewriteHtmlUserText, rewriteHtmlSystemPrompt } from "../prompts/rewrite.js";
-
-export interface RewriteHtmlParams {
-  analysisJson: string;
-  repairPlan: string;
-  html: string;
-}
+import {
+  buildRewriteHtmlUserText,
+  rewriteHtmlSystemPrompt,
+  type RewriteHtmlPromptInput,
+} from "../prompts/rewrite.js";
 
 export async function rewriteHtml(
   llm: ChatOpenAI,
-  params: RewriteHtmlParams
+  input: RewriteHtmlPromptInput
 ): Promise<string> {
   const system = new SystemMessage(rewriteHtmlSystemPrompt);
   const user = new HumanMessage({
     content: [
       {
         type: "text",
-        text: buildRewriteHtmlUserText(params),
+        text: buildRewriteHtmlUserText(input),
       },
     ],
   });

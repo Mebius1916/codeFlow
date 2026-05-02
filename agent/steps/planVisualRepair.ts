@@ -4,23 +4,19 @@ import type { ChatOpenAI } from "@langchain/openai";
 import {
   buildPlanVisualRepairUserText,
   planVisualRepairSystemPrompt,
+  type PlanVisualRepairPromptInput,
 } from "../prompts/plan.js";
-
-export interface PlanVisualRepairParams {
-  analysisJson: string;
-  html: string;
-}
 
 export async function planVisualRepair(
   llm: ChatOpenAI,
-  params: PlanVisualRepairParams
+  input: PlanVisualRepairPromptInput
 ): Promise<string> {
   const system = new SystemMessage(planVisualRepairSystemPrompt);
   const user = new HumanMessage({
     content: [
       {
         type: "text",
-        text: buildPlanVisualRepairUserText(params),
+        text: buildPlanVisualRepairUserText(input),
       },
     ],
   });

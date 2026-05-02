@@ -1,4 +1,7 @@
-import type { PlanVisualRepairParams } from "../steps/planVisualRepair.js";
+export interface PlanVisualRepairPromptInput {
+  analysisJson: string;
+  currentHtml: string;
+}
 
 export const planVisualRepairSystemPrompt = [
   "你是资深前端修复方案设计师。",
@@ -14,13 +17,16 @@ export const planVisualRepairSystemPrompt = [
   "- 仅输出纯文本计划，不要输出 Markdown 代码块",
 ].join("\n");
 
-export function buildPlanVisualRepairUserText(params: PlanVisualRepairParams): string {
+export function buildPlanVisualRepairUserText({
+  analysisJson,
+  currentHtml,
+}: PlanVisualRepairPromptInput): string {
   return [
     "## 视觉差异分析报告",
-    params.analysisJson,
+    analysisJson,
     "",
     "## 当前 Tailwind HTML 片段",
-    params.html,
+    currentHtml,
     "",
     "请输出一份按优先级排序的修改计划。",
   ].join("\n");

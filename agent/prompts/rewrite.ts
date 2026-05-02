@@ -1,4 +1,8 @@
-import type { RewriteHtmlParams } from "../steps/rewriteHtml.js";
+export interface RewriteHtmlPromptInput {
+  analysisJson: string;
+  repairPlan: string;
+  currentHtml: string;
+}
 
 export const rewriteHtmlSystemPrompt = [
   "你是资深前端工程师。你将收到一份视觉还原差异分析报告和当前的 Tailwind HTML 片段。",
@@ -13,15 +17,19 @@ export const rewriteHtmlSystemPrompt = [
   "- 仅输出修改后的 Tailwind HTML 片段，不要任何解释文字、不要 Markdown 包裹",
 ].join("\n");
 
-export function buildRewriteHtmlUserText(params: RewriteHtmlParams): string {
+export function buildRewriteHtmlUserText({
+  analysisJson,
+  repairPlan,
+  currentHtml,
+}: RewriteHtmlPromptInput): string {
   return [
     "## 视觉差异分析报告",
-    params.analysisJson,
+    analysisJson,
     "",
     "## 修改计划",
-    params.repairPlan,
+    repairPlan,
     "",
     "## 当前 Tailwind HTML 片段",
-    params.html,
+    currentHtml,
   ].join("\n");
 }
