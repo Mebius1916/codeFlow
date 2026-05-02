@@ -2,12 +2,16 @@ import { buildAssetPathFromContentType } from '../utils/assetPath'
 import { setSessionAssetPath } from '@/features/figma/utils/assetsMap'
 import { getCachedResourceByAssetPath, setCachedResourceByAssetPath, type ResourceContent } from '../utils/imageCache'
 
-export interface ImageFetchResult {
+interface ImageFetchResult {
   path: string
   content: ResourceContent
 }
 
-export function createFrontendFetcher(ctx: { fileKey: string }) {
+interface FrontendFetcherContext {
+  fileKey: string
+}
+
+export function createFrontendFetcher(ctx: FrontendFetcherContext) {
   return {
     image: async (url: string, key: string, headers?: Record<string, string>) => {
       const { path } = await requestImageWithCache({ url, assetKey: key, fileKey: ctx.fileKey, headers })

@@ -1,8 +1,10 @@
-export function createBuildShellSection(input: {
+interface BuildShellSectionOptions {
   innerHtmlToken: string
   resetCssToken: string
   styleCssToken: string
-}) {
+}
+
+export function createBuildShellSection(input: BuildShellSectionOptions) {
   return `
 const readTextIfExists = (filePath) => {
   if (!fs.existsSync(filePath)) return null;

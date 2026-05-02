@@ -3,8 +3,8 @@ import { useFeatures } from '@/features/workspace/providers/featureFlags'
 import { useEditorStore } from '@/features/workspace/store/editorStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useFileTreeData, useFileTreeResizeCssVars, useFileTreeActions } from '../hooks'
+import type { FileTreeNodeData } from '../contracts'
 import { FileTreeNode } from './FileTreeNode'
-import type { TreeNode } from '../utils/fileTree'
 import { NewFileItem } from './NewFileItem'
 import { FileTreeHeader } from './FileTreeHeader'
 import downloadIconUrl from '@assets/Download.svg'
@@ -62,7 +62,7 @@ export function FileTreePanel({ actions, showHeader }: FileTreePanelProps) {
             />
           )}
 
-          {fileTree.map((node: TreeNode) => (
+          {fileTree.map((node: FileTreeNodeData) => (
             <FileTreeNode
               key={node.id}
               node={node}

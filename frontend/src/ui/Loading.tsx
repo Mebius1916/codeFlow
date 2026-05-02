@@ -1,6 +1,6 @@
 type LoadingVariant = 'loading' | 'error'
 
-type LoadingProps = {
+interface LoadingProps {
   text?: string
   detail?: string
   variant?: LoadingVariant

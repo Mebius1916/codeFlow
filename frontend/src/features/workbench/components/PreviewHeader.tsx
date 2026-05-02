@@ -1,6 +1,6 @@
 import refreshIconUrl from '@assets/Refresh.svg'
 
-export type PreviewHeaderProps = {
+interface PreviewHeaderProps {
   onRefresh?: () => void
   onFullscreenToggle?: () => void
   isFullscreen?: boolean

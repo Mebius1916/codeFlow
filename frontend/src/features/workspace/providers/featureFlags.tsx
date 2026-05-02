@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react'
 import type { ReactNode } from 'react'
 
-export interface CodeEditorFeatures {
+interface CodeEditorFeatures {
   fileTree?: boolean
   toolbar?: boolean
 }
@@ -13,13 +13,15 @@ const defaultFeatures: CodeEditorFeatures = {
 
 const FeatureContext = createContext<CodeEditorFeatures>(defaultFeatures)
 
+interface FeatureProviderProps {
+  features?: CodeEditorFeatures
+  children: ReactNode
+}
+
 export function FeatureProvider({
   features,
   children,
-}: {
-  features?: CodeEditorFeatures
-  children: ReactNode
-}) {
+}: FeatureProviderProps) {
   const value = { ...defaultFeatures, ...features }
 
   return (

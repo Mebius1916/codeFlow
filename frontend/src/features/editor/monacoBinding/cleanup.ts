@@ -1,7 +1,8 @@
-export type Ref<T> = { current: T }
-export type Unbind = () => void
+interface CurrentRef<T> {
+  current: T
+}
 
-export const disposeUnbindRef = (unbindRef: Ref<Unbind | null>) => {
+export const disposeUnbindRef = (unbindRef: CurrentRef<(() => void) | null>) => {
   if (unbindRef.current) {
     unbindRef.current()
     unbindRef.current = null

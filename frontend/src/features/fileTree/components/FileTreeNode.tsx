@@ -1,11 +1,11 @@
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import dropIcon from '@assets/Drop.svg'
-import type { TreeNode } from '../utils/fileTree'
+import type { FileTreeNodeData } from '../contracts'
 import { NewFileItem } from './NewFileItem'
 import { FileIcon } from './FileIcon'
 
 interface FileTreeNodeProps {
-  node: TreeNode
+  node: FileTreeNodeData
   depth: number
   activeFile: string | null
   creatingState: { parentPath: string | null; type: 'file' | 'folder' } | null
@@ -101,7 +101,7 @@ export const FileTreeNode = ({
               onCancel={onCancelCreate}
             />
           )}
-          {node.children?.map((child: TreeNode) => (
+          {node.children?.map((child: FileTreeNodeData) => (
             <FileTreeNode
               key={child.id}
               node={child}

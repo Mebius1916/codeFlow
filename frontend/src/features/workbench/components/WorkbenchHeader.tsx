@@ -1,9 +1,16 @@
 import { FileTreeHeader, useFileTreeResizeCssVars } from '@/features/fileTree'
 import { usePreviewResizeCssVars } from '@/features/preview'
-import { FileTabs, type FileTabsProps } from './FileTabs'
+import { FileTabs } from './FileTabs'
 import { PreviewHeader } from './PreviewHeader'
 
-export type WorkbenchHeaderProps = FileTabsProps & {
+interface FileTabsState {
+  activeFile: string | null
+  openFiles: string[]
+  onOpenFile: (path: string) => void
+  onCloseFile: (path: string) => void
+}
+
+interface WorkbenchHeaderProps extends FileTabsState {
   onNewFile?: () => void
   onNewFolder?: () => void
   onPreviewRefresh?: () => void

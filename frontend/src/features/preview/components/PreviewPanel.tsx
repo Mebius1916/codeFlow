@@ -5,17 +5,18 @@ import { usePreviewAutoCapture } from '../hooks/usePreviewAutoCapture'
 import { usePreviewIframeLayout } from '../hooks/usePreviewIframeLayout'
 import { useWebContainer } from '../hooks/useWebContainer'
 import { useContainerSize } from '../hooks/useContainerSize'
+import type { RectSize } from '../contracts'
 import { computeCaptureTargetSize, computeLayoutPayload } from '../utils/common'
 
-type PreviewContentSize = { width: number; height: number }
+interface PreviewPanelProps {
+  previewContentSize?: RectSize | null
+  onCapturePngBase64?: (base64: string) => void
+}
 
 export function PreviewPanel({
   previewContentSize,
   onCapturePngBase64,
-}: {
-  previewContentSize?: PreviewContentSize | null
-  onCapturePngBase64?: (base64: string) => void
-}) {
+}: PreviewPanelProps) {
   const previewFiles = useEditorStore((state) => state.files)
   const { iframeRef, handleIframePointerDown, handleIframeClick } = useIframeScrollFocus()
   const { containerRef, containerSize } = useContainerSize<HTMLDivElement>()

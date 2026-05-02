@@ -1,9 +1,16 @@
 import { useEffect, useRef, type RefObject } from 'react'
+import type { RectSize } from '../contracts'
 import { blobToBase64Png } from '../utils/common'
-type Size = { width: number; height: number } | null
 type PreviewCaptureMessage =
   | { type: 'preview:capture:done'; payload?: { buffer?: ArrayBuffer } }
   | { type: 'preview:capture:error' }
+
+interface PreviewAutoCaptureOptions {
+  targetSize: RectSize | null
+  disabled?: boolean
+  iframeRef: RefObject<HTMLIFrameElement | null>
+  onCapturedBase64?: (base64: string) => void
+}
 
 function readCaptureMessage(data: unknown): PreviewCaptureMessage | null {
   if (!data || typeof data !== 'object') return null
@@ -22,12 +29,7 @@ export function usePreviewAutoCapture({
   disabled,
   iframeRef,
   onCapturedBase64,
-}: {
-  targetSize: Size
-  disabled?: boolean
-  iframeRef: RefObject<HTMLIFrameElement | null>
-  onCapturedBase64?: (base64: string) => void
-}) {
+}: PreviewAutoCaptureOptions) {
   const isDisabled = disabled || !targetSize
   const captureStateRef = useRef<{ status: 'idle' | 'capturing'; lastKey: string | null }>({
     status: 'idle',

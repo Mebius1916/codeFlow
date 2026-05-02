@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react'
-
-type Size = { width: number; height: number }
+import type { RectSize } from '../contracts'
 
 export function useContainerSize<T extends HTMLElement>() {
   const [element, setElement] = useState<T | null>(null)
   const containerRef = (node: T | null) => {
     setElement(node)
   }
-  const [containerSize, setContainerSize] = useState<Size>({ width: 0, height: 0 })
+  const [containerSize, setContainerSize] = useState<RectSize>({ width: 0, height: 0 })
 
   useEffect(() => {
     if (!element) return

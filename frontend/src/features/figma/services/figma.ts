@@ -3,7 +3,13 @@ import type { SimplifiedDesign } from '@codify/design2code'
 import type { GetFileNodesResponse, GetFileResponse } from '@figma/rest-api-spec'
 import { createFrontendFetcher } from './fetchImage'
 
-export type FigmaApiData = GetFileResponse | GetFileNodesResponse
+type FigmaApiData = GetFileResponse | GetFileNodesResponse
+
+interface ExtractDesignOptions {
+  figmaData: FigmaApiData
+  fileKey: string
+  token: string
+}
 
 export function parseFigmaUrl(inputUrl: string) {
   const parsed = new URL(inputUrl)
@@ -57,11 +63,7 @@ export async function fetchFigmaData(dataApiUrl: string, token: string): Promise
   return normalizeFigmaApiJson(rawJson)
 }
 
-export async function safeExtractDesign(args: {
-  figmaData: FigmaApiData
-  fileKey: string
-  token: string
-}): Promise<SimplifiedDesign | null> {
+export async function safeExtractDesign(args: ExtractDesignOptions): Promise<SimplifiedDesign | null> {
   try {
     return await extractFigmaAsJSON(args.figmaData, {
       fileKey: args.fileKey,

@@ -5,6 +5,12 @@ type PreviewLayoutMessage =
   | { type: 'preview:ready'; payload?: { bootId?: string | null } }
   | { type: 'preview:layout:applied'; payload?: { bootId?: string | null } }
 
+interface PreviewIframeLayoutOptions {
+  iframeRef: RefObject<HTMLIFrameElement | null>
+  previewUrl: string | null
+  layoutPayload: LayoutPayload
+}
+
 function readLayoutMessage(data: unknown): PreviewLayoutMessage | null {
   if (!data || typeof data !== 'object') return null
   const message = data as { type?: unknown; payload?: { bootId?: string | null } }
@@ -21,11 +27,7 @@ export function usePreviewIframeLayout({
   iframeRef,
   previewUrl,
   layoutPayload,
-}: {
-  iframeRef: RefObject<HTMLIFrameElement | null>
-  previewUrl: string | null
-  layoutPayload: LayoutPayload
-}) {
+}: PreviewIframeLayoutOptions) {
   const [isIframeLoaded, setIsIframeLoaded] = useState(false)
   const readyRef = useRef(false) // 是否已经握手
   const bootIdRef = useRef<string | null>(null) // iframe 唯一标识

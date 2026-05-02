@@ -3,7 +3,11 @@ import { cacheRoom } from './hash'
 import { ensureUint8Array } from '@/utils/buffer'
 
 export type ResourceContent = string | Uint8Array
-export type CachedResourceSnapshot = { content: ResourceContent; contentType: string }
+
+interface CachedResourceSnapshot {
+  content: ResourceContent
+  contentType: string
+}
 
 const store = localforage.createInstance({ name: 'cache-image' })
 

@@ -2,7 +2,7 @@ import { FileIcon } from '@/features/fileTree'
 import type { MouseEvent } from 'react'
 import { splitFileName } from '../utils/splitFileName'
 
-export type FileTabsProps = {
+interface FileTabsProps {
   activeFile: string | null
   openFiles: string[]
   onOpenFile: (path: string) => void

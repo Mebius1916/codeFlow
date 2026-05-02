@@ -1,14 +1,7 @@
-export interface TreeNode {
-  id: string
-  name: string
-  path: string
-  type: 'file' | 'folder'
-  children?: TreeNode[]
-  isOpen?: boolean
-}
+import type { FileTreeNodeData } from '../contracts'
 
-export function buildFileTree(paths: string[]): TreeNode[] {
-  const root: TreeNode[] = []
+export function buildFileTree(paths: string[]): FileTreeNodeData[] {
+  const root: FileTreeNodeData[] = []
 
   const sortedPaths = [...paths].sort()
 
@@ -41,7 +34,7 @@ export function buildFileTree(paths: string[]): TreeNode[] {
     }
   }
 
-  const sortNodes = (nodes: TreeNode[]) => {
+  const sortNodes = (nodes: FileTreeNodeData[]) => {
     nodes.sort((a, b) => {
       if (a.type === b.type) return a.name.localeCompare(b.name)
       return a.type === 'folder' ? -1 : 1
@@ -54,4 +47,3 @@ export function buildFileTree(paths: string[]): TreeNode[] {
   sortNodes(root)
   return root
 }
-

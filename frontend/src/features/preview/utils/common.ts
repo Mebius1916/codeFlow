@@ -1,3 +1,5 @@
+import type { RectSize } from '../contracts'
+
 export function blobToBase64Png(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -11,8 +13,8 @@ export function blobToBase64Png(blob: Blob): Promise<string> {
 }
 
 export function computeLayoutPayload(
-  previewContentSize: { width: number; height: number } | null | undefined,
-  containerSize: { width: number; height: number },
+  previewContentSize: RectSize | null | undefined,
+  containerSize: RectSize,
 ) {
   if (!previewContentSize) return null
 
@@ -29,8 +31,8 @@ export function computeLayoutPayload(
 }
 
 export function computeCaptureTargetSize(
-  previewContentSize: { width: number; height: number } | null | undefined,
-  containerSize: { width: number; height: number },
+  previewContentSize: RectSize | null | undefined,
+  containerSize: RectSize,
 ) {
   if (previewContentSize?.width && previewContentSize?.height) {
     return { width: Math.round(previewContentSize.width), height: Math.round(previewContentSize.height) }

@@ -2,7 +2,10 @@ import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import localforage from 'localforage'
 
-type PreviewContentSize = { width: number; height: number }
+interface PreviewContentSize {
+  width: number
+  height: number
+}
 
 interface UiState {
   theme: 'light' | 'dark'

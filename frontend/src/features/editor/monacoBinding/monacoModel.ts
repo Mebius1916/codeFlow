@@ -1,9 +1,15 @@
 import type * as Monaco from 'monaco-editor'
 import { useEditorStore } from '@/features/workspace/store/editorStore'
 import { getLanguageFromPath } from '../utils/file'
-import type { Ref } from './cleanup'
 
-export const getOrCreateModel = (monaco: typeof import('monaco-editor'), modelRef: Ref<Monaco.editor.ITextModel | null>) => {
+interface CurrentRef<T> {
+  current: T
+}
+
+export const getOrCreateModel = (
+  monaco: typeof import('monaco-editor'),
+  modelRef: CurrentRef<Monaco.editor.ITextModel | null>,
+) => {
   let model = modelRef.current
   if (!model) {
     const uri = monaco.Uri.parse('file:///__codeflow_single__')

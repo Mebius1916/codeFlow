@@ -2,8 +2,13 @@ import localforage from 'localforage'
 
 export type FileContent = string | Uint8Array
 
-export type ContentRepository = {
-  loadAll: () => Promise<{ files: Record<string, FileContent>; fileKeys: string[] }>
+export interface ContentSnapshot {
+  files: Record<string, FileContent>
+  fileKeys: string[]
+}
+
+export interface ContentRepository {
+  loadAll: () => Promise<ContentSnapshot>
   saveFile: (path: string, content: FileContent) => Promise<void>
   deleteFile: (path: string) => Promise<void>
   renameFile: (oldPath: string, newPath: string) => Promise<void>

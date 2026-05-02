@@ -1,13 +1,14 @@
 import type * as Monaco from 'monaco-editor'
 import { setFileContent } from '@/features/workspace/services/workspaceService'
 import { useEditorStore } from '@/features/workspace/store/editorStore'
-import type { Unbind } from './cleanup'
 
-// 单机模式，只与zustand 绑定
-export const bindSingleMode = (args: {
+interface BindSingleModeOptions {
   activeFile: string
   model: Monaco.editor.ITextModel
-}): Unbind => {
+}
+
+// 单机模式，只与zustand 绑定
+export const bindSingleMode = (args: BindSingleModeOptions): (() => void) => {
   let storeUpdateTimer: ReturnType<typeof setTimeout> | null = null
 
   const unsubscribeStore = useEditorStore.subscribe((state) => {
@@ -18,7 +19,7 @@ export const bindSingleMode = (args: {
       args.model.setValue(storeContent)
     }
   })
-
+ 
   const disposable = args.model.onDidChangeContent(() => {
     if (storeUpdateTimer) {
       clearTimeout(storeUpdateTimer)

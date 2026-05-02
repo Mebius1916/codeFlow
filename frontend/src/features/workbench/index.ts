@@ -1,5 +1,4 @@
 export { WorkbenchHeader } from './components/WorkbenchHeader'
-export type { WorkbenchHeaderProps } from './components/WorkbenchHeader'
 export { Topbar } from './components/Topbar'
 export { EditorPane } from './components/EditorPane'
 export { PreviewPane } from './components/PreviewPane'

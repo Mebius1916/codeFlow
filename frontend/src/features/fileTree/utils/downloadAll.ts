@@ -2,6 +2,12 @@ import { zipSync, strToU8 } from 'fflate'
 
 type FileContent = string | Uint8Array
 
+interface DownloadAllFilesOptions {
+  files: Record<string, FileContent>
+  fileKeys: string[]
+  zipName?: string
+}
+
 function contentToU8(content: FileContent): Uint8Array {
   return typeof content === 'string' ? strToU8(content) : content
 }
@@ -17,11 +23,7 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-export function downloadAllFilesAsZip(args: {
-  files: Record<string, FileContent>
-  fileKeys: string[]
-  zipName?: string
-}) {
+export function downloadAllFilesAsZip(args: DownloadAllFilesOptions) {
   const { files, fileKeys, zipName } = args
   const entries: Record<string, Uint8Array> = {}
 

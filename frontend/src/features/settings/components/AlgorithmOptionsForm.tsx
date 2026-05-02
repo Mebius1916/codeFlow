@@ -3,17 +3,19 @@ import { Input } from '@/ui/input'
 import { Label } from '@/ui/label'
 import { Switch } from '@/ui/switch'
 
+interface AlgorithmOptionsFormProps {
+  value: AlgorithmOptions
+  enabled: boolean
+  onEnabledChange: (next: boolean) => void
+  onChange: (next: AlgorithmOptions) => void
+}
+
 export function AlgorithmOptionsForm({
   value,
   enabled,
   onEnabledChange,
   onChange,
-}: {
-  value: AlgorithmOptions
-  enabled: boolean
-  onEnabledChange: (next: boolean) => void
-  onChange: (next: AlgorithmOptions) => void
-}) {
+}: AlgorithmOptionsFormProps) {
   return (
     <div className="pt-4 border-t border-[#2A2F4C] flex flex-col gap-4">
       <div className="flex items-center justify-between">

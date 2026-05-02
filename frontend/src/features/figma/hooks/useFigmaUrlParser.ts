@@ -4,18 +4,9 @@ import type { AlgorithmOptions } from '@codify/design2code';
 import { useUiStore } from '@/features/workspace/store/uiStore';
 import { clearSessionAssetPathMap, getSessionAssetPathMap } from '../utils/assetsMap';
 import { fetchFigmaData, parseFigmaUrl, safeCodegen, safeExtractDesign } from '../services/figma';
+import type { FigmaParseResult } from '../model';
 
-export interface FigmaParseResult {
-  assets_path_map: Map<string, string>;
-  codegen_result: {
-    html: string;
-    body: string;
-    css: string;
-    size?: { width: number; height: number };
-  } | null;
-}
-
-export type FigmaUrlParserState =
+type FigmaUrlParserState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'success'; data: FigmaParseResult }

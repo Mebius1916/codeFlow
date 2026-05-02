@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { buildFileTree, type TreeNode } from '../utils/fileTree'
+import type { FileTreeNodeData } from '../contracts'
+import { buildFileTree } from '../utils/fileTree'
 
 const getDefaultOpen = (path: string) => !(path === 'assets' || path.startsWith('assets/'))
 
@@ -7,7 +8,7 @@ export function useFileTreeData(fileKeys: string[]) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({})
 
   const rawTree = buildFileTree(fileKeys)
-  const mergeState = (nodes: TreeNode[]): TreeNode[] => {
+  const mergeState = (nodes: FileTreeNodeData[]): FileTreeNodeData[] => {
     return nodes.map((node) => {
       if (node.type === 'folder') {
         const defaultOpen = getDefaultOpen(node.path)

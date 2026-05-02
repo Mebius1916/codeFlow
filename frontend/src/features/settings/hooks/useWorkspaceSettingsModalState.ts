@@ -2,17 +2,19 @@ import { useEffect, useRef, useState } from 'react'
 import { useUiStore } from '@/features/workspace/store/uiStore'
 import { getDefaultOptions, type AlgorithmOptions } from '@codify/design2code'
 
+interface WorkspaceSettingsModalStateOptions {
+  open: boolean
+  onClose: () => void
+  highlightFigmaToken?: boolean
+  highlightModelApiConfig?: boolean
+}
+
 export function useWorkspaceSettingsModalState({
   open,
   onClose,
   highlightFigmaToken,
   highlightModelApiConfig,
-}: {
-  open: boolean
-  onClose: () => void
-  highlightFigmaToken?: boolean
-  highlightModelApiConfig?: boolean
-}) {
+}: WorkspaceSettingsModalStateOptions) {
   const {
     modelApiEndpoint,
     modelApiKey,
@@ -155,4 +157,3 @@ export function useWorkspaceSettingsModalState({
     handleSave,
   }
 }
-

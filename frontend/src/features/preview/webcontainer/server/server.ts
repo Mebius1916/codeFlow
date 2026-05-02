@@ -1,10 +1,12 @@
 import type { WebContainer } from '@webcontainer/api'
 
+interface SpawnServerOptions {
+  onOutput: (data: string) => void
+}
+
 export async function spawnServer(
   instance: WebContainer,
-  args: {
-    onOutput: (data: string) => void
-  },
+  args: SpawnServerOptions,
 ) {
   const process = await instance.spawn('node', ['server.js'])
 

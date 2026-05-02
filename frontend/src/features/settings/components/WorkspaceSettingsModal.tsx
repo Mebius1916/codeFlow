@@ -21,17 +21,19 @@ import { useWorkspaceSettingsModalState } from '../hooks/useWorkspaceSettingsMod
 
 const maskedTextStyle = { WebkitTextSecurity: 'disc' } as CSSProperties;
 
+interface WorkspaceSettingsModalProps {
+  open: boolean;
+  onClose: () => void;
+  highlightFigmaToken?: boolean;
+  highlightModelApiConfig?: boolean;
+}
+
 export function WorkspaceSettingsModal({
   open,
   onClose,
   highlightFigmaToken,
   highlightModelApiConfig,
-}: {
-  open: boolean;
-  onClose: () => void;
-  highlightFigmaToken?: boolean;
-  highlightModelApiConfig?: boolean;
-}) {
+}: WorkspaceSettingsModalProps) {
   const {
     framework,
     setFramework,
