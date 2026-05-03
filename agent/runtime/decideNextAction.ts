@@ -13,9 +13,12 @@ export interface RepairAction {
 }
 
 export function decideNextAction(context: VisualRepairContext): RepairAction {
-  const [reviewResult, repairPlan] = [context.reviewResult, context.repairPlan];
+  const [reviewResult, repairPatches] = [
+    context.reviewResult,
+    context.repairPatches,
+  ];
 
-  if (!repairPlan) {
+  if (!repairPatches || repairPatches.length === 0) {
     return {
       type: "plan",
       reason: "当前还没有修改计划，先生成计划再继续。",

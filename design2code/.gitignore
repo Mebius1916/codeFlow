@@ -2,4 +2,4 @@
 .npmrc
 .DS_Store
 test.json
-test/
+/test

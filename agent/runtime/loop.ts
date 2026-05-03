@@ -1,5 +1,6 @@
 import type { ChatOpenAI } from "@langchain/openai";
 
+import type { RepairPatch } from "../interfaces/repairPatch.js";
 import type { RunVisualRepairParams } from "../interfaces/runtime.js";
 import { observeVisualDiff } from "../steps/observeVisualDiff.js";
 import type { ReviewResult } from "../steps/reviewHtml.js";
@@ -11,7 +12,7 @@ export interface VisualRepairContext {
   round: number;
   currentHtml: string;
   analysisJson?: string;
-  repairPlan?: string;
+  repairPatches?: RepairPatch[];
   reviewResult?: ReviewResult;
   lastAction?: RepairAction["type"];
 }
@@ -29,7 +30,7 @@ export async function runVisualRepairLoop(
     currentHtml: params.html,
   };
 
-  // runtime 自己保留完整 context，但传给 observe 的只是一份最小输入快照。
+  // 先拿到 diff 观察结果
   context.analysisJson = await observeVisualDiff(llm, {
     baselinePngBase64: params.baselinePngBase64,
     currentPngBase64: params.currentPngBase64,
@@ -42,7 +43,6 @@ export async function runVisualRepairLoop(
   let nextAction: RepairAction = decideNextAction(context);
 
   while (context.round <= MAX_ACTION_ROUNDS) {
-    // 当状态机判断当前结果可以结束时，直接返回最新 HTML。
     if (nextAction.type === "finish") {
       return context.currentHtml;
     }

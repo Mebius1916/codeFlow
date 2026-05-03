@@ -18,7 +18,12 @@
     "@types/uuid": "^10.0.0",
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
+    "css-to-tailwindcss": "^1.0.5",
+    "dom-to-tailwind": "^1.0.0",
     "express": "^5.2.1",
+    "juice": "^11.1.1",
+    "node-html-parser": "^7.1.0",
+    "postcss": "^8.5.13",
     "uuid": "^13.0.0"
   }
 }

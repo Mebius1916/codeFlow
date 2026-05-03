@@ -2,3 +2,4 @@ packages:
   - 'frontend'
   - 'design2code'
   - 'agent'
+  - 'html-css-to-tailwind'

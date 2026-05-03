@@ -3,6 +3,7 @@ import * as fsp from "node:fs/promises";
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
+import { convertHtmlCssToTailwind } from "../html-css-to-tailwind/index.js";
 import { simplifyRawFigmaObjectWithImages } from "./core/extractors/pipeline/design-extractor.js";
 import codegen from "./core/codegen/index.js";
 
@@ -13,6 +14,7 @@ const figmatocodeDir = `${rootDir}/figmatocode`;
 const metaFile = `${rootDir}/meta.json`;
 const d2cPng = `${rootDir}/d2c.png`;
 const figmatocodePng = `${rootDir}/figmatocode.png`;
+const tailwindFragmentFile = `${d2cDir}/tailwind-fragment.html`;
 const scale = 2;
 
 void main();
@@ -22,6 +24,7 @@ async function main() {
   await fsp.rm(metaFile, { force: true });
   await fsp.rm(d2cPng, { force: true });
   await fsp.rm(figmatocodePng, { force: true });
+  await fsp.rm(tailwindFragmentFile, { force: true });
   await fsp.rm(`${rootDir}/test.json`, { force: true });
 
   const data = normalizeFigmaJson(inputFile);
@@ -40,6 +43,9 @@ async function main() {
   await fsp.mkdir(d2cDir, { recursive: true });
   fs.writeFileSync(`${d2cDir}/index.html`, result.html, "utf8");
   fs.writeFileSync(`${d2cDir}/style.css`, result.css, "utf8");
+  const htmlFragment = extractBodyFragment(result.html);
+  const tailwindFragment = await convertHtmlCssToTailwind(htmlFragment, result.css);
+  await fsp.writeFile(tailwindFragmentFile, `${tailwindFragment}\n`, "utf8");
 
   const viewport = result.size!;
   await fsp.writeFile(
@@ -81,6 +87,11 @@ function normalizeFigmaJson(filePath: string) {
     return next;
   }
   return raw;
+}
+
+function extractBodyFragment(html: string) {
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  return bodyMatch?.[1].trim() ?? html.trim();
 }
 
 async function writeResetCss() {

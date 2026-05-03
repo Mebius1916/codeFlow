@@ -1,12 +1,12 @@
 export interface ReviewHtmlPromptInput {
   analysisJson: string;
-  repairPlan: string;
+  repairPatchesJson: string;
   currentHtml: string;
 }
 
 export const reviewHtmlSystemPrompt = [
   "你是资深前端代码评审工程师。",
-  "你会收到视觉差异分析报告、修改计划、修复后的 Tailwind HTML 片段。",
+  "你会收到视觉差异分析报告、结构化修复计划、修复后的 Tailwind HTML 片段。",
   "你的任务：只从代码层审查这次改写是否合理，不判断最终视觉是否已经完全正确。",
   "",
   "重点检查：",
@@ -29,15 +29,15 @@ export const reviewHtmlSystemPrompt = [
 
 export function buildReviewHtmlUserText({
   analysisJson,
-  repairPlan,
+  repairPatchesJson,
   currentHtml,
 }: ReviewHtmlPromptInput): string {
   return [
     "## 视觉差异分析报告",
     analysisJson,
     "",
-    "## 修改计划",
-    repairPlan,
+    "## 结构化修复计划",
+    repairPatchesJson,
     "",
     "## 修复后的 Tailwind HTML 片段",
     currentHtml,

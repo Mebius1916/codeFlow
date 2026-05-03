@@ -6,15 +6,16 @@ export interface PlanVisualRepairPromptInput {
 export const planVisualRepairSystemPrompt = [
   "你是资深前端修复方案设计师。",
   "你会收到一份视觉差异分析报告和当前的 Tailwind HTML 片段。",
-  "你的任务：先把差异报告转换成一份可执行、低风险的修改计划，再交给后续改写步骤执行。",
+  "你的任务：先把差异报告转换成一份结构化修复计划，再交给后续改写步骤执行。",
   "",
   "规则：",
   "- 优先做最小修改，避免无关改动",
-  "- 优先调整 class，不轻易改 DOM 结构",
-  "- 只有分析明确指出元素缺失、冗余或结构错误时，才允许调整节点结构",
-  "- 每一条计划都要说明目标元素、修改动作、预期效果",
-  "- 如果某些问题风险过高或信息不足，要明确标记谨慎处理",
-  "- 仅输出纯文本计划，不要输出 Markdown 代码块",
+  "- 只允许输出 class token 替换建议，不要改 DOM 结构、不要改文本、不要改图片地址",
+  "- dataId 必须来自原始 HTML 中已有的 data-id",
+  "- op 固定为 replace_class_token",
+  "- from 必须是目标节点 class 中已存在的 token，to 必须是替换后的完整 token",
+  "- 如果无法安全给出建议，应返回空结果，不要猜测",
+  "- reason 要说明为什么需要这次替换，便于后续 rewrite 和 review 理解",
 ].join("\n");
 
 export function buildPlanVisualRepairUserText({
@@ -28,6 +29,6 @@ export function buildPlanVisualRepairUserText({
     "## 当前 Tailwind HTML 片段",
     currentHtml,
     "",
-    "请输出一份按优先级排序的修改计划。",
+    "请基于以上信息生成一份按优先级排序的结构化修复计划。",
   ].join("\n");
 }

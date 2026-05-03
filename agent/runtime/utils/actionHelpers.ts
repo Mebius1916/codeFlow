@@ -5,7 +5,10 @@ export function resolveExecutableAction(
   context: VisualRepairContext,
   action: RepairAction
 ): RepairAction {
-  if (action.type !== "rewrite" || context.repairPlan) {
+  if (
+    action.type !== "rewrite" ||
+    (context.repairPatches && context.repairPatches.length > 0)
+  ) {
     return action;
   }
 
