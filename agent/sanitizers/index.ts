@@ -6,19 +6,23 @@ import { sanitizeObserveResult } from "./sanitizeObserveResult.js";
 import { sanitizeRepairPatches } from "./sanitizeRepairPatches.js";
 import { sanitizeReviewResult } from "./sanitizeReviewResult.js";
 import { sanitizeRewriteResult } from "./sanitizeRewriteResult.js";
-import type { SanitizeOutputContext } from "./shared.js";
+
+interface SanitizerContext {
+  currentHtml?: string;
+  previousHtml?: string;
+}
 
 export const sanitizers = {
   observe: (payload: ObserveResult) => 
     sanitizeObserveResult(payload),
 
-  plan: (payload: RepairPatch[], context: SanitizeOutputContext) =>
+  plan: (payload: RepairPatch[], context: SanitizerContext) =>
     sanitizeRepairPatches(payload, context),
 
   review: (payload: ReviewResult) => 
     sanitizeReviewResult(payload),
 
-  rewrite: (payload: RewriteResult, context: SanitizeOutputContext) =>
+  rewrite: (payload: RewriteResult, context: SanitizerContext) =>
     sanitizeRewriteResult(payload, context),
 
 };

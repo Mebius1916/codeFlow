@@ -1,13 +1,8 @@
 import type { RepairPatch } from "../interfaces/repairPatch.js";
-import {
-  extractAttributeValue,
-  findOpeningTagByDataId,
-  type SanitizeOutputContext,
-} from "./shared.js";
 
 export function sanitizeRepairPatches(
   patches: RepairPatch[],
-  context: SanitizeOutputContext
+  _context: { currentHtml?: string; previousHtml?: string }
 ): RepairPatch[] {
   return patches
     .map((patch) => ({
@@ -23,28 +18,6 @@ export function sanitizeRepairPatches(
         patch.from !== "" &&
         patch.to !== "" &&
         patch.reason !== "" &&
-        patch.from !== patch.to &&
-        isPatchApplicable(context.currentHtml, patch)
+        patch.from !== patch.to
     );
-}
-
-function isPatchApplicable(
-  currentHtml: string | undefined,
-  patch: RepairPatch
-): boolean {
-  if (!currentHtml) {
-    return true;
-  }
-
-  const openingTag = findOpeningTagByDataId(currentHtml, patch.dataId);
-  if (!openingTag) {
-    return false;
-  }
-
-  const classValue = extractAttributeValue(openingTag, "class");
-  if (!classValue) {
-    return false;
-  }
-
-  return classValue.split(/\s+/).filter(Boolean).includes(patch.from);
 }
