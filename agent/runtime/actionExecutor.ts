@@ -51,11 +51,12 @@ export async function executeRepairAction(
       );
 
       // patch 只作为结构化计划，真正的改写仍交给 AI 执行。
-      context.currentHtml = await rewriteHtml(llm, {
+      const rewriteResult = await rewriteHtml(llm, {
         analysisJson: context.analysisJson ?? "",
         repairPatchesJson,
         currentHtml: context.currentHtml,
       });
+      context.currentHtml = rewriteResult.html;
 
       // 对改写结果做代码层自检，为下一步动作选择提供依据。
       context.reviewResult = await reviewHtml(llm, {

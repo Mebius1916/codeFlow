@@ -2,6 +2,10 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import type { ChatOpenAI } from "@langchain/openai";
 
 import {
+  rewriteResultSchema,
+  type RewriteResult,
+} from "../interfaces/rewriteResult.js";
+import {
   buildRewriteHtmlUserText,
   rewriteHtmlSystemPrompt,
   type RewriteHtmlPromptInput,
@@ -10,7 +14,11 @@ import {
 export async function rewriteHtml(
   llm: ChatOpenAI,
   input: RewriteHtmlPromptInput
-): Promise<string> {
+): Promise<RewriteResult> {
+  const structuredLlm = llm.withStructuredOutput(rewriteResultSchema, {
+    name: "RewriteResult",
+    strict: true,
+  });
   const system = new SystemMessage(rewriteHtmlSystemPrompt);
   const user = new HumanMessage({
     content: [
@@ -21,6 +29,5 @@ export async function rewriteHtml(
     ],
   });
 
-  const res = await llm.invoke([system, user]);
-  return typeof res.content === "string" ? res.content : JSON.stringify(res.content);
+  return structuredLlm.invoke([system, user]);
 }

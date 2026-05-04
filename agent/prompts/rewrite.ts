@@ -15,7 +15,7 @@ export const rewriteHtmlSystemPrompt = [
   "- 优先按结构化修复计划执行；如果计划和代码不一致，以最小修改原则处理",
   "- 保持所有 data-id、id 和 img src 不变，除非修复问题必须调整 class",
   "- 输入是片段，不是完整 HTML 文档；不要补 html、head、body",
-  "- 仅输出修改后的 Tailwind HTML 片段，不要任何解释文字、不要 Markdown 包裹",
+  "- html 字段中只放修改后的 Tailwind HTML 片段，不要任何解释文字、不要 Markdown 包裹",
 ].join("\n");
 
 export function buildRewriteHtmlUserText({

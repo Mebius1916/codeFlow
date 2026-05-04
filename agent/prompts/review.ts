@@ -15,16 +15,8 @@ export const reviewHtmlSystemPrompt = [
   "- 是否违反约束，例如补了完整 HTML 文档、引入了内联 style、删除了不该删除的元素",
   "- 是否建议继续进行下一轮修复",
   "",
-  "输出要求：仅输出 JSON，不要 Markdown 包裹，不要 JSON 之外的任何文字。",
-  "JSON schema：",
-  "{",
-  '  "status": "done" | "needs_rewrite" | "blocked",',
-  '  "pass": boolean,',
-  '  "summary": string,',
-  '  "issues": [',
-  '    { "severity": "low"|"medium"|"high", "description": string, "suggestion": string }',
-  "  ]",
-  "}",
+  "summary 要概括本轮改写是否合理，以及是否值得继续下一轮修复。",
+  "issues 中只保留真正影响决策的关键问题。",
 ].join("\n");
 
 export function buildReviewHtmlUserText({

@@ -1,9 +1,9 @@
 import type { ChatOpenAI } from "@langchain/openai";
 
 import type { RepairPatch } from "../interfaces/repairPatch.js";
+import type { ReviewResult } from "../interfaces/reviewResult.js";
 import type { RunVisualRepairParams } from "../interfaces/runtime.js";
 import { observeVisualDiff } from "../steps/observeVisualDiff.js";
-import type { ReviewResult } from "../steps/reviewHtml.js";
 import { executeRepairAction } from "./actionExecutor.js";
 import { decideNextAction, type RepairAction } from "./decideNextAction.js";
 
