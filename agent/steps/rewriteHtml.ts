@@ -10,6 +10,7 @@ import {
   rewriteHtmlSystemPrompt,
   type RewriteHtmlPromptInput,
 } from "../prompts/rewrite.js";
+import { sanitizers } from "../sanitizers/index.js";
 
 export async function rewriteHtml(
   llm: ChatOpenAI,
@@ -29,5 +30,8 @@ export async function rewriteHtml(
     ],
   });
 
-  return structuredLlm.invoke([system, user]);
+  const rewriteResult = await structuredLlm.invoke([system, user]);
+  return sanitizers.rewrite(rewriteResult, {
+    previousHtml: input.currentHtml,
+  });
 }

@@ -9,6 +9,7 @@ import {
   reviewHtmlSystemPrompt,
   type ReviewHtmlPromptInput,
 } from "../prompts/review.js";
+import { sanitizers } from "../sanitizers/index.js";
 
 export async function reviewHtml(
   llm: ChatOpenAI,
@@ -27,5 +28,6 @@ export async function reviewHtml(
       },
     ],
   });
-  return structuredLlm.invoke([system, user]);
+  const reviewResult = await structuredLlm.invoke([system, user]);
+  return sanitizers.review(reviewResult);
 }

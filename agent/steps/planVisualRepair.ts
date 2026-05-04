@@ -9,6 +9,7 @@ import {
   planVisualRepairSystemPrompt,
   type PlanVisualRepairPromptInput,
 } from "../prompts/plan.js";
+import { sanitizers } from "../sanitizers/index.js";
 
 export async function planVisualRepair(
   llm: ChatOpenAI,
@@ -30,10 +31,5 @@ export async function planVisualRepair(
   });
 
   const patches = await structuredLlm.invoke([system, user]);
-  return patches.filter(
-    (patch) =>
-      patch.from !== patch.to &&
-      patch.dataId.trim() !== "" &&
-      patch.reason.trim() !== ""
-  );
+  return sanitizers.plan(patches, { currentHtml: input.currentHtml });
 }

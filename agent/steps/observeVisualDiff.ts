@@ -10,7 +10,8 @@ import {
   observeVisualDiffSystemPrompt,
   type ObserveVisualDiffPromptInput,
 } from "../prompts/observe.js";
-import { toPngDataUrl } from "../utils/common.js";
+import { sanitizers } from "../sanitizers/index.js";
+import { toPngDataUrl } from "./utils/common.js";
 
 export interface ObserveVisualDiffInput extends ObserveVisualDiffPromptInput {
   baselinePngBase64: string;
@@ -39,5 +40,6 @@ export async function observeVisualDiff(
     ],
   });
 
-  return structuredLlm.invoke([system, user]);
+  const observation = await structuredLlm.invoke([system, user]);
+  return sanitizers.observe(observation);
 }
