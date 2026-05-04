@@ -1,8 +1,10 @@
 import type { ChatOpenAI } from "@langchain/openai";
 
+import type { HtmlCssResult } from "../interfaces/htmlCssResult.js";
 import type { RepairPatch } from "../interfaces/repairPatch.js";
 import type { ReviewResult } from "../interfaces/reviewResult.js";
 import type { RunVisualRepairParams } from "../interfaces/runtime.js";
+import { exportHtmlCss } from "../steps/exportHtmlCss.js";
 import { observeVisualDiff } from "../steps/observeVisualDiff.js";
 import { executeRepairAction } from "./actionExecutor.js";
 import { decideNextAction, type RepairAction } from "./decideNextAction.js";
@@ -24,7 +26,7 @@ const MAX_ACTION_ROUNDS = 10;
 export async function runVisualRepairLoop(
   llm: ChatOpenAI,
   params: RunVisualRepairParams
-): Promise<string> {
+): Promise<HtmlCssResult> {
   // 维护本轮修复过程中逐步产出的中间结果。
   const context: VisualRepairContext = {
     input: params,
@@ -49,7 +51,7 @@ export async function runVisualRepairLoop(
 
   while (context.round <= MAX_ACTION_ROUNDS) {
     if (nextAction.type === "finish") {
-      return context.currentHtml;
+      return exportHtmlCss(llm, { currentHtml: context.currentHtml });
     }
 
     // 执行动作会更新 context，例如补观察、重做计划、改 HTML、写入 review 结果。
@@ -61,5 +63,5 @@ export async function runVisualRepairLoop(
   }
 
   // 超过最大轮次后停止自动修复，返回当前轮次产出的结果。
-  return context.currentHtml;
+  return exportHtmlCss(llm, { currentHtml: context.currentHtml });
 }

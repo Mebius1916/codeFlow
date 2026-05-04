@@ -33,5 +33,3 @@ export function sanitizeRewriteResult(
     html: nextHtml,
   };
 }
-
-
