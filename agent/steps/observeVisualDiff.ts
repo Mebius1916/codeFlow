@@ -2,6 +2,10 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import type { ChatOpenAI } from "@langchain/openai";
 
 import {
+  observeResultSchema,
+  type ObserveResult,
+} from "../interfaces/observeResult.js";
+import {
   buildObserveVisualDiffUserText,
   observeVisualDiffSystemPrompt,
   type ObserveVisualDiffPromptInput,
@@ -17,7 +21,11 @@ export interface ObserveVisualDiffInput extends ObserveVisualDiffPromptInput {
 export async function observeVisualDiff(
   llm: ChatOpenAI,
   input: ObserveVisualDiffInput
-): Promise<string> {
+): Promise<ObserveResult> {
+  const structuredLlm = llm.withStructuredOutput(observeResultSchema, {
+    name: "ObserveResult",
+    strict: true,
+  });
   const system = new SystemMessage(observeVisualDiffSystemPrompt);
   const user = new HumanMessage({
     content: [
@@ -31,6 +39,5 @@ export async function observeVisualDiff(
     ],
   });
 
-  const res = await llm.invoke([system, user]);
-  return typeof res.content === "string" ? res.content : JSON.stringify(res.content);
+  return structuredLlm.invoke([system, user]);
 }

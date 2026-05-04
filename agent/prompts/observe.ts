@@ -18,15 +18,8 @@ export const observeVisualDiffSystemPrompt = [
   "7. fidelity     — 整体视觉保真：整体观感与设计稿的贴合度",
   "8. detail       — 细节还原：图标、图片、阴影、圆角等",
   "",
-  "输出要求：仅输出 JSON，不要 Markdown 包裹，不要 JSON 之外的任何文字。",
-  "JSON schema：",
-  "{",
-  '  "summary": string,',
-  '  "pass": boolean,',
-  '  "dimensions": [',
-  '    { "category": string, "issues": [{ "severity": "low"|"medium"|"high", "description": string, "evidence": string }] }',
-  "  ]",
-  "}",
+  "如果某个维度没有明显问题，issues 返回空数组。",
+  "summary 要概括最重要的视觉差异；pass 仅在基本无明显差异时返回 true。",
 ].join("\n");
 
 export function buildObserveVisualDiffUserText({
@@ -37,6 +30,6 @@ export function buildObserveVisualDiffUserText({
     "以上三张图依次为：baseline（设计稿）、current（实现截图）、diff（差异图）。",
     "其中 current 来自当前 Tailwind HTML 片段的渲染结果，后续会基于你的分析去修改这段 Tailwind 片段。",
     `similarity=${(similarity * 100).toFixed(2)}%，diffRatio=${diffRatio.toFixed(6)}`,
-    "请从 8 个维度逐一分析差异，输出 JSON。",
+    "请从 8 个维度逐一分析差异，并给出结构化观察结果。",
   ].join("\n");
 }

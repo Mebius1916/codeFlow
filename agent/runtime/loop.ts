@@ -30,14 +30,15 @@ export async function runVisualRepairLoop(
     currentHtml: params.html,
   };
 
-  // 先拿到 diff 观察结果
-  context.analysisJson = await observeVisualDiff(llm, {
+  // 先拿到结构化 diff 观察结果，再序列化给后续 prompt 复用。
+  const observation = await observeVisualDiff(llm, {
     baselinePngBase64: params.baselinePngBase64,
     currentPngBase64: params.currentPngBase64,
     diffPngBase64: params.diffPngBase64,
     similarity: params.similarity,
     diffRatio: params.diffRatio,
   });
+  context.analysisJson = JSON.stringify(observation, null, 2);
 
   // 基于当前上下文先决定第一次动作，后续每轮执行完再重新判断。
   let nextAction: RepairAction = decideNextAction(context);
