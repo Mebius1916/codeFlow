@@ -1,5 +1,5 @@
 {
-  "name": "@codify/html-css-to-tailwind",
+  "name": "@codify/converters",
   "version": "0.1.0",
   "private": true,
   "type": "module",

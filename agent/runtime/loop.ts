@@ -10,6 +10,8 @@ import { decideNextAction, type RepairAction } from "./decideNextAction.js";
 export interface VisualRepairContext {
   input: RunVisualRepairParams;
   round: number;
+  rewriteRounds: number;
+  reobserveRounds: number;
   currentHtml: string;
   analysisJson?: string;
   repairPatches?: RepairPatch[];
@@ -27,6 +29,8 @@ export async function runVisualRepairLoop(
   const context: VisualRepairContext = {
     input: params,
     round: 1,
+    rewriteRounds: 0,
+    reobserveRounds: 0,
     currentHtml: params.html,
   };
 

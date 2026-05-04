@@ -3,7 +3,7 @@ import * as fsp from "node:fs/promises";
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
-import { convertHtmlCssToTailwind } from "../html-css-to-tailwind/index.js";
+import { convertHtmlCssToTailwind } from "../converters/index.js";
 import { simplifyRawFigmaObjectWithImages } from "./core/extractors/pipeline/design-extractor.js";
 import codegen from "./core/codegen/index.js";
 

@@ -1,16 +1,21 @@
-import { HTMLElement, parse } from "node-html-parser";
+import { HTMLElement } from "node-html-parser";
+import {
+  parseHtmlFragment,
+  readClassList,
+  writeClassList,
+} from "./class-utils.js";
 
 export function cleanTailwindFragment(htmlFragment: string): string {
-  const document = parse(htmlFragment, { comment: true });
+  const document = parseHtmlFragment(htmlFragment);
 
   for (const element of document.querySelectorAll("*")) {
-    const classes = readClasses(element);
+    const classes = readClassList(element);
     if (classes.length === 0) {
       continue;
     }
 
     const cleanedClasses = cleanupClassList(classes);
-    writeClasses(element, cleanedClasses);
+    writeClassList(element, cleanedClasses);
   }
 
   trimDuplicateTextClasses(document);
@@ -47,8 +52,8 @@ function trimDuplicateTextClasses(root: HTMLElement) {
     }
 
     const span = spanChildren[0];
-    const parentClasses = readClasses(paragraph);
-    const spanClasses = readClasses(span);
+    const parentClasses = readClassList(paragraph);
+    const spanClasses = readClassList(span);
     if (parentClasses.length === 0 || spanClasses.length === 0) {
       continue;
     }
@@ -61,22 +66,6 @@ function trimDuplicateTextClasses(root: HTMLElement) {
       ? nextSpanClasses.filter((className) => className !== "break-words")
       : nextSpanClasses;
 
-    writeClasses(span, normalizedSpanClasses);
+    writeClassList(span, normalizedSpanClasses);
   }
-}
-
-function readClasses(element: HTMLElement): string[] {
-  return (element.getAttribute("class") ?? "")
-    .split(/\s+/)
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
-
-function writeClasses(element: HTMLElement, classes: string[]) {
-  if (classes.length > 0) {
-    element.setAttribute("class", classes.join(" "));
-    return;
-  }
-
-  element.removeAttribute("class");
 }

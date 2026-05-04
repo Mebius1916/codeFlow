@@ -28,6 +28,7 @@ export async function executeRepairAction(
 
     case "reobserve":
       context.lastAction = "reobserve";
+      context.reobserveRounds += 1;
       context.analysisJson = buildReobservedAnalysis(context);
       return executableAction;
 
@@ -44,6 +45,7 @@ export async function executeRepairAction(
 
     case "rewrite": {
       context.lastAction = "rewrite";
+      context.rewriteRounds += 1;
       const repairPatchesJson = JSON.stringify(
         context.repairPatches ?? [],
         null,

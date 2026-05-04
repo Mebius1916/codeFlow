@@ -223,7 +223,7 @@ importers:
         specifier: ^5.2.0
         version: 5.4.21(@types/node@20.19.24)(terser@5.46.1)
 
-  html-css-to-tailwind:
+  converters:
     dependencies:
       css-to-tailwindcss:
         specifier: ^1.0.5

@@ -1,4 +1,4 @@
-interface FigmaCodegenResult {
+export interface FigmaCodegenResult {
   html: string
   body: string
   css: string
