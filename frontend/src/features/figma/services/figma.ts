@@ -12,7 +12,7 @@ export async function convertFigma({
   token,
   algorithmOptions,
 }: ConvertFigmaOptions): Promise<FigmaConvertResult> {
-  const baseUrl = import.meta.env.VITE_BACKEND_URL?.trim() || 'http://localhost:3001'
+  const baseUrl = import.meta.env.VITE_BACKEND_URL?.trim();
   const resp = await fetch(`${baseUrl}/api/figma/convert`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

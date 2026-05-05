@@ -1,6 +1,6 @@
 import localforage from 'localforage'
 
-export type FileContent = string | Uint8Array
+export type FileContent = string
 
 export interface ContentSnapshot {
   files: Record<string, FileContent>
@@ -37,7 +37,7 @@ export function createLocalForageContentRepository(): ContentRepository {
     await Promise.all(
       fileKeys.map(async (path) => {
         const value = await store.getItem<FileContent>(makeFileKey(path))
-        if (typeof value === 'string' || value instanceof Uint8Array) {
+        if (typeof value === 'string') {
           files[path] = value
         }
       }),
@@ -64,7 +64,7 @@ export function createLocalForageContentRepository(): ContentRepository {
   const renameFile = async (oldPath: string, newPath: string) => {
     const oldKey = makeFileKey(oldPath)
     const value = await store.getItem<FileContent>(oldKey)
-    if (!(typeof value === 'string' || value instanceof Uint8Array)) return
+    if (typeof value !== 'string') return
 
     await store.setItem(makeFileKey(newPath), value)
     await store.removeItem(oldKey)

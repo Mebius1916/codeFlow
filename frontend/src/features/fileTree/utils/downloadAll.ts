@@ -1,15 +1,9 @@
 import { zipSync, strToU8 } from 'fflate'
 
-type FileContent = string | Uint8Array
-
 interface DownloadAllFilesOptions {
-  files: Record<string, FileContent>
+  files: Record<string, string>
   fileKeys: string[]
   zipName?: string
-}
-
-function contentToU8(content: FileContent): Uint8Array {
-  return typeof content === 'string' ? strToU8(content) : content
 }
 
 function triggerDownload(blob: Blob, filename: string) {
@@ -29,8 +23,8 @@ export function downloadAllFilesAsZip(args: DownloadAllFilesOptions) {
 
   fileKeys.forEach((path) => {
     const content = files[path]
-    if (!(typeof content === 'string' || content instanceof Uint8Array)) return
-    entries[path] = contentToU8(content)
+    if (typeof content !== 'string') return
+    entries[path] = strToU8(content)
   })
 
   const zipped = zipSync(entries, { level: 0 })

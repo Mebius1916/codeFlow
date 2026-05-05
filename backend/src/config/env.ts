@@ -8,7 +8,6 @@ interface EnvConfig {
     endpoint: string
     accessKeyId: string
     secretAccessKey: string
-    publicBaseUrl: string
   }
 }
 
@@ -30,6 +29,5 @@ export const env: EnvConfig = {
     endpoint: requireEnv('S3_ENDPOINT'),
     accessKeyId: requireEnv('S3_ACCESS_KEY_ID'),
     secretAccessKey: requireEnv('S3_SECRET_ACCESS_KEY'),
-    publicBaseUrl: process.env.S3_PUBLIC_BASE_URL?.trim().replace(/\/+$/, '') || '',
   },
 }

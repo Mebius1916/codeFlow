@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
+import { HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { Injectable } from '@nestjs/common'
 import { env } from '../config/env.ts'
 
@@ -14,6 +14,21 @@ export class ObjectStorageService {
   })
 
   async uploadPublicObject(key: string, body: string | Uint8Array, contentType: string) {
+    const objectUrl = `${env.s3.endpoint}/${env.s3.bucket}/${key}`
+
+    try {
+      await this.client.send(new HeadObjectCommand({
+        Bucket: env.s3.bucket,
+        Key: key,
+      }))
+      return objectUrl
+    } catch (error) {
+      if ((error as { $metadata?: { httpStatusCode?: number } })
+        .$metadata?.httpStatusCode !== 404) {
+        throw error
+      }
+    }
+
     await this.client.send(new PutObjectCommand({
       Bucket: env.s3.bucket,
       Key: key,
@@ -22,10 +37,6 @@ export class ObjectStorageService {
       CacheControl: 'public, max-age=31536000, immutable',
     }))
 
-    if (env.s3.publicBaseUrl) {
-      return `${env.s3.publicBaseUrl}/${key}`
-    }
-
-    return `${env.s3.endpoint}/${env.s3.bucket}/${key}`
+    return objectUrl
   }
 }

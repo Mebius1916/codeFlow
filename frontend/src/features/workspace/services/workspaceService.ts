@@ -33,7 +33,7 @@ export function deleteFile(path: string) {
 export function renameFile(oldPath: string, newPath: string) {
   const content = useEditorStore.getState().files[oldPath]
   useEditorStore.getState().renameFile(oldPath, newPath)
-  if (typeof content === 'string' || content instanceof Uint8Array) {
+  if (typeof content === 'string') {
     void getRepository().renameFile(oldPath, newPath)
   }
 }

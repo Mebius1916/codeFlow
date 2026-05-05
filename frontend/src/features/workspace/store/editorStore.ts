@@ -7,15 +7,15 @@ interface EditorState {
   activeFile: string | null
   openFiles: string[]
   fileKeys: string[]
-  files: Record<string, string | Uint8Array>
+  files: Record<string, string>
 
   openFile: (path: string) => void
   closeFile: (path: string) => void
-  updateFileContent: (path: string, content: string | Uint8Array) => void
-  addFile: (path: string, content: string | Uint8Array) => void
+  updateFileContent: (path: string, content: string) => void
+  addFile: (path: string, content: string) => void
   deleteFile: (path: string) => void
   renameFile: (oldPath: string, newPath: string) => void
-  initializeFiles: (files: Record<string, string | Uint8Array>) => void
+  initializeFiles: (files: Record<string, string>) => void
 }
 
 const createEditorState: StateCreator<EditorState> = (set, get) => ({
@@ -24,7 +24,7 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
       files: {}, // 所有文件的内容
       fileKeys: [], // 所有文件的路径列表
 
-      initializeFiles: (files: Record<string, string | Uint8Array>) => {
+      initializeFiles: (files: Record<string, string>) => {
         set({ files, fileKeys: Object.keys(files) })
       },
 
@@ -53,7 +53,7 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
       },
 
       // 更新文件内容
-      updateFileContent: (path: string, content: string | Uint8Array) => {
+      updateFileContent: (path: string, content: string) => {
         const { files, fileKeys } = get()
         const newFiles = { ...files, [path]: content }
         if (files[path] !== undefined || fileKeys.includes(path)) {
@@ -63,7 +63,7 @@ const createEditorState: StateCreator<EditorState> = (set, get) => ({
         set({ files: newFiles, fileKeys: [...fileKeys, path] })
       },
 
-      addFile: (path: string, content: string | Uint8Array = '') => {
+      addFile: (path: string, content: string = '') => {
         const { files, fileKeys } = get()
         const newFiles = { ...files, [path]: content }
         if (fileKeys.includes(path)) {
