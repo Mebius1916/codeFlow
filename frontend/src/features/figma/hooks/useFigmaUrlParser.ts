@@ -11,7 +11,6 @@ type FigmaUrlParserState =
   | { status: 'error'; error: string };
 
 export function useFigmaUrlParser() {
-  const [url, setUrl] = useState('');
   const [state, setState] = useState<FigmaUrlParserState>({ status: 'idle' });
   const { figmaToken, algorithmOptions: storedAlgorithmOptions } = useUiStore((s) => ({
     figmaToken: s.figmaToken,
@@ -48,12 +47,10 @@ export function useFigmaUrlParser() {
   };
 
   const clearError = () => {
-    setState((prev) => (prev.status === 'error' ? { status: 'idle' } : prev));
+    setState((prev: FigmaUrlParserState) => (prev.status === 'error' ? { status: 'idle' } : prev));
   };
 
   return {
-    url,
-    setUrl,
     state,
     parse,
     clearError

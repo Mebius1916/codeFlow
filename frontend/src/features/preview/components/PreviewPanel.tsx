@@ -2,9 +2,9 @@ import { useEditorStore } from '@/features/workspace/store/editorStore'
 import { Loading } from '@/ui/Loading'
 import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
 import { usePreviewIframeLayout } from '../hooks/usePreviewIframeLayout'
-import { useWebContainer } from '../hooks/useWebContainer'
 import { useContainerSize } from '../hooks/useContainerSize'
 import type { RectSize } from '../interfaces/contracts'
+import { PREVIEW_SRC_DOC } from '../shell'
 import { computeLayoutPayload } from '../utils/common'
 
 interface PreviewPanelProps {
@@ -17,48 +17,23 @@ export function PreviewPanel({
   const previewFiles = useEditorStore((state) => state.files)
   const { iframeRef, handleIframePointerDown, handleIframeClick } = useIframeScrollFocus()
   const { containerRef, containerSize } = useContainerSize<HTMLDivElement>()
-  const { previewUrl, isLoading, error, logs } = useWebContainer(previewFiles)
-
   const layoutPayload = computeLayoutPayload(previewContentSize, containerSize)
 
-  const { isIframeLoaded } = usePreviewIframeLayout({
+  const { isFrameReady, isLayoutReady } = usePreviewIframeLayout({
     iframeRef,
-    previewUrl,
+    previewSrcDoc: PREVIEW_SRC_DOC,
     layoutPayload,
     previewFiles,
   })
 
-  type PreviewStatus = 'booting' | 'waiting_url' | 'waiting_layout' | 'ready'
-
-  const status: PreviewStatus = (() => {
-    if (isLoading) return 'booting'
-    if (!previewUrl) return 'waiting_url'
-    if (layoutPayload && !isIframeLoaded) return 'waiting_layout'
-    return 'ready'
-  })()
-
-  const isReady = status === 'ready'
-  const lastLog = logs[logs.length - 1]
-  const loadingText =
-    status === 'waiting_url' ? '等待预览地址...' : '启动预览环境...'
-
-  if (error) {
-    return (
-      <Loading
-        text="预览环境启动失败"
-        detail={error}
-        variant="error"
-        className="bg-[rgb(12,14,23)] text-red-400"
-      />
-    )
-  }
+  const isReady = isFrameReady && (!layoutPayload || isLayoutReady)
 
   return (
     <div className="flex flex-col h-full ">
       <div ref={containerRef} className="relative flex-1 w-full h-full overflow-hidden ">
         <iframe
           ref={iframeRef}
-          src={previewUrl ?? undefined}
+          srcDoc={PREVIEW_SRC_DOC}
           style={{
             position: 'absolute',
             left: 0,
@@ -77,7 +52,7 @@ export function PreviewPanel({
         />
         {!isReady && (
           <div className="absolute inset-0">
-            <Loading className="bg-[rgb(12,14,23)] text-gray-400" text={loadingText} detail={lastLog} />
+            <Loading className="bg-[rgb(12,14,23)] text-gray-400" text="加载预览内容..." />
           </div>
         )}
       </div>

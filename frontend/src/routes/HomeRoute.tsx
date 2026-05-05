@@ -15,7 +15,8 @@ import { Button } from '@/ui/button';
 
 export function HomePage() {
   const navigate = useNavigate();
-  const { url, setUrl, state, parse, clearError } = useFigmaUrlParser();
+  const { state, parse, clearError } = useFigmaUrlParser();
+  const [url, setUrl] = useState('');
   const isLoading = state.status === "loading";
   const error = state.status === "error" ? state.error : null;
   const [settingsOpen, setSettingsOpen] = useState(false);

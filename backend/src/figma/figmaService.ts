@@ -53,8 +53,7 @@ export class FigmaService {
       return rawJson
     })()
 
-    const assetUrlMap = new Map<string, string>()
-    const assetPathByKey = new Map<string, string>()
+    const assetUrlByKey = new Map<string, string>()
 
     setOptions(getDefaultOptions())
     if (input.algorithmOptions && Object.keys(input.algorithmOptions).length) {
@@ -68,8 +67,8 @@ export class FigmaService {
       format: 'png',
       fetcher: {
         image: async (url: string, key: string, headers?: Record<string, string>) => {
-          const cachedPath = assetPathByKey.get(key)
-          if (cachedPath) return cachedPath
+          const cachedUrl = assetUrlByKey.get(key)
+          if (cachedUrl) return cachedUrl
 
           const resp = await fetch(url, { headers: headers || {} })
           if (!resp.ok) {
@@ -77,27 +76,27 @@ export class FigmaService {
           }
 
           const contentType = resp.headers.get('content-type') || ''
-          const relativePath = `assets/${fileKey}/${key}.${
-            contentType.toLowerCase().includes('image/svg+xml')
-              ? 'svg'
-              : contentType.toLowerCase().includes('image/jpeg')
-                ? 'jpg'
-                : 'png'
-          }`
+          const lowerContentType = contentType.toLowerCase()
+          let extension = 'png'
+          if (lowerContentType.includes('image/svg+xml')) {
+            extension = 'svg'
+          } else if (lowerContentType.includes('image/jpeg')) {
+            extension = 'jpg'
+          }
+          const objectKey = `${fileKey}-${key}.${extension}`
 
           const objectUrl = await this.objectStorageService.uploadPublicObject(
-            relativePath,
+            objectKey,
             contentType.includes('svg')
               ? await resp.text()
               : new Uint8Array(await (await resp.blob()).arrayBuffer()),
             contentType,
           )
 
-          assetPathByKey.set(key, relativePath)
-          assetUrlMap.set(relativePath, objectUrl)
-          return relativePath
+          assetUrlByKey.set(key, objectUrl)
+          return objectUrl
         },
-        resolveCache: async (key: string) => assetPathByKey.get(key),
+        resolveCache: async (key: string) => assetUrlByKey.get(key),
       },
     }).catch(() => null)
 
@@ -108,15 +107,7 @@ export class FigmaService {
     const codegenResult = (() => {
       try {
         const result = codegen(simplifiedDesign)
-        let html = result.html
-        let body = result.body
-        let css = result.css
-        for (const [path, url] of assetUrlMap) {
-          html = html.split(path).join(url)
-          body = body.split(path).join(url)
-          css = css.split(path).join(url)
-        }
-        return { html, body, css, size: result.size }
+        return { html: result.html, body: result.body, css: result.css, size: result.size }
       } catch {
         return null
       }

@@ -15,33 +15,13 @@ export const PREVIEW_SHELL_RUNTIME = `    <script>
           if (!styleTag) styleTag = document.getElementById('preview-user-style');
           return styleTag;
         };
-        var absolutizeCssUrls = function (cssText, base) {
-          return String(cssText).replace(/url\\((['"]?)(.*?)\\1\\)/g, function (_m, q, raw) {
-            var value = String(raw).trim();
-            try {
-              return 'url(' + q + new URL(value, base).href + q + ')';
-            } catch (e) {
-              return 'url(' + q + value + q + ')';
-            }
-          });
-        };
-        var absolutizeHtmlAttrs = function (html, base) {
-          return String(html).replace(/(<img\\b[^>]*\\bsrc\\s*=\\s*)(['"])(.*?)\\2/gi, function (m, prefix, q, value) {
-            try {
-              return prefix + q + new URL(String(value).trim(), base).href + q;
-            } catch (e) {
-              return m;
-            }
-          });
-        };
         var applyPreviewContent = function (payload) {
           var nextRoot = getRoot();
           var nextStyleTag = getStyleTag();
           if (!nextRoot || !nextStyleTag) return;
-          var base = String(payload && payload.origin || '').replace(/\\/$/, '');
-          var innerHtml = absolutizeHtmlAttrs(payload && payload.html || '', base);
-          var resetCss = absolutizeCssUrls(payload && payload.resetCss || '', base);
-          var styleCss = absolutizeCssUrls(payload && payload.styleCss || '', base);
+          var innerHtml = payload && payload.html || '';
+          var resetCss = payload && payload.resetCss || '';
+          var styleCss = payload && payload.styleCss || '';
           nextRoot.innerHTML = innerHtml;
           nextStyleTag.textContent = resetCss + '\\n' + styleCss;
         };

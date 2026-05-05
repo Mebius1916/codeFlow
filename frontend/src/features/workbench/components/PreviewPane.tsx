@@ -1,4 +1,4 @@
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy } from "react";
 import { useUiStore } from '@/features/workspace/store/uiStore';
 import { Loading } from '@/ui/Loading';
 import { useShallow } from 'zustand/react/shallow';
@@ -14,7 +14,6 @@ interface PreviewPaneProps {
 }
 
 export function PreviewPane({ isFullscreen }: PreviewPaneProps) {
-  const [previewEnabled] = useState(true);
   const { onMouseDown, onMouseEnter, onMouseLeave, handleStyle } = usePreviewResizeCssVars();
   const previewContentSize = useUiStore(useShallow((state) => state.previewContentSize));
   return (
@@ -35,19 +34,11 @@ export function PreviewPane({ isFullscreen }: PreviewPaneProps) {
           style={handleStyle}
         />
       )}
-      {previewEnabled && (
-        <Suspense fallback={
-          <Loading 
-            text="预览加载中..." 
-            detail={'Waiting'}
-            className="bg-[rgb(12, 14, 23)] text-gray-400"
-          />
-        }>
-          <LazyPreviewPanel
-            previewContentSize={previewContentSize}
-          />
-        </Suspense>
-      )}
+      <Suspense fallback={<Loading text="预览加载中..." className="bg-[rgb(12, 14, 23)] text-gray-400" />}>
+        <LazyPreviewPanel
+          previewContentSize={previewContentSize}
+        />
+      </Suspense>
     </div>
   );
 }

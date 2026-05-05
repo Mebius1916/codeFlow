@@ -1,11 +1,13 @@
 import figmaIconUrl from '@assets/Figma.svg';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useFigmaUrlParser } from '@/features/figma/hooks/useFigmaUrlParser';
 import { runConvertFlow } from '@/features/figma/services/runConvertFlow';
 
 export function SearchBox() {
   const navigate = useNavigate();
-  const { url, setUrl, state, parse, clearError } = useFigmaUrlParser();
+  const { state, parse, clearError } = useFigmaUrlParser();
+  const [url, setUrl] = useState('');
   const isLoading = state.status === 'loading';
   const error = state.status === 'error' ? state.error : null;
 
