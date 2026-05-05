@@ -9,6 +9,7 @@ interface PreviewIframeLayoutOptions {
   iframeRef: RefObject<HTMLIFrameElement | null>
   previewUrl: string | null
   layoutPayload: LayoutPayload
+  previewFiles: Record<string, string>
 }
 
 function readLayoutMessage(data: unknown): PreviewLayoutMessage | null {
@@ -27,13 +28,35 @@ export function usePreviewIframeLayout({
   iframeRef,
   previewUrl,
   layoutPayload,
+  previewFiles,
 }: PreviewIframeLayoutOptions) {
   const [isIframeLoaded, setIsIframeLoaded] = useState(false)
   const readyRef = useRef(false) // 是否已经握手
   const bootIdRef = useRef<string | null>(null) // iframe 唯一标识
   const layoutPayloadRef = useRef<LayoutPayload>(layoutPayload) // 布局参数
+  const previewFilesRef = useRef(previewFiles)
+  const previewOriginRef = useRef<string>('')
 
   layoutPayloadRef.current = layoutPayload
+  previewFilesRef.current = previewFiles
+  previewOriginRef.current = previewUrl ? new URL(previewUrl).origin : ''
+
+  const postPreviewContent = () => {
+    if (!readyRef.current) return
+    iframeRef.current?.contentWindow?.postMessage?.(
+      {
+        type: 'preview:update',
+        payload: {
+          bootId: bootIdRef.current,
+          origin: previewOriginRef.current,
+          html: previewFilesRef.current['src/index.html'] ?? '',
+          resetCss: previewFilesRef.current['src/reset.css'] ?? '',
+          styleCss: previewFilesRef.current['src/style.css'] ?? '',
+        },
+      },
+      '*',
+    )
+  }
 
   const postLayout = () => {
     if (!readyRef.current) return
@@ -60,6 +83,7 @@ export function usePreviewIframeLayout({
       if (message.type === 'preview:ready') {
         bootIdRef.current = message.payload?.bootId ?? null
         readyRef.current = true
+        postPreviewContent()
         postLayout()
         return
       }
@@ -74,6 +98,10 @@ export function usePreviewIframeLayout({
     window.addEventListener('message', handleMessage)
     return () => window.removeEventListener('message', handleMessage)
   }, [iframeRef])
+
+  useEffect(() => {
+    postPreviewContent()
+  }, [previewUrl, previewFiles])
 
   useEffect(() => {
     postLayout()

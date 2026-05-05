@@ -5,7 +5,6 @@ import { Loading } from '@/ui/Loading'
 import { initMonaco } from '../utils/initMonaco'
 import { EmptyState } from './common/EmptyState'
 import { useMonacoBinding } from '../monacoBinding/useMonacoBinding'
-import { ImagePreview } from './features/ImagePreview'
 import { MonacoEditorWrapper } from './features/MonacoEditorWrapper'
 import { useContentLayer } from '@/features/workspace/hooks/useContentLayer'
 
@@ -18,10 +17,8 @@ export function Editor() {
 
   const { isContentReady } = useContentLayer()
 
-  const isImage = activeFile ? /\.(svg|png|jpg|jpeg|gif|webp)$/i.test(activeFile) : false
-
   useEffect(() => {
-    if (!activeFile || isImage) return
+    if (!activeFile) return
     if (isMonacoReady) return
 
     let cancelled = false
@@ -36,11 +33,11 @@ export function Editor() {
     return () => {
       cancelled = true
     }
-  }, [activeFile, isImage, isMonacoReady])
+  }, [activeFile, isMonacoReady])
 
   useMonacoBinding({
     editor: editorRef.current,
-    activeFile: isImage ? null : activeFile,
+    activeFile,
     domReady: isEditorMounted,
   })
 
@@ -73,12 +70,12 @@ export function Editor() {
     return <EmptyState />
   }
 
-  const isLoading = !isImage && (!isMonacoReady || !isEditorMounted)
+  const isLoading = !isMonacoReady || !isEditorMounted
 
   return (
     <>
       {isLoading && <Loading text="正在初始化编辑器..." />}
-      <div style={{ display: isImage ? 'none' : isLoading ? 'none' : 'block', height: '100%' }}>
+      <div style={{ display: isLoading ? 'none' : 'block', height: '100%' }}>
         {isMonacoReady && (
           <MonacoEditorWrapper
             activeFile={activeFile}
@@ -90,7 +87,6 @@ export function Editor() {
           />
         )}
       </div>
-      {isImage && <ImagePreview />}
     </>
   )
 }

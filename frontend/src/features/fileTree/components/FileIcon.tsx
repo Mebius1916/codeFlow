@@ -1,10 +1,7 @@
 import React from 'react'
 import cssIcon from '@assets/Css.svg'
 import jsxIcon from '@assets/Jsx.svg'
-import assetsIcon from '@assets/Purple.svg'
-import svgIcon from '@assets/Svg.svg'
 import srcIcon from '@assets/Yellow.svg'
-import imageIcon from '@assets/Image.svg'
 
 interface FileIconProps {
   name: string
@@ -15,8 +12,6 @@ interface FileIconProps {
 export const FileIcon: React.FC<FileIconProps> = ({ name, isFolder }) => {
   const getIconSrc = () => {
     if (isFolder) {
-      if (name === 'src') return srcIcon
-      if (name === 'assets' || name === 'icons' || name === 'images') return assetsIcon
       return srcIcon
     }
 
@@ -24,13 +19,6 @@ export const FileIcon: React.FC<FileIconProps> = ({ name, isFolder }) => {
 
     if (lowerName.endsWith('.css') || lowerName.endsWith('.less') || lowerName.endsWith('.scss')) {
       return cssIcon
-    }
-
-    if (lowerName.endsWith('.svg')) {
-      return svgIcon
-    }
-    if (lowerName.endsWith('.png') || lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) {
-      return imageIcon
     }
 
     if (

@@ -1,30 +1,24 @@
 import { useState, useEffect, useRef } from 'react'
-import { getWebContainer, getLastPreviewUrl, subscribeLogs, subscribeServerReady } from '../webcontainer/runtime/runtime'
+import { getLastPreviewUrl, subscribeLogs, subscribeServerReady } from '../webcontainer/runtime/runtime'
 import { ensurePreviewServer } from '../webcontainer/runtime/bootstrap'
-import { syncFilesToWebContainer } from '../webcontainer/fs/syncFiles'
 
-export function useWebContainer(files: Record<string, string | Uint8Array>) {
+export function useWebContainer(files: Record<string, string>) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [logs, setLogs] = useState<string[]>([])
   const startedRef = useRef(false)
+
   const addLog = (msg: string) => {
     setLogs((prev: string[]) => [...prev.slice(-4), msg])
   }
-  const writerUrl = (url:string) => {
-      const webcontainerInstance = getWebContainer()
-      if (webcontainerInstance) {
-        webcontainerInstance.fs.writeFile('.preview-origin', new URL(url).origin)
-      }
-  }
+
   useEffect(() => {
     const lastUrl = getLastPreviewUrl()
     if (lastUrl) {
       console.log('[Preview] 使用上一次预览地址', lastUrl)
       setPreviewUrl(lastUrl)
       setIsLoading(false)
-      writerUrl(lastUrl);
     } else {
       console.log('[Preview] 未发现预览地址，等待 server-ready')
     }
@@ -33,7 +27,6 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
       console.log('[Preview] 收到 server-ready', url)
       setPreviewUrl(url)
       setIsLoading(false)
-      writerUrl(url);
     })
     return () => {
       unsubscribeLogs()
@@ -53,7 +46,7 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
     setError(null)
     setIsLoading(true)
     const startAt = performance.now()
-    ensurePreviewServer(files)
+    ensurePreviewServer()
       .then(() => {
         const afterServer = performance.now()
         console.log(`[Preview] ensurePreviewServer ${(afterServer - startAt).toFixed(1)}ms`)
@@ -61,7 +54,6 @@ export function useWebContainer(files: Record<string, string | Uint8Array>) {
         if (!urlAfter) {
           console.log('[Preview] server-ready 尚未触发')
         }
-        syncFilesToWebContainer(files)
       })
       .catch((e) => {
         setError(e instanceof Error ? e.message : String(e))

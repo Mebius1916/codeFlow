@@ -25,6 +25,7 @@ export function PreviewPanel({
     iframeRef,
     previewUrl,
     layoutPayload,
+    previewFiles,
   })
 
   type PreviewStatus = 'booting' | 'waiting_url' | 'waiting_layout' | 'ready'
