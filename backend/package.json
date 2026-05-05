@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/main.ts",
+    "dev": "nodemon --watch src --ext ts --exec \"node --experimental-specifier-resolution=node --loader ts-node/esm src/main.ts\"",
     "build": "tsc --noEmit",
-    "start": "tsx src/main.ts"
+    "start": "node --experimental-specifier-resolution=node --loader ts-node/esm src/main.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1042.0",
@@ -20,7 +20,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.17.50",
-    "tsx": "^4.20.3",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
 }

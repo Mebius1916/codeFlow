@@ -5,5 +5,4 @@ export const PREVIEW_SHELL_HEAD = `<!DOCTYPE html>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style id="preview-user-style"></style>
     <title>Preview</title>
-    <script src="https://cdn.tailwindcss.com" crossorigin="anonymous"></script>
 `

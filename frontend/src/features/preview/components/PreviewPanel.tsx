@@ -45,7 +45,6 @@ export function PreviewPanel({
           }}
           title="Preview"
           sandbox=" allow-same-origin allow-scripts"
-          allow="cross-origin-isolated"
           onPointerDown={handleIframePointerDown}
           onClick={handleIframeClick}
           tabIndex={0}
