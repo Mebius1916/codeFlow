@@ -1,21 +1,18 @@
 import { useEditorStore } from '@/features/workspace/store/editorStore'
 import { Loading } from '@/ui/Loading'
 import { useIframeScrollFocus } from '../hooks/useIframeScrollFocus'
-import { usePreviewAutoCapture } from '../hooks/usePreviewAutoCapture'
 import { usePreviewIframeLayout } from '../hooks/usePreviewIframeLayout'
 import { useWebContainer } from '../hooks/useWebContainer'
 import { useContainerSize } from '../hooks/useContainerSize'
 import type { RectSize } from '../interfaces/contracts'
-import { computeCaptureTargetSize, computeLayoutPayload } from '../utils/common'
+import { computeLayoutPayload } from '../utils/common'
 
 interface PreviewPanelProps {
   previewContentSize?: RectSize | null
-  onCapturePngBase64?: (base64: string) => void
 }
 
 export function PreviewPanel({
   previewContentSize,
-  onCapturePngBase64,
 }: PreviewPanelProps) {
   const previewFiles = useEditorStore((state) => state.files)
   const { iframeRef, handleIframePointerDown, handleIframeClick } = useIframeScrollFocus()
@@ -23,7 +20,6 @@ export function PreviewPanel({
   const { previewUrl, isLoading, error, logs } = useWebContainer(previewFiles)
 
   const layoutPayload = computeLayoutPayload(previewContentSize, containerSize)
-  const targetExportSize = computeCaptureTargetSize(previewContentSize, containerSize)
 
   const { isIframeLoaded } = usePreviewIframeLayout({
     iframeRef,
@@ -44,13 +40,6 @@ export function PreviewPanel({
   const lastLog = logs[logs.length - 1]
   const loadingText =
     status === 'waiting_url' ? '等待预览地址...' : '启动预览环境...'
-
-  usePreviewAutoCapture({
-    targetSize: targetExportSize,
-    disabled: Boolean(error) || !isReady,
-    iframeRef,
-    onCapturedBase64: onCapturePngBase64,
-  })
 
   if (error) {
     return (

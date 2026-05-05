@@ -49,53 +49,6 @@ export const PREVIEW_SHELL_RUNTIME = `    <script>
         }
         window.addEventListener('load', notifyReady);
         window.addEventListener('resize', function () { layout(); });
-
-        // 截图：监听 preview:capture，使用 modern-screenshot 的 domToBlob
-        window.addEventListener('message', function (e) {
-          var d = e && e.data;
-          if (!d || typeof d !== 'object' || d.type !== 'preview:capture') return;
-          var p = d.payload || {};
-          var w = p.width;
-          var h = p.height;
-          var root = document.getElementById('preview-scale-root');
-          if (!root || !window.modernScreenshot) {
-            try { window.parent.postMessage({ type: 'preview:capture:error', payload: { message: 'modern-screenshot not ready' } }, '*'); } catch (_) {}
-            return;
-          }
-
-          window.modernScreenshot.domToBlob(root, {
-            width: w || root.scrollWidth,
-            height: h || root.scrollHeight,
-            scale: 1,
-            backgroundColor: '#ffffff',
-            // 在克隆节点上去掉 transform
-            onCloneNode: function (cloned) {
-              if (cloned && cloned.id === 'preview-scale-root') {
-                cloned.style.transform = 'none';
-                cloned.style.transformOrigin = 'top left';
-                if (w) cloned.style.width = w + 'px';
-                if (h) cloned.style.height = h + 'px';
-              }
-            },
-          }).then(function (blob) {
-            if (!blob) {
-              try { window.parent.postMessage({ type: 'preview:capture:error', payload: { message: 'domToBlob returned null' } }, '*'); } catch (_) {}
-              return;
-            }
-            var reader = new FileReader();
-            reader.onload = function () {
-              try {
-                window.parent.postMessage({
-                  type: 'preview:capture:done',
-                  payload: { buffer: reader.result, width: w, height: h },
-                }, '*', [reader.result]);
-              } catch (_) {}
-            };
-            reader.readAsArrayBuffer(blob);
-          }).catch(function (err) {
-            try { window.parent.postMessage({ type: 'preview:capture:error', payload: { message: String(err) } }, '*'); } catch (_) {}
-          });
-        });
       })();
     </script>
 `

@@ -5,7 +5,6 @@ export interface FigmaCodegenResult {
   size?: { width: number; height: number }
 }
 
-export interface FigmaParseResult {
-  assets_path_map: Map<string, string>
-  codegen_result: FigmaCodegenResult | null
+export interface FigmaConvertResult {
+  codegenResult: FigmaCodegenResult
 }

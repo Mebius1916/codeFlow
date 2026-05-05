@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { getDefaultOptions, setOptions } from '@codify/design2code';
 import type { AlgorithmOptions } from '@codify/design2code';
 import { useUiStore } from '@/features/workspace/store/uiStore';
-import { clearSessionAssetPathMap, getSessionAssetPathMap } from '../utils/assetsMap';
-import { fetchFigmaData, parseFigmaUrl, safeCodegen, safeExtractDesign } from '../services/figma';
-import type { FigmaParseResult } from '../interfaces/model';
+import { convertFigma } from '../services/figma';
+import type { FigmaConvertResult } from '../interfaces/model';
 
 type FigmaUrlParserState =
   | { status: 'idle' }
   | { status: 'loading' }
-  | { status: 'success'; data: FigmaParseResult }
+  | { status: 'success'; data: FigmaConvertResult }
   | { status: 'error'; error: string };
 
 export function useFigmaUrlParser() {
@@ -33,39 +31,13 @@ export function useFigmaUrlParser() {
     }
 
     setState({ status: 'loading' });
-    clearSessionAssetPathMap();
 
     try {
-      setOptions(getDefaultOptions());
-      if (storedAlgorithmOptions && Object.keys(storedAlgorithmOptions).length) {
-        setOptions(storedAlgorithmOptions as Partial<AlgorithmOptions>);
-      }
-      if (algorithmOptions) {
-        setOptions(algorithmOptions);
-      }
-      const { fileKey, dataApiUrl } = parseFigmaUrl(inputUrl);
-
-      const figmaData = await fetchFigmaData(dataApiUrl, token);
-
-      // 2. 调用 D2C Engine 进行转换
-      const simplifiedDesign = await safeExtractDesign({ figmaData, fileKey, token });
-      if (!simplifiedDesign) {
-        throw new Error('Figma 解析失败');
-      }
-
-      // 3. 调用 Codegen 生成代码
-      const codegenResult = safeCodegen(simplifiedDesign);
-      if (!codegenResult) {
-        throw new Error('Codegen 失败');
-      }
-
-      const assetsPathMap = getSessionAssetPathMap();
-
-      const result: FigmaParseResult = {
-        assets_path_map: assetsPathMap,
-        codegen_result: codegenResult
-      };
-
+      const result = await convertFigma({
+        figmaUrl: inputUrl,
+        token,
+        algorithmOptions: (algorithmOptions || storedAlgorithmOptions) as Partial<AlgorithmOptions> | undefined,
+      });
       setState({ status: 'success', data: result });
       return result;
     } catch (e: unknown) {

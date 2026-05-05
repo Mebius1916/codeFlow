@@ -1,33 +1,23 @@
 import { createLocalForageContentRepository } from '@/features/workspace/repository/contentRepository'
 import { useEditorStore } from '@/features/workspace/store/editorStore'
 import { useUiStore } from '@/features/workspace/store/uiStore'
-import type { FigmaParseResult } from '../interfaces/model'
-import { getCachedResourceByAssetPath } from '@/features/figma/utils/imageCache'
+import type { FigmaConvertResult } from '../interfaces/model'
 import { DEFAULT_RESET_CSS } from '@/features/workspace/utils/defaultFiles'
 import { formatCss, formatHtml } from '@/utils/format'
 
 type FileContent = string | Uint8Array
 
-export async function runConvertFlow(result: FigmaParseResult) {
-  const size = result.codegen_result?.size
+export async function runConvertFlow(result: FigmaConvertResult) {
+  const size = result.codegenResult?.size
   const nextSize = size?.width && size?.height ? size : undefined
   useUiStore.getState().setPreviewContentSize(nextSize ?? null)
 
-  if (!result.codegen_result) return
-
-  const { html, body, css } = result.codegen_result
+  const { html, body, css } = result.codegenResult
   const files: Record<string, FileContent> = {
     'src/index.html': formatHtml(body ?? html),
     'src/reset.css': DEFAULT_RESET_CSS,
     'src/style.css': formatCss(css),
   }
-
-  await Promise.all(
-    Array.from(result.assets_path_map.entries()).map(async ([path, assetPath]) => {
-      const snapshot = await getCachedResourceByAssetPath(assetPath)
-      if (snapshot?.content !== undefined) files[path] = snapshot.content
-    }),
-  )
 
   const { initializeFiles, openFile } = useEditorStore.getState()
   initializeFiles(files)
