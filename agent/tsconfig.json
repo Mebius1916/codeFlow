@@ -17,7 +17,6 @@
     "steps/**/*.ts",
     "prompts/**/*.ts",
     "llm/**/*.ts",
-    "tools/**/*.ts",
     "utils/**/*.ts",
     "interfaces/**/*.ts"
   ]

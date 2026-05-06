@@ -1,3 +1,11 @@
+export interface VisualRegressionConfig {
+  renderEndpoint: string;
+  targetSimilarity: number;
+  viewportWidth: number;
+  viewportHeight: number;
+  diffThreshold: number;
+}
+
 export interface RunVisualRepairParams {
   baselinePngBase64: string;
   currentPngBase64: string;
@@ -9,6 +17,7 @@ export interface RunVisualRepairParams {
   apiKey: string;
   baseUrl: string;
   temperature: number;
+  visualRegression: VisualRegressionConfig;
 }
 
 export interface VisualDiffParams {
@@ -20,4 +29,8 @@ export interface VisualDiffParams {
   baseUrl: string;
   temperature: number;
   threshold: number;
+  renderEndpoint?: string;
+  targetSimilarity?: number;
+  viewportWidth?: number;
+  viewportHeight?: number;
 }

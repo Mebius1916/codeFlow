@@ -1,11 +1,6 @@
 import type { VisualRepairContext } from "./loop.js";
 
-export type RepairActionType =
-  | "plan"
-  | "reobserve"
-  | "retry_with_new_plan"
-  | "rewrite"
-  | "finish";
+export type RepairActionType = "plan" | "rewrite" | "finish";
 
 export interface RepairAction {
   type: RepairActionType;
@@ -17,6 +12,19 @@ export function decideNextAction(context: VisualRepairContext): RepairAction {
     context.reviewResult,
     context.repairPatches,
   ];
+
+  const targetSimilarity = context.input.visualRegression?.targetSimilarity;
+  if (
+    typeof targetSimilarity === "number" &&
+    context.similarity >= targetSimilarity &&
+    // 仅当已经至少 rewrite 过一次，再基于新截图判断早停，避免对初始输入直接短路。
+    context.rewriteRounds > 0
+  ) {
+    return {
+      type: "finish",
+      reason: `视觉相似度 ${(context.similarity * 100).toFixed(2)}% 已达到目标 ${(targetSimilarity * 100).toFixed(2)}%，提前收敛。`,
+    };
+  }
 
   if (!repairPatches || repairPatches.length === 0) {
     return {
@@ -32,32 +40,15 @@ export function decideNextAction(context: VisualRepairContext): RepairAction {
     };
   }
 
-  if (
-    reviewResult.status === "done" ||
-    reviewResult.status === "blocked"
-  ) {
+  if (reviewResult.status === "done" || reviewResult.status === "blocked") {
     return {
       type: "finish",
       reason: reviewResult.summary,
     };
   }
 
-  if (context.lastAction === "rewrite") {
-    return {
-      type: "reobserve",
-      reason: "上一轮 rewrite 后仍未通过自检，先补充观察最新问题。",
-    };
-  }
-
-  if (context.lastAction === "reobserve") {
-    return {
-      type: "retry_with_new_plan",
-      reason: "补充观察后需要刷新修改方案，先基于新观察重做计划。",
-    };
-  }
-
   return {
-    type: "rewrite",
-    reason: "已完成补充观察和重新规划，继续按新计划执行 rewrite。",
+    type: "plan",
+    reason: "上一轮 rewrite 后 review 未通过，基于最新视觉与上轮 review 结论重新规划。",
   };
 }

@@ -4,10 +4,8 @@ import { reviewHtml } from "../steps/reviewHtml.js";
 import { rewriteHtml } from "../steps/rewriteHtml.js";
 import type { RepairAction } from "./decideNextAction.js";
 import type { VisualRepairContext } from "./loop.js";
-import {
-  buildReobservedAnalysis,
-  resolveExecutableAction,
-} from "./utils/actionHelpers.js";
+import { resolveExecutableAction } from "./utils/actionHelpers.js";
+import { refreshVisualRegression } from "./utils/visualRegression.js";
 
 export async function executeRepairAction(
   llm: ChatOpenAI,
@@ -17,31 +15,18 @@ export async function executeRepairAction(
   const executableAction = resolveExecutableAction(context, action);
 
   switch (executableAction.type) {
-    case "plan":
+    case "plan": {
       context.lastAction = "plan";
-      // runtime 内部保留 context，但下游 step 只接收当前动作真正需要的字段。
-      context.repairPatches = await planVisualRepair(llm, {
-        analysisJson: context.analysisJson ?? "",
+      const { patches, appendedMessages } = await planVisualRepair(llm, {
+        context,
         currentHtml: context.currentHtml,
       });
-      return executableAction;
-
-    case "reobserve":
-      context.lastAction = "reobserve";
-      context.reobserveRounds += 1;
-      context.analysisJson = buildReobservedAnalysis(context);
-      return executableAction;
-
-    case "retry_with_new_plan":
-      context.lastAction = "retry_with_new_plan";
-      context.repairPatches = await planVisualRepair(llm, {
-        analysisJson: context.analysisJson ?? "",
-        currentHtml: context.currentHtml,
-      });
-
-      // 旧 review 已经服务完重规划，这里清掉，强制下一轮进入 rewrite。
+      context.history.push(...appendedMessages);
+      context.repairPatches = patches;
+      // 清掉旧 review
       context.reviewResult = undefined;
       return executableAction;
+    }
 
     case "rewrite": {
       context.lastAction = "rewrite";
@@ -53,19 +38,30 @@ export async function executeRepairAction(
       );
 
       // patch 只作为结构化计划，真正的改写仍交给 AI 执行。
-      const rewriteResult = await rewriteHtml(llm, {
-        analysisJson: context.analysisJson ?? "",
-        repairPatchesJson,
-        currentHtml: context.currentHtml,
-      });
+      const { result: rewriteResult, appendedMessages: rewriteAppend } =
+        await rewriteHtml(llm, {
+          context,
+          repairPatchesJson,
+          currentHtml: context.currentHtml,
+        });
+      context.history.push(...rewriteAppend);
       context.currentHtml = rewriteResult.html;
 
-      // 对改写结果做代码层自检，为下一步动作选择提供依据。
-      context.reviewResult = await reviewHtml(llm, {
-        analysisJson: context.analysisJson ?? "",
+      // 每轮 rewrite 后闭环视觉回归；新截图等会被 toLLMMessages 在下一次调用时自然投影出去。
+      try {
+        await refreshVisualRegression(context);
+      } catch {
+        // 渲染失败时不影响 rewrite 本身；下一轮仍可基于代码层 review 继续推进。
+      }
+
+      // 对改写结果做代码层 + 视觉层综合自检，为下一步动作选择提供依据。
+      const { result, appendedMessages } = await reviewHtml(llm, {
+        context,
         repairPatchesJson,
         currentHtml: context.currentHtml,
       });
+      context.history.push(...appendedMessages);
+      context.reviewResult = result;
       return executableAction;
     }
 

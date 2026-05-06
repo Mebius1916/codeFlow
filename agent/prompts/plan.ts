@@ -1,8 +1,3 @@
-export interface PlanVisualRepairPromptInput {
-  analysisJson: string;
-  currentHtml: string;
-}
-
 export const planVisualRepairSystemPrompt = [
   "你是资深前端修复方案设计师。",
   "你会收到一份视觉差异分析报告和当前的 Tailwind HTML 片段。",
@@ -17,18 +12,3 @@ export const planVisualRepairSystemPrompt = [
   "- 如果无法安全给出建议，应返回空结果，不要猜测",
   "- reason 要说明为什么需要这次替换，便于后续 rewrite 和 review 理解",
 ].join("\n");
-
-export function buildPlanVisualRepairUserText({
-  analysisJson,
-  currentHtml,
-}: PlanVisualRepairPromptInput): string {
-  return [
-    "## 视觉差异分析报告",
-    analysisJson,
-    "",
-    "## 当前 Tailwind HTML 片段",
-    currentHtml,
-    "",
-    "请基于以上信息生成一份按优先级排序的结构化修复计划。",
-  ].join("\n");
-}

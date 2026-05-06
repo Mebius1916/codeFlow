@@ -1,4 +1,8 @@
-import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import {
+  AIMessage,
+  HumanMessage,
+  type BaseMessage,
+} from "@langchain/core/messages";
 import type { ChatOpenAI } from "@langchain/openai";
 
 import {
@@ -10,36 +14,50 @@ import {
   observeVisualDiffSystemPrompt,
   type ObserveVisualDiffPromptInput,
 } from "../prompts/observe.js";
+import type { VisualRepairContext } from "../runtime/loop.js";
+import { toLLMMessages } from "../runtime/utils/llmContext.js";
 import { sanitizers } from "../sanitizers/index.js";
-import { toPngDataUrl } from "./utils/common.js";
 
 export interface ObserveVisualDiffInput extends ObserveVisualDiffPromptInput {
-  baselinePngBase64: string;
-  currentPngBase64: string;
-  diffPngBase64: string;
+  context: VisualRepairContext;
+}
+
+export interface ObserveVisualDiffOutput {
+  observation: ObserveResult;
+  appendedMessages: BaseMessage[];
+}
+
+function buildObserveInstruction(input: ObserveVisualDiffPromptInput): string {
+  return [
+    observeVisualDiffSystemPrompt,
+    "",
+    "===== 本步任务 =====",
+    buildObserveVisualDiffUserText(input),
+  ].join("\n");
 }
 
 export async function observeVisualDiff(
   llm: ChatOpenAI,
   input: ObserveVisualDiffInput
-): Promise<ObserveResult> {
+): Promise<ObserveVisualDiffOutput> {
   const structuredLlm = llm.withStructuredOutput(observeResultSchema, {
     name: "ObserveResult",
     strict: true,
   });
-  const system = new SystemMessage(observeVisualDiffSystemPrompt);
-  const user = new HumanMessage({
-    content: [
-      { type: "image_url", image_url: { url: toPngDataUrl(input.baselinePngBase64) } },
-      { type: "image_url", image_url: { url: toPngDataUrl(input.currentPngBase64) } },
-      { type: "image_url", image_url: { url: toPngDataUrl(input.diffPngBase64) } },
-      {
-        type: "text",
-        text: buildObserveVisualDiffUserText(input),
-      },
-    ],
-  });
 
-  const observation = await structuredLlm.invoke([system, user]);
-  return sanitizers.observe(observation);
+  const instruction = new HumanMessage(buildObserveInstruction(input));
+
+
+  const projected = await toLLMMessages(input.context, llm);
+  const observation = await structuredLlm.invoke([...projected, instruction]);
+  const sanitized = sanitizers.observe(observation);
+
+  // 把本步的 Human 指令 + AI 的结构化观察结果 append 回去，作为后续步骤可见的"历史"。
+  // AI 这一侧用 JSON.stringify 把结构化结果落为文本，便于下游 step 的 LLM 直接读。
+  const appendedMessages: BaseMessage[] = [
+    instruction,
+    new AIMessage(JSON.stringify(sanitized, null, 2)),
+  ];
+
+  return { observation: sanitized, appendedMessages };
 }
