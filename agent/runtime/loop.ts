@@ -18,7 +18,6 @@ export interface VisualRepairContext {
   currentPngBase64: string;
   diffPngBase64: string;
   diffRatio: number;
-  similarity: number;
   repairPatches?: RepairPatch[];
   reviewResult?: ReviewResult;
   lastAction?: RepairAction["type"];
@@ -40,13 +39,11 @@ export async function runVisualRepairLoop(
     currentPngBase64: params.currentPngBase64,
     diffPngBase64: params.diffPngBase64,
     diffRatio: params.diffRatio,
-    similarity: params.similarity,
     history: [],
   };
 
   const { appendedMessages: observeAppend } = await observeVisualDiff(llm, {
     context,
-    similarity: params.similarity,
     diffRatio: params.diffRatio,
   });
   context.history.push(...observeAppend);

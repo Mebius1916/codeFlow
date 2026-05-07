@@ -34,7 +34,6 @@ export interface RenderAndDiffResult {
   currentPngBase64: string;
   diffPngBase64: string;
   diffRatio: number;
-  similarity: number;
 }
 
 // 通过后端 /api/render/html 接口把 HTML 字符串渲染成 PNG base64
@@ -122,6 +121,5 @@ export async function renderAndDiffAgainstBaseline(
     currentPngBase64: rendered.base64,
     diffPngBase64: diff.diffBase64,
     diffRatio: diff.diffRatio,
-    similarity: 1 - diff.diffRatio,
   };
 }

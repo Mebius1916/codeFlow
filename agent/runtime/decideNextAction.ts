@@ -16,13 +16,14 @@ export function decideNextAction(context: VisualRepairContext): RepairAction {
   const targetSimilarity = context.input.visualRegression?.targetSimilarity;
   if (
     typeof targetSimilarity === "number" &&
-    context.similarity >= targetSimilarity &&
+    context.diffRatio <= 1 - targetSimilarity &&
     // 仅当已经至少 rewrite 过一次，再基于新截图判断早停，避免对初始输入直接短路。
     context.rewriteRounds > 0
   ) {
+    const similarity = 1 - context.diffRatio;
     return {
       type: "finish",
-      reason: `视觉相似度 ${(context.similarity * 100).toFixed(2)}% 已达到目标 ${(targetSimilarity * 100).toFixed(2)}%，提前收敛。`,
+      reason: `视觉相似度 ${(similarity * 100).toFixed(2)}% 已达到目标 ${(targetSimilarity * 100).toFixed(2)}%，提前收敛。`,
     };
   }
 

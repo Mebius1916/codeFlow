@@ -11,7 +11,6 @@ export interface RunVisualRepairParams {
   currentPngBase64: string;
   diffPngBase64: string;
   diffRatio: number;
-  similarity: number;
   html: string;
   model: string;
   apiKey: string;

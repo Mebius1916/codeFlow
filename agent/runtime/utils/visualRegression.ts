@@ -19,5 +19,4 @@ export async function refreshVisualRegression(
   context.currentPngBase64 = result.currentPngBase64;
   context.diffPngBase64 = result.diffPngBase64;
   context.diffRatio = result.diffRatio;
-  context.similarity = result.similarity;
 }

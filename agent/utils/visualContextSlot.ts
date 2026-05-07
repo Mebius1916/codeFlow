@@ -6,7 +6,6 @@ export interface VisualContextSlotInput {
   currentPngBase64: string;
   diffPngBase64: string;
   rewriteRounds?: number;
-  similarity?: number;
   diffRatio?: number;
 }
 
@@ -20,8 +19,8 @@ export function buildVisualContextMessage(
       : "（初始状态，尚未 rewrite）";
 
   const metrics =
-    typeof input.similarity === "number" && typeof input.diffRatio === "number"
-      ? `similarity=${(input.similarity * 100).toFixed(2)}%，diffRatio=${input.diffRatio.toFixed(6)}`
+    typeof input.diffRatio === "number"
+      ? `diffRatio=${input.diffRatio.toFixed(6)}`
       : "";
 
   return new HumanMessage({

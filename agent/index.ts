@@ -47,7 +47,6 @@ export function visualDiff(params: VisualDiffParams) {
     currentPngBase64,
     diffPngBase64: diff.diffBase64,
     diffRatio: diff.diffRatio,
-    similarity: 1 - diff.diffRatio,
     html,
     model,
     apiKey,

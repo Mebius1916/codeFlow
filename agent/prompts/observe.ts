@@ -1,5 +1,4 @@
 export interface ObserveVisualDiffPromptInput {
-  similarity: number;
   diffRatio: number;
 }
 
@@ -23,13 +22,12 @@ export const observeVisualDiffSystemPrompt = [
 ].join("\n");
 
 export function buildObserveVisualDiffUserText({
-  similarity,
   diffRatio,
 }: ObserveVisualDiffPromptInput): string {
   return [
     "以上三张图依次为：baseline（设计稿）、current（实现截图）、diff（差异图）。",
     "其中 current 来自当前 Tailwind HTML 片段的渲染结果，后续会基于你的分析去修改这段 Tailwind 片段。",
-    `similarity=${(similarity * 100).toFixed(2)}%，diffRatio=${diffRatio.toFixed(6)}`,
+    `diffRatio=${diffRatio.toFixed(6)}`,
     "请从 8 个维度逐一分析差异，并给出结构化观察结果。",
   ].join("\n");
 }

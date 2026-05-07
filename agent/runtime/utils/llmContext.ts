@@ -28,7 +28,6 @@ export async function toLLMMessages(
       currentPngBase64: ctx.currentPngBase64,
       diffPngBase64: ctx.diffPngBase64,
       rewriteRounds: ctx.rewriteRounds,
-      similarity: ctx.similarity,
       diffRatio: ctx.diffRatio,
     }),
   ];
