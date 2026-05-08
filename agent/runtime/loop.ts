@@ -20,6 +20,7 @@ export interface VisualRepairContext {
   diffRatio: number;
   repairPatches?: RepairPatch[];
   reviewResult?: ReviewResult;
+  visualRegressionError?: string;
   lastAction?: RepairAction["type"];
   history: BaseMessage[];
 }
@@ -46,6 +47,7 @@ export async function runVisualRepairLoop(
     context,
     diffRatio: params.diffRatio,
   });
+
   context.history.push(...observeAppend);
 
   // 基于当前上下文先决定第一次动作，后续每轮执行完再重新判断。

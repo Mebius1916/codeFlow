@@ -5,12 +5,20 @@ interface ConvertFigmaOptions {
   figmaUrl: string
   token: string
   algorithmOptions?: Partial<AlgorithmOptions>
+  aiEnhance?: boolean
+  aiOptions?: {
+    model?: string
+    apiKey: string
+    baseUrl?: string
+  }
 }
 
 export async function convertFigma({
   figmaUrl,
   token,
   algorithmOptions,
+  aiEnhance,
+  aiOptions,
 }: ConvertFigmaOptions): Promise<FigmaConvertResult> {
   const baseUrl = import.meta.env.VITE_BACKEND_URL?.trim();
   const resp = await fetch(`${baseUrl}/api/figma/convert`, {
@@ -20,6 +28,8 @@ export async function convertFigma({
       figmaUrl,
       token,
       algorithmOptions,
+      aiEnhance,
+      aiOptions,
     }),
   })
 

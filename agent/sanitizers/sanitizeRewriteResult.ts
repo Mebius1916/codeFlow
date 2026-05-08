@@ -1,4 +1,5 @@
 import type { RewriteResult } from "../interfaces/rewriteResult.js";
+import { extractDataIds } from "./utils/dataIds.js";
 
 export function sanitizeRewriteResult(
   result: RewriteResult,
@@ -12,13 +13,10 @@ export function sanitizeRewriteResult(
   }
 
   if (context.previousHtml) {
-    const extractDataIds = (html: string): string[] => 
-      [...html.matchAll(/data-id=(["'])(.*?)\1/g)].map((match) => match[2]);
-    
     // 查看是否有元素丢失
     const previousDataIds = extractDataIds(context.previousHtml);
-    const nextDataIds = new Set(extractDataIds(nextHtml));
-    const keepsAllDataIds = previousDataIds.every((dataId) =>
+    const nextDataIds = extractDataIds(nextHtml);
+    const keepsAllDataIds = [...previousDataIds].every((dataId) =>
       nextDataIds.has(dataId)
     );
 

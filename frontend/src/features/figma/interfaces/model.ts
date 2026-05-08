@@ -7,4 +7,13 @@ export interface FigmaCodegenResult {
 
 export interface FigmaConvertResult {
   codegenResult: FigmaCodegenResult
+  aiEnhancedResult?: {
+    html: string
+    css: string
+  }
+  aiEnhanceMeta?: {
+    enabled: boolean
+    status: 'skipped' | 'done' | 'failed'
+    error?: string
+  }
 }

@@ -12,9 +12,18 @@ type FigmaUrlParserState =
 
 export function useFigmaUrlParser() {
   const [state, setState] = useState<FigmaUrlParserState>({ status: 'idle' });
-  const { figmaToken, algorithmOptions: storedAlgorithmOptions } = useUiStore((s) => ({
+  const {
+    figmaToken,
+    algorithmOptions: storedAlgorithmOptions,
+    aiEnhance,
+    modelApiEndpoint,
+    modelApiKey,
+  } = useUiStore((s) => ({
     figmaToken: s.figmaToken,
     algorithmOptions: s.algorithmOptions,
+    aiEnhance: s.aiEnhance,
+    modelApiEndpoint: s.modelApiEndpoint,
+    modelApiKey: s.modelApiKey,
   }));
 
   const parse = async (inputUrl: string, algorithmOptions?: Partial<AlgorithmOptions>) => {
@@ -36,6 +45,13 @@ export function useFigmaUrlParser() {
         figmaUrl: inputUrl,
         token,
         algorithmOptions: (algorithmOptions || storedAlgorithmOptions) as Partial<AlgorithmOptions> | undefined,
+        aiEnhance,
+        aiOptions: aiEnhance
+          ? {
+              baseUrl: modelApiEndpoint.trim(),
+              apiKey: modelApiKey.trim(),
+            }
+          : undefined,
       });
       setState({ status: 'success', data: result });
       return result;

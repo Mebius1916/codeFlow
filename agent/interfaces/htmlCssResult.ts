@@ -1,8 +1,17 @@
 import { z } from "zod";
 
+const styleTagPattern = /<\/?style(?:\s|>|\/)/i;
+
 export const htmlCssResultSchema = z.object({
-  html: z.string().min(1),
-  css: z.string(),
+  html: z
+    .string()
+    .min(1)
+    .refine((value) => !styleTagPattern.test(value), {
+      message: "html must not contain style tags",
+    }),
+  css: z.string().refine((value) => !styleTagPattern.test(value), {
+    message: "css must not contain style tags",
+  }),
 });
 
 export type HtmlCssResult = z.infer<typeof htmlCssResultSchema>;

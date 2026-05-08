@@ -1,9 +1,14 @@
 import { Module } from '@nestjs/common'
-import { FigmaController } from './figmaController.ts'
-import { FigmaService } from './figmaService.ts'
+import { RenderModule } from '../render/renderModule.ts'
+import { FigmaController } from './controllers/figmaController.ts'
+import { FigmaAiEnhanceService } from './services/figmaAiEnhanceService.ts'
+import { FigmaApiClient } from './services/figmaApiClient.ts'
+import { FigmaCodegenService } from './services/figmaCodegenService.ts'
+import { FigmaService } from './services/figmaService.ts'
 
 @Module({
+  imports: [RenderModule],
   controllers: [FigmaController],
-  providers: [FigmaService],
+  providers: [FigmaService, FigmaApiClient, FigmaCodegenService, FigmaAiEnhanceService],
 })
 export class FigmaModule {}

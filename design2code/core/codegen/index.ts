@@ -2,7 +2,7 @@ import type { SimplifiedDesign } from "../types/extractor-types.js";
 import { createCodegenContext } from "./context/index.js";
 import { generateHTMLParts } from "./html/index.js";
 
-interface CodegenResult {
+export interface CodegenResult {
   html: string;
   css: string;
   body: string;

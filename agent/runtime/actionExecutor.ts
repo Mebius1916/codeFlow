@@ -7,6 +7,13 @@ import type { VisualRepairContext } from "./loop.js";
 import { resolveExecutableAction } from "./utils/actionHelpers.js";
 import { refreshVisualRegression } from "./utils/visualRegression.js";
 
+function formatRuntimeError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+
 export async function executeRepairAction(
   llm: ChatOpenAI,
   context: VisualRepairContext,
@@ -50,8 +57,10 @@ export async function executeRepairAction(
       // 每轮 rewrite 后闭环视觉回归；新截图等会被 toLLMMessages 在下一次调用时自然投影出去。
       try {
         await refreshVisualRegression(context);
-      } catch {
+        context.visualRegressionError = undefined;
+      } catch (error) {
         // 渲染失败时不影响 rewrite 本身；下一轮仍可基于代码层 review 继续推进。
+        context.visualRegressionError = formatRuntimeError(error);
       }
 
       // 对改写结果做代码层 + 视觉层综合自检，为下一步动作选择提供依据。

@@ -32,6 +32,18 @@ export async function toLLMMessages(
     }),
   ];
 
+  if (ctx.visualRegressionError) {
+    baseline.push(
+      new SystemMessage(
+        [
+          "运行时提示：上一轮 rewrite 后视觉回归渲染或 diff 失败。",
+          "当前 messages 顶部的 current/diff 可能不是最新 rewrite 的渲染结果。",
+          `失败原因：${ctx.visualRegressionError}`,
+        ].join("\n")
+      )
+    );
+  }
+
   if (ctx.history.length === 0) {
     return baseline;
   }

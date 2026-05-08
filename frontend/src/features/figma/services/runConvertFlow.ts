@@ -10,11 +10,12 @@ export async function runConvertFlow(result: FigmaConvertResult) {
   const nextSize = size?.width && size?.height ? size : undefined
   useUiStore.getState().setPreviewContentSize(nextSize ?? null)
 
+  const enhanced = result.aiEnhanceMeta?.status === 'done' ? result.aiEnhancedResult : undefined
   const { html, body, css } = result.codegenResult
   const files: Record<string, string> = {
-    'src/index.html': formatHtml(body ?? html),
+    'src/index.html': formatHtml(enhanced?.html ?? body ?? html),
     'src/reset.css': DEFAULT_RESET_CSS,
-    'src/style.css': formatCss(css),
+    'src/style.css': formatCss(enhanced?.css ?? css),
   }
 
   const { initializeFiles, openFile } = useEditorStore.getState()
